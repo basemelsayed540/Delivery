@@ -9,34 +9,40 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 min-h-screen flex items-center justify-center p-4 transition-colors duration-300">
+
+    <div class="absolute top-4 left-4 z-50">
+        <button onclick="toggleTheme()" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-md text-slate-500 dark:text-slate-300 hover:text-indigo-600 transition-colors">
+            <i id="themeIcon" class="fas fa-moon text-xl"></i>
+        </button>
+    </div>
 
     <div class="max-w-md w-full animate-fade-in">
         <div class="glass p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
-            <!-- Decorative circle -->
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl"></div>
-            
+
             <div class="text-center mb-8 relative">
                 <div class="w-20 h-20 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-200">
                     <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-extrabold text-slate-800 mb-2">مرحباً بك</h1>
-                <p class="text-slate-500 font-semibold">سجل دخولك لمتابعة شحناتك</p>
+                <h1 class="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">لايت شبينج</h1>
+                <p class="text-slate-500 dark:text-slate-400 font-semibold">سجل دخولك لمتابعة شحناتك</p>
             </div>
 
             <form id="loginForm" class="space-y-6 relative">
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2 mr-1">رقم الموبايل</label>
-                    <input type="text" id="phone" name="phone" required class="input-field" placeholder="01xxxxxxxxx">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 mr-1">رقم الموبايل</label>
+                    <input type="text" id="phone" name="phone" required class="input-field bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700" placeholder="01xxxxxxxxx">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2 mr-1">كلمة المرور</label>
-                    <input type="password" id="password" name="password" required class="input-field" placeholder="••••••••">
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 mr-1">كلمة المرور</label>
+                    <input type="password" id="password" name="password" required class="input-field bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700" placeholder="••••••••">
                 </div>
-                
+
                 <div class="flex items-center justify-between px-1">
                     <label class="flex items-center gap-2 cursor-pointer group">
                         <input type="checkbox" class="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500">
@@ -54,11 +60,52 @@
             </form>
 
             <div class="mt-8 pt-6 border-t border-slate-100 text-center">
-                <p class="text-slate-500 font-semibold">ليس لديك حساب؟ <a href="#" class="text-indigo-600 font-bold hover:underline">أنشئ حساباً كمنادوب</a></p>
+                <p class="text-slate-500 font-semibold">ليس لديك حساب؟ <a href="#" id="openRepSignup" class="text-indigo-600 font-bold hover:underline">انشئ حساب</a></p>
             </div>
         </div>
-        
+
         <p class="text-center mt-8 text-slate-400 font-bold text-sm">© 2026 نظام الشحن المتطور - جميع الحقوق محفوظة</p>
+    </div>
+
+    <div id="repSignupModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+        <div class="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl p-6 md:p-8 relative">
+            <button type="button" id="closeRepSignup" class="absolute top-4 left-4 w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="mb-6">
+                <h2 class="text-2xl font-extrabold text-slate-800 dark:text-white mb-2">إنشاء حساب مندوب</h2>
+                <p class="text-slate-500 dark:text-slate-400 font-semibold">املأ البيانات التالية لإنشاء حساب مندوب جديد.</p>
+            </div>
+
+            <form id="repSignupForm" class="space-y-4">
+                <div>
+                    <label for="signupName" class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 mr-1">اسم المندوب</label>
+                    <input type="text" id="signupName" required class="input-field bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700" placeholder="اكتب الاسم">
+                </div>
+                <div>
+                    <label for="signupPhone" class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 mr-1">رقم الموبايل</label>
+                    <input type="text" id="signupPhone" required class="input-field bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700" placeholder="01xxxxxxxxx">
+                </div>
+                <div>
+                    <label for="signupEmail" class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 mr-1">البريد الإلكتروني (اختياري)</label>
+                    <input type="email" id="signupEmail" class="input-field bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700" placeholder="name@example.com">
+                </div>
+                <div>
+                    <label for="signupPassword" class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 mr-1">كلمة المرور</label>
+                    <input type="password" id="signupPassword" required class="input-field bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700" placeholder="6 أحرف على الأقل">
+                </div>
+                <div>
+                    <label for="signupPasswordConfirm" class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 mr-1">تأكيد كلمة المرور</label>
+                    <input type="password" id="signupPasswordConfirm" required class="input-field bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700" placeholder="أعد كتابة كلمة المرور">
+                </div>
+
+                <button type="submit" id="signupBtn" class="w-full btn-primary flex items-center justify-center gap-2 text-lg">
+                    <span>إنشاء الحساب</span>
+                    <i class="fas fa-user-plus"></i>
+                </button>
+            </form>
+        </div>
     </div>
 
     <script src="js/config.js"></script>
@@ -68,6 +115,48 @@
 
         const loginForm = document.getElementById('loginForm');
         const loginBtn = document.getElementById('loginBtn');
+        const repSignupModal = document.getElementById('repSignupModal');
+        const repSignupForm = document.getElementById('repSignupForm');
+        const signupBtn = document.getElementById('signupBtn');
+        const openRepSignupBtn = document.getElementById('openRepSignup');
+        const closeRepSignupBtn = document.getElementById('closeRepSignup');
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark');
+            const icon = document.getElementById('themeIcon');
+            if (icon) icon.className = isDark ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+            localStorage.setItem('rep-theme', isDark ? 'dark' : 'light');
+        }
+
+        if (localStorage.getItem('rep-theme') === 'dark') {
+            document.body.classList.add('dark');
+            const icon = document.getElementById('themeIcon');
+            if (icon) icon.className = 'fas fa-sun text-xl';
+        }
+
+        function toggleRepSignupModal(show) {
+            repSignupModal.classList.toggle('hidden', !show);
+            repSignupModal.classList.toggle('flex', show);
+            document.body.classList.toggle('overflow-hidden', show);
+        }
+
+        openRepSignupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            repSignupForm.reset();
+            toggleRepSignupModal(true);
+        });
+
+        closeRepSignupBtn.addEventListener('click', () => toggleRepSignupModal(false));
+
+        repSignupModal.addEventListener('click', (e) => {
+            if (e.target === repSignupModal) toggleRepSignupModal(false);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && repSignupModal.classList.contains('flex')) {
+                toggleRepSignupModal(false);
+            }
+        });
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -78,7 +167,6 @@
             loginBtn.innerHTML = 'جاري التحقق...';
 
             try {
-                // Special case for initial Admin
                 if (phone === 'admin' && password === 'admin') {
                     localStorage.setItem('user', JSON.stringify({ role: 'admin', phone: 'admin' }));
                     Swal.fire({
@@ -93,7 +181,6 @@
                     return;
                 }
 
-                // Query existing users table
                 const { data, error } = await supabaseClient
                     .from(CONFIG.TABLES.USERS)
                     .select('*')
@@ -105,11 +192,6 @@
                     throw new Error('بيانات الدخول غير صحيحة');
                 }
 
-                if (!data.approved) {
-                    throw new Error('عذراً، حسابك لم يتم تفعيله بعد من قبل الإدارة');
-                }
-
-                // Store session
                 localStorage.setItem('user', JSON.stringify(data));
 
                 Swal.fire({
@@ -119,10 +201,10 @@
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    // Role-based redirection
-                    if (data.role === 'admin') window.location.href = 'admin.html';
+                    if (data.role === 'admin' || data.role === 'housing') window.location.href = 'admin.html';
                     else if (data.role === 'rep') window.location.href = 'rep.html';
                     else if (data.role === 'sender') window.location.href = 'sender.html';
+                    else if (data.role === 'follower') window.location.href = 'follower.html';
                     else throw new Error('دور المستخدم غير معروف');
                 });
 
@@ -135,6 +217,101 @@
             } finally {
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = 'تسجيل الدخول';
+            }
+        });
+
+        repSignupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('signupName').value.trim();
+            const phone = document.getElementById('signupPhone').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+
+            if (!username || !phone || !password) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'بيانات ناقصة',
+                    text: 'يرجى استكمال الاسم ورقم الموبايل وكلمة المرور.'
+                });
+                return;
+            }
+
+            if (password.length < 6) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'كلمة مرور ضعيفة',
+                    text: 'يرجى استخدام 6 أحرف أو أرقام على الأقل.'
+                });
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'كلمتا المرور غير متطابقتين',
+                    text: 'تأكد من إعادة كتابة كلمة المرور بشكل صحيح.'
+                });
+                return;
+            }
+
+            signupBtn.disabled = true;
+            signupBtn.innerHTML = 'جاري إنشاء الحساب...';
+
+            try {
+                const { data: existingUser, error: lookupError } = await supabaseClient
+                    .from(CONFIG.TABLES.USERS)
+                    .select('id')
+                    .eq('phone', phone)
+                    .maybeSingle();
+
+                if (lookupError) {
+                    throw lookupError;
+                }
+
+                if (existingUser) {
+                    throw new Error('هذا الرقم مسجل مسبقاً.');
+                }
+
+                const payload = {
+                    username,
+                    phone,
+                    email: email || null,
+                    password,
+                    role: 'rep',
+                    approved: true
+                };
+
+                const { data: createdUser, error: createError } = await supabaseClient
+                    .from(CONFIG.TABLES.USERS)
+                    .insert([payload])
+                    .select()
+                    .single();
+
+                if (createError) {
+                    throw createError;
+                }
+
+                localStorage.setItem('user', JSON.stringify(createdUser));
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم إنشاء الحساب',
+                    text: 'تم إنشاء حسابك بنجاح وسيتم تحويلك إلى لوحة المندوب.'
+                }).then(() => {
+                    toggleRepSignupModal(false);
+                    window.location.href = 'rep.html';
+                });
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'تعذر إنشاء الحساب',
+                    text: err.message || 'حدث خطأ أثناء إنشاء الحساب.'
+                });
+            } finally {
+                signupBtn.disabled = false;
+                signupBtn.innerHTML = '<span>إنشاء الحساب</span><i class="fas fa-user-plus"></i>';
             }
         });
     </script>

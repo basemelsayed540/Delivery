@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,109 +13,194 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { 
-            --primary: #3b82f6; 
-            --success: #10b981; 
-            --warning: #f59e0b; 
-            --danger: #ef4444; 
-            --info: #06b6d4; 
-            --card-bg: #ffffff; 
-            --bg-color: #f8fafc; 
-            --text-color: #1e293b; 
-            --border: #e2e8f0; 
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --card-bg: #ffffff;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --border: #e2e8f0;
         }
-        [data-bs-theme="dark"] { 
-            --card-bg: #1e293b; 
-            --bg-color: #0f172a; 
-            --text-color: #f8fafc; 
-            --border: #334155; 
+
+        [data-bs-theme="dark"] {
+            --card-bg: #1e293b;
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+            --border: #334155;
         }
-        body { 
-            font-family: 'Cairo', sans-serif; 
-            background: var(--bg-color); 
-            color: var(--text-color); 
-            transition: 0.3s; 
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            transition: 0.3s;
         }
-        .navbar { 
-            background: var(--card-bg); 
-            border-bottom: 2px solid var(--primary); 
+
+        .navbar {
+            background: var(--card-bg);
+            border-bottom: 2px solid var(--primary);
         }
-        .order-card { 
-            background: var(--card-bg); 
-            border-radius: 20px; 
-            border: 1px solid var(--border); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
+
+        .order-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
             margin-bottom: 20px;
         }
-        .stats-card-mini { 
-            background: var(--card-bg); 
-            border-radius: 18px; 
-            padding: 20px; 
-            border: 1px solid var(--border); 
-            border-right: 5px solid var(--primary); 
-            transition: 0.3s; 
-            height: 100%; 
+
+        .stats-card-mini {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-right: 5px solid var(--primary);
+            transition: 0.3s;
+            height: 100%;
         }
-        .stats-card-mini:hover { 
-            transform: translateY(-5px); 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+
+        .stats-card-mini:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         }
-        .stats-card-mini h6 { 
-            color: #64748b; 
-            font-size: 0.85rem; 
-            font-weight: 700; 
-            margin-bottom: 8px; 
+
+        .stats-card-mini h6 {
+            color: #64748b;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
-        .table thead th { 
-            background: transparent; 
-            border: none; 
-            font-size: 0.8rem; 
-            color: #64748b; 
-            padding: 15px; 
+
+        .table thead th {
+            background: transparent;
+            border: none;
+            font-size: 0.8rem;
+            color: #64748b;
+            padding: 15px;
         }
-        .table tbody tr { 
-            background: var(--card-bg); 
-            transition: 0.2s; 
+
+        .table tbody tr {
+            background: var(--card-bg);
+            transition: 0.2s;
         }
-        .table tbody td { 
-            padding: 15px; 
-            border-top: 1px solid var(--border); 
+
+        .table tbody td {
+            padding: 15px;
+            border-top: 1px solid var(--border);
         }
-        .btn-action { 
-            width: 35px; 
-            height: 35px; 
-            border-radius: 10px; 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            transition: 0.3s; 
+
+        .btn-action {
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
         }
-        .filter-select { 
-            background: var(--card-bg); 
-            border: 1px solid var(--border); 
-            border-radius: 12px; 
-            padding: 10px 15px; 
-            font-weight: 600; 
-            color: var(--text-color); 
+
+        .filter-select {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 15px;
+            font-weight: 600;
+            color: var(--text-color);
         }
-        .badge-status { 
-            padding: 6px 12px; 
-            border-radius: 8px; 
-            font-weight: 700; 
-            font-size: 0.75rem; 
+
+        .badge-status {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.75rem;
         }
+
         .loading-overlay {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.8);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 9999;
         }
-        [data-bs-theme="dark"] .loading-overlay { background: rgba(15, 23, 42, 0.8); }
+
+        [data-bs-theme="dark"] .loading-overlay {
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .changed-cell {
+            background: rgba(251, 191, 36, 0.16);
+            border-color: rgba(245, 158, 11, 0.45) !important;
+        }
+
+        .housing-toolbar {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(6, 182, 212, 0.08));
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 20px;
+        }
+
+        .housing-save-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .housing-save-btn.has-changes {
+            animation: housingPulse 1.1s ease-in-out infinite;
+            box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.45);
+        }
+
+        .housing-save-btn.has-changes::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.35) 45%, transparent 90%);
+            transform: translateX(-120%);
+            animation: housingSweep 1.6s linear infinite;
+        }
+
+        .housing-save-count {
+            min-width: 30px;
+        }
+
+        .housing-filter-chip {
+            border-radius: 999px;
+            font-weight: 700;
+            padding: 8px 16px;
+        }
+
+        @keyframes housingPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.35);
+            }
+
+            50% {
+                transform: scale(1.03);
+                box-shadow: 0 0 0 10px rgba(13, 110, 253, 0);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
+            }
+        }
+
+        @keyframes housingSweep {
+            100% {
+                transform: translateX(120%);
+            }
+        }
     </style>
 </head>
+
 <body>
     <div id="loading" class="loading-overlay">
         <div class="spinner-border text-primary" role="status"></div>
@@ -123,182 +209,258 @@
     <nav class="navbar navbar-expand-lg border-bottom sticky-top shadow-sm">
         <div class="container pe-4 ps-4">
             <span class="navbar-brand d-flex align-items-center fw-bold text-primary">
-                <i class="fas fa-shield-alt me-2 fs-3"></i> الإدارة المركزية
+                <button class="btn btn-light d-md-none me-3 py-1 px-2 border" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#mobileSidebar"><i class="fas fa-bars"></i></button>
+                <i class="fas fa-shield-alt me-2 fs-3 text-primary"></i>
+                <span class="d-none d-sm-inline">الإدارة المركزية</span>
             </span>
             <div class="d-flex align-items-center gap-3">
-                <button onclick="toggleTheme()" class="btn btn-light rounded-circle shadow-sm"><i class="fas fa-moon"></i></button>
+                <button onclick="toggleTheme()" class="btn btn-light rounded-circle shadow-sm"><i
+                        class="fas fa-moon"></i></button>
                 <div class="dropdown">
-                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown">
                         <i class="fas fa-user-gear me-1"></i> الإعدادات
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4">
-                        <li><a class="dropdown-item py-2" href="#" onclick="openChangePasswordModal()"><i class="fas fa-key me-2"></i>تغيير كلمة المرور</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item py-2 text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>خروج</a></li>
+                        <li><a class="dropdown-item py-2" href="#" onclick="openChangePasswordModal()"><i
+                                    class="fas fa-key me-2"></i>تغيير كلمة المرور</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item py-2 text-danger" href="#" onclick="logout()"><i
+                                    class="fas fa-sign-out-alt me-2"></i>خروج</a></li>
                     </ul>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="container py-4">
-        <!-- الفلاتر -->
-        <div class="order-card p-4 mb-4">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold">📅 التاريخ</label>
-                    <select id="filterDate" class="form-select filter-select" onchange="refreshDashboard()">
-                        <option value="">كل التواريخ</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold">📍 المنطقة</label>
-                    <select id="filterZone" class="form-select filter-select" onchange="refreshDashboard()">
-                        <option value="">كل المناطق</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold">🤝 المندوب</label>
-                    <select id="filterRep" class="form-select filter-select" onchange="refreshDashboard()">
-                        <option value="">كل المناديب</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold">🏢 الراسل</label>
-                    <select id="filterOffice" class="form-select filter-select" onchange="refreshDashboard()">
-                        <option value="">كل المكاتب</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold">🔴 الحالة</label>
-                    <select id="filterStatus" class="form-select filter-select" onchange="refreshDashboard()">
-                        <option value="">كل الحالات</option>
-                        <option value="تم التسليم">تم التسليم</option>
-                        <option value="تأجيل">مؤجل</option>
-                        <option value="رفض">مرفوض</option>
-                        <option value="pending">قيد التوصيل</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button onclick="resetFilters()" class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold">إعادة تعيين</button>
+    <div class="d-flex flex-column flex-md-row min-vh-100">
+        <!-- Sidebar Desktop -->
+        <aside class="bg-white shadow-sm border-end p-3 d-none d-md-block"
+            style="width: 250px; flex-shrink: 0; position: sticky; top: 0; min-height: 100vh;">
+            <div class="nav flex-column gap-2 mt-2">
+                <button class="btn text-start sidebar-tab active-tab text-primary shadow-sm bg-light fw-bold"
+                    onclick="showAdminSection('stats', this)"><i class="fas fa-chart-line me-2"></i> احصائية
+                    المندوب</button>
+                <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
+                    onclick="showAdminSection('users', this)"><i class="fas fa-users-cog me-2"></i> إدارة
+                    الحسابات</button>
+                <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
+                    onclick="showAdminSection('recent', this)"><i class="fas fa-history me-2"></i> أحدث الشحنات</button>
+                <button class="btn text-start text-secondary fw-bold" onclick="openHousingChangesStatsModal()">
+                    <i class="fas fa-chart-pie me-2"></i> عرض احصائية التغيرات
+                </button>
+                <hr class="text-secondary opacity-25">
+                <button class="btn btn-primary w-100 fw-bold shadow-sm admin-only" onclick="openAddUserModal()"><i
+                        class="fas fa-user-plus me-2"></i> إنشاء حسابات</button>
+            </div>
+        </aside>
+
+        <!-- Sidebar Mobile Offcanvas -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileSidebar">
+            <div class="offcanvas-header bg-primary text-white">
+                <h5 class="offcanvas-title fw-bold">القائمة الجانبية</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body">
+                <div class="nav flex-column gap-2">
+                    <button class="btn text-start sidebar-tab active-tab text-primary shadow-sm bg-light fw-bold"
+                        onclick="showAdminSection('stats', this, true)"><i class="fas fa-chart-line me-2"></i> احصائية
+                        المندوب</button>
+                    <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
+                        onclick="showAdminSection('users', this, true)"><i class="fas fa-users-cog me-2"></i> إدارة
+                        الحسابات</button>
+                    <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
+                        onclick="showAdminSection('recent', this, true)"><i class="fas fa-history me-2"></i> أحدث
+                        الشحنات</button>
+                    <button class="btn text-start text-secondary fw-bold" onclick="openHousingChangesStatsModal()">
+                        <i class="fas fa-chart-pie me-2"></i> عرض احصائية التغيرات
+                    </button>
+                    <hr class="text-secondary opacity-25">
+                    <button class="btn btn-primary w-100 fw-bold shadow-sm admin-only"
+                        onclick="openAddUserModal(); bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar')).hide()"><i
+                            class="fas fa-user-plus me-2"></i> إنشاء حسابات</button>
                 </div>
             </div>
         </div>
 
-        <!-- الإحصائيات -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-2 col-6">
-                <div class="stats-card-mini" style="border-right-color: var(--primary)">
-                    <h6>إجمالي الشحنات</h6><h4 id="statTotal" class="m-0 fw-bold">0</h4>
+        <!-- Main Content -->
+        <div class="flex-grow-1 p-3 p-md-4 w-100" style="overflow-x: hidden;">
+            <div id="section-stats">
+                <!-- الفلاتر -->
+                <div class="order-card p-4 mb-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold">📅 التاريخ</label>
+                            <select id="filterDate" class="form-select filter-select" onchange="refreshDashboard()">
+                                <option value="">كل التواريخ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold">📍 المنطقة</label>
+                            <select id="filterZone" class="form-select filter-select" onchange="refreshDashboard()">
+                                <option value="">كل المناطق</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold">🤝 المندوب</label>
+                            <select id="filterRep" class="form-select filter-select" onchange="refreshDashboard()">
+                                <option value="">كل المناديب</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold">🏢 الراسل</label>
+                            <select id="filterOffice" class="form-select filter-select" onchange="refreshDashboard()">
+                                <option value="">كل المكاتب</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold">🔴 الحالة</label>
+                            <select id="filterStatus" class="form-select filter-select" onchange="refreshDashboard()">
+                                <option value="">كل الحالات</option>
+                                <option value="تم التسليم">تم التسليم</option>
+                                <option value="تأجيل">مؤجل</option>
+                                <option value="رفض">مرفوض</option>
+                                <option value="pending">قيد التوصيل</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button onclick="resetFilters()"
+                                class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold">إعادة تعيين</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="stats-card-mini" style="border-right-color: var(--success)">
-                    <h6>تم تسليمها</h6><h4 id="statDelivered" class="m-0 fw-bold text-success">0</h4>
-                </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="stats-card-mini" style="border-right-color: var(--info)">
-                    <h6>إجمالي التحصيل</h6><h4 id="statCollected" class="m-0 fw-bold text-primary">0 ج</h4>
-                </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="stats-card-mini" style="border-right-color: #6366f1">
-                    <h6>عدد المناديب</h6><h4 id="statReps" class="m-0 fw-bold" style="color: #6366f1">0</h4>
-                </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="stats-card-mini" style="border-right-color: #8b5cf6">
-                    <h6>عدد المكاتب</h6><h4 id="statOffices" class="m-0 fw-bold" style="color: #8b5cf6">0</h4>
-                </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="stats-card-mini" style="border-right-color: var(--danger)">
-                    <h6>بدون مندوب</h6><h4 id="statUnassigned" class="m-0 fw-bold text-danger">0</h4>
-                </div>
-            </div>
-        </div>
 
-        <div class="row g-4">
-            <!-- أداء المناديب -->
-            <div class="col-12">
-                <div class="order-card p-4 shadow-sm">
-                    <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-users-cog me-2"></i>تحليلات أداء المناديب</h5>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle m-0">
-                            <thead>
-                                <tr>
-                                    <th>المندوب</th>
-                                    <th class="text-center">إجمالي</th>
-                                    <th>منفذ</th>
-                                    <th>مؤجل</th>
-                                    <th>مرفوض</th>
-                                    <th>قيد</th>
-                                    <th>تحصيل</th>
-                                    <th>نسبة النجاح</th>
-                                </tr>
-                            </thead>
-                            <tbody id="repsStatsTable">
-                                <!-- Dynamic dynamic rows -->
-                            </tbody>
-                        </table>
+                <!-- الإحصائيات -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-2 col-6">
+                        <div class="stats-card-mini" style="border-right-color: var(--primary)">
+                            <h6>إجمالي الشحنات</h6>
+                            <h4 id="statTotal" class="m-0 fw-bold">0</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <div class="stats-card-mini" style="border-right-color: var(--success)">
+                            <h6>تم تسليمها</h6>
+                            <h4 id="statDelivered" class="m-0 fw-bold text-success">0</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <div class="stats-card-mini" style="border-right-color: var(--info)">
+                            <h6>إجمالي التحصيل</h6>
+                            <h4 id="statCollected" class="m-0 fw-bold text-primary">0 ج</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <div class="stats-card-mini" style="border-right-color: #6366f1">
+                            <h6>عدد المناديب</h6>
+                            <h4 id="statReps" class="m-0 fw-bold" style="color: #6366f1">0</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <div class="stats-card-mini" style="border-right-color: #8b5cf6">
+                            <h6>عدد المكاتب</h6>
+                            <h4 id="statOffices" class="m-0 fw-bold" style="color: #8b5cf6">0</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <div class="stats-card-mini" style="border-right-color: var(--danger)">
+                            <h6>بدون مندوب</h6>
+                            <h4 id="statUnassigned" class="m-0 fw-bold text-danger">0</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- أداء المناديب -->
+                    <div class="col-12">
+                        <div class="order-card p-4 shadow-sm">
+                            <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-users-cog me-2"></i>تحليلات أداء
+                                المناديب</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle m-0">
+                                    <thead>
+                                        <tr>
+                                            <th>المندوب</th>
+                                            <th class="text-center">إجمالي</th>
+                                            <th>منفذ</th>
+                                            <th>مؤجل</th>
+                                            <th>مرفوض</th>
+                                            <th>قيد</th>
+                                            <th>تحصيل</th>
+                                            <th>نسبة النجاح</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="repsStatsTable">
+                                        <!-- Dynamic dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- إدارة الحسابات -->
-            <div class="col-12">
-                <div class="order-card p-4 shadow-sm border-0">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-bold m-0 text-primary">
-                            <i class="fas fa-user-check me-2"></i>إدارة حسابات المناديب والراسلين
-                        </h5>
-                        <button class="btn btn-primary btn-sm rounded-pill px-4" onclick="openAddUserModal()">
-                            <i class="fas fa-plus me-1"></i> إضافة حساب جديد
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>الاسم</th>
-                                    <th>الرقم</th>
-                                    <th>النوع</th>
-                                    <th>الحالة</th>
-                                    <th class="text-center">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTable">
-                                <!-- Dynamic rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- سجل العمليات -->
-            <div class="col-12">
-                <div class="order-card p-4 shadow-sm border-0">
-                    <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-history me-2"></i>أحدث الشحنات</h5>
-                    <div class="table-responsive" style="max-height: 400px;">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>الكود</th>
-                                    <th>العميل</th>
-                                    <th>المنطقة</th>
-                                    <th>المندوب</th>
-                                    <th>الحالة</th>
-                                    <th>المبلغ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recentShipmentsTable">
-                                <!-- Dynamic rows -->
-                            </tbody>
-                        </table>
+            <div id="section-users" style="display: none;">
+                <!-- إدارة الحسابات -->
+                <div class="col-12">
+                    <div class="order-card p-4 shadow-sm border-0">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold m-0 text-primary">
+                                <i class="fas fa-user-check me-2"></i>إدارة حسابات المناديب والراسلين
+                            </h5>
+                            <button class="btn btn-primary btn-sm rounded-pill px-4" onclick="openAddUserModal()">
+                                <i class="fas fa-plus me-1"></i> إضافة حساب جديد
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>الاسم</th>
+                                        <th>الرقم</th>
+                                        <th>النوع</th>
+                                        <th class="text-center">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTable">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div id="section-recent" style="display: none;">
+                <!-- سجل العمليات -->
+                <div class="col-12">
+                    <div class="order-card p-4 shadow-sm border-0">
+                        <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-history me-2"></i>أحدث الشحنات</h5>
+                        <div class="table-responsive" style="max-height: 400px;">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>الكود</th>
+                                        <th>العميل</th>
+                                        <th>المنطقة</th>
+                                        <th>المندوب</th>
+                                        <th>الحالة</th>
+                                        <th>المبلغ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentShipmentsTable">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-housing" style="display: none;"></div>
         </div>
     </div>
 
@@ -314,6 +476,16 @@
                     <form id="userForm">
                         <input type="hidden" id="userId">
                         <div class="mb-3">
+                            <label class="form-label small fw-bold">نوع الحساب</label>
+                            <select id="userRole" class="form-select rounded-3">
+                                <option value="rep">مندوب توصيل</option>
+                                <option value="sender">راسل (عميل)</option>
+                                <option value="follower">متابعة</option>
+                                <option value="housing">تسكين الشحنات</option>
+                                <option value="admin">مدير</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label small fw-bold">الاسم الكامل</label>
                             <input type="text" id="userName" class="form-control rounded-3" required>
                         </div>
@@ -322,22 +494,16 @@
                             <input type="text" id="userPhone" class="form-control rounded-3" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">نوع الحساب</label>
-                            <select id="userRole" class="form-select rounded-3">
-                                <option value="rep">مندوب توصيل</option>
-                                <option value="sender">راسل (عميل)</option>
-                                <option value="admin">مدير</option>
-                            </select>
+                            <label class="form-label small fw-bold">البريد الإلكتروني</label>
+                            <input type="email" id="userEmail" class="form-control rounded-3"
+                                placeholder="example@mail.com">
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">كلمة المرور</label>
                             <input type="password" id="userPassword" class="form-control rounded-3" required>
                         </div>
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" id="userApproved" checked>
-                            <label class="form-check-label small fw-bold" for="userApproved">تفعيل الحساب فوراً</label>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">حفظ البيانات</button>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold mt-2">حفظ
+                            البيانات</button>
                     </form>
                 </div>
             </div>
@@ -356,13 +522,16 @@
                     <form id="changePasswordForm">
                         <div class="mb-3">
                             <label class="form-label small fw-bold">كلمة المرور الجديدة</label>
-                            <input type="password" id="newAdminPassword" class="form-control rounded-3" required minlength="6">
+                            <input type="password" id="newAdminPassword" class="form-control rounded-3" required
+                                minlength="6">
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">تأكيد كلمة المرور</label>
-                            <input type="password" id="confirmAdminPassword" class="form-control rounded-3" required minlength="6">
+                            <input type="password" id="confirmAdminPassword" class="form-control rounded-3" required
+                                minlength="6">
                         </div>
-                        <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-bold">تحديث كلمة المرور</button>
+                        <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-bold">تحديث كلمة
+                            المرور</button>
                     </form>
                 </div>
             </div>
@@ -375,17 +544,22 @@
         const supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
         let currentUser = JSON.parse(localStorage.getItem('user'));
-        if (!currentUser || currentUser.role !== 'admin') {
+        if (!currentUser || !['admin', 'housing'].includes(currentUser.role)) {
             window.location.href = 'index.html';
         }
 
         let allShipments = [];
         let allUsers = [];
+        let originalShipments = new Map();
+        let housingUnassignedOnly = false;
+        let housingDrafts = new Map();
+        let housingStatsFilter = 'all';
 
         async function init() {
             showLoading(true);
             try {
                 await Promise.all([fetchShipments(), fetchUsers()]);
+                applyRoleAccess();
                 populateFilters();
                 refreshDashboard();
             } catch (error) {
@@ -395,6 +569,47 @@
             showLoading(false);
         }
 
+        function applyRoleAccess() {
+            if (currentUser.role !== 'housing') return;
+
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            const statsTab = Array.from(document.querySelectorAll('.sidebar-tab')).find(btn => btn.getAttribute('onclick')?.includes("'stats'"));
+            showAdminSection('stats', statsTab || null);
+        }
+
+        function showAdminSection(sectionId, btnElem, isMobile = false) {
+            // Hide all sections
+            document.getElementById('section-stats').style.display = 'none';
+            document.getElementById('section-users').style.display = 'none';
+            document.getElementById('section-recent').style.display = 'none';
+            document.getElementById('section-housing').style.display = 'none';
+
+            // Show target section
+            document.getElementById('section-' + sectionId).style.display = 'block';
+
+            // Update active states on sidebar buttons
+            const buttons = document.querySelectorAll('.sidebar-tab');
+            buttons.forEach(btn => {
+                btn.classList.remove('active-tab', 'text-primary', 'bg-light');
+                btn.classList.add('text-secondary');
+                btn.style.background = 'transparent';
+                btn.style.fontWeight = 'bold';
+            });
+
+            if (btnElem) {
+                btnElem.classList.remove('text-secondary');
+                btnElem.classList.add('active-tab', 'text-primary', 'bg-light');
+                btnElem.style.background = '#f8fafc';
+            }
+
+            if (sectionId === 'housing') {
+                renderHousingSection();
+            }
+        }
+
         async function fetchShipments() {
             const { data, error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
@@ -402,6 +617,9 @@
                 .order('order_id', { ascending: false });
             if (error) throw error;
             allShipments = data || [];
+            if (!originalShipments.size) {
+                originalShipments = new Map(allShipments.map(s => [String(s.id), { ...s }]));
+            }
         }
 
         async function fetchUsers() {
@@ -413,26 +631,64 @@
             allUsers = data || [];
         }
 
-        function populateFilters() {
-            const dates = [...new Set(allShipments.map(s => s.الابيديت).filter(Boolean))].sort().reverse();
-            const zones = [...new Set(allShipments.map(s => s.الزون).filter(Boolean))].sort();
-            const reps = [...new Set(allShipments.map(s => s.المندوب).filter(Boolean))].sort();
-            const offices = [...new Set(allShipments.map(s => s.الراسل).filter(Boolean))].sort();
+        function updateFilterDropdowns(filteredData = allShipments) {
+            const filters = {
+                date: document.getElementById('filterDate').value,
+                zone: document.getElementById('filterZone').value,
+                rep: document.getElementById('filterRep').value,
+                office: document.getElementById('filterOffice').value,
+                status: document.getElementById('filterStatus').value
+            };
 
-            fillSelect('filterDate', dates);
-            fillSelect('filterZone', zones);
-            fillSelect('filterRep', reps);
-            fillSelect('filterOffice', offices);
+            const getCounts = (col, currentFilters) => {
+                const counts = {};
+
+                filteredData.forEach(s => {
+                    let match = true;
+
+                    if (currentFilters.date && col !== 'الابيديت' && s.الابيديت !== currentFilters.date) match = false;
+                    if (currentFilters.zone && col !== 'الزون' && s.الزون !== currentFilters.zone) match = false;
+                    if (currentFilters.rep && col !== 'المندوب' && s.المندوب !== currentFilters.rep) match = false;
+                    if (currentFilters.office && col !== 'الراسل' && s.الراسل !== currentFilters.office) match = false;
+                    if (currentFilters.status && col !== 'الحالة') {
+                        if (currentFilters.status === 'pending') {
+                            if (s.الحالة && s.الحالة !== '') match = false;
+                        } else if (s.الحالة !== currentFilters.status) {
+                            match = false;
+                        }
+                    }
+
+                    if (match && s[col]) counts[s[col]] = (counts[s[col]] || 0) + 1;
+                });
+
+                return counts;
+            };
+
+            fillSelect('filterDate', getCounts('الابيديت', filters), filters.date, true);
+            fillSelect('filterZone', getCounts('الزون', filters), filters.zone);
+            fillSelect('filterRep', getCounts('المندوب', filters), filters.rep);
+            fillSelect('filterOffice', getCounts('الراسل', filters), filters.office);
         }
 
-        function fillSelect(id, list) {
+        function populateFilters() {
+            updateFilterDropdowns(allShipments);
+        }
+
+        function fillSelect(id, countsMap, currentVal, reverse = false) {
             const select = document.getElementById(id);
-            const currentVal = select.value;
-            select.innerHTML = `<option value="">${select.options[0].text}</option>`;
-            list.forEach(item => {
+            if (!select) return;
+
+            const placeholder = select.options[0] ? select.options[0].text : 'اختر';
+            select.innerHTML = `<option value="">${placeholder}</option>`;
+
+            let keys = Object.keys(countsMap).sort();
+            if (reverse) keys.reverse();
+
+            keys.forEach(key => {
                 const opt = document.createElement('option');
-                opt.value = opt.text = item;
-                if(item === currentVal) opt.selected = true;
+                opt.value = key;
+                opt.text = `${key} (${countsMap[key]})`;
+                if (key === currentVal) opt.selected = true;
                 select.appendChild(opt);
             });
         }
@@ -459,10 +715,12 @@
                 return true;
             });
 
+            updateFilterDropdowns(filtered);
             updateStats(filtered);
             renderRepsStats(filtered);
             renderUsers();
             renderRecentShipments(filtered.slice(0, 50));
+            renderHousingSection();
         }
 
         function updateStats(data) {
@@ -525,35 +783,29 @@
                             </div>
                         </td>
                     </tr>
-                `;
+                    `;
             }).join('');
         }
 
         function renderUsers() {
             document.getElementById('usersTable').innerHTML = allUsers.map(u => `
-                <tr>
+                    <tr>
                     <td><strong>${u.username || u.full_name || '---'}</strong></td>
                     <td>${u.phone}</td>
-                    <td><span class="badge bg-light text-dark">${u.role === 'rep' ? 'مندوب' : (u.role === 'sender' ? 'راسل' : 'مدير')}</span></td>
-                    <td>
-                        <span class="badge ${u.approved ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} px-2 py-1">
-                            ${u.approved ? 'مفعل' : 'معلق'}
-                        </span>
-                    </td>
+                    <td><span class="badge bg-light text-dark">${u.role === 'rep' ? 'مندوب' : (u.role === 'sender' ? 'راسل' : (u.role === 'follower' ? 'متابعة' : (u.role === 'housing' ? 'تسكين الشحنات' : 'مدير')))}</span></td>
                     <td class="text-center">
                         <div class="d-flex justify-content-center gap-2">
                             <button onclick="editUser(${JSON.stringify(u).replace(/"/g, '&quot;')})" class="btn-action bg-primary-subtle text-primary"><i class="fas fa-edit"></i></button>
-                            ${!u.approved ? `<button onclick="toggleUserStatus('${u.id}', true)" class="btn-action bg-success-subtle text-success"><i class="fas fa-check"></i></button>` : `<button onclick="toggleUserStatus('${u.id}', false)" class="btn-action bg-warning-subtle text-warning"><i class="fas fa-ban"></i></button>`}
                             <button onclick="deleteUser('${u.id}', '${u.username}')" class="btn-action bg-danger-subtle text-danger"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>
-            `).join('');
+                    `).join('');
         }
 
         function renderRecentShipments(data) {
             document.getElementById('recentShipmentsTable').innerHTML = data.map(s => `
-                <tr class="small">
+                    <tr class="small">
                     <td>#${s.order_id}</td>
                     <td>${s.اسم_العميل || '---'}</td>
                     <td>${s.الزون || '---'}</td>
@@ -561,7 +813,522 @@
                     <td><span class="badge-status ${getStatusClass(s.الحالة)}">${s.الحالة || 'قيد التنفيذ'}</span></td>
                     <td class="fw-bold">${s.المبلغ} ج</td>
                 </tr>
+                    `).join('');
+        }
+
+        function getHousingRepOptions(selectedValue = '') {
+            const reps = allUsers
+                .filter(u => u.role === 'rep' && u.approved)
+                .map(u => u.username || u.full_name || u.phone)
+                .filter(Boolean);
+
+            const uniqueReps = [...new Set(reps)].sort();
+            return uniqueReps.map(rep => `<option value="${escapeAttr(rep)}" ${rep === selectedValue ? 'selected' : ''}>${escapeHtml(rep)}</option>`).join('');
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function escapeAttr(value) {
+            return escapeHtml(value);
+        }
+
+        function getHousingDisplayShipmentData(shipment) {
+            const draft = housingDrafts.get(String(shipment.id)) || {};
+            return { ...shipment, ...draft };
+        }
+
+        function getHousingColumnFilters() {
+            return {
+                name: (document.getElementById('housingFilterName')?.value || '').trim().toLowerCase(),
+                phone: (document.getElementById('housingFilterPhone')?.value || '').trim().toLowerCase(),
+                altPhone: (document.getElementById('housingFilterAltPhone')?.value || '').trim().toLowerCase(),
+                zone: (document.getElementById('housingFilterZone')?.value || '').trim().toLowerCase(),
+                sender: (document.getElementById('housingFilterSender')?.value || '').trim().toLowerCase(),
+                amount: (document.getElementById('housingFilterAmount')?.value || '').trim().toLowerCase(),
+                rep: (document.getElementById('housingFilterRep')?.value || '').trim().toLowerCase(),
+                status: (document.getElementById('housingFilterStatus')?.value || '').trim().toLowerCase()
+            };
+        }
+
+        function getHousingFilteredShipments() {
+            const search = (document.getElementById('housingSearch')?.value || '').trim().toLowerCase();
+            const filters = getHousingColumnFilters();
+
+            return allShipments.filter(s => {
+                const currentData = getHousingDisplayShipmentData(s);
+                const matchUnassigned = !housingUnassignedOnly || !currentData.المندوب;
+                if (!matchUnassigned) return false;
+
+                const matchesSearch = !search || [
+                    currentData.اسم_العميل,
+                    currentData.الهاتف,
+                    currentData.هاتف_بديل,
+                    currentData.الزون,
+                    currentData.الراسل,
+                    currentData.المندوب,
+                    currentData.الحالة,
+                    currentData.order_id
+                ].some(value => String(value || '').toLowerCase().includes(search));
+
+                if (!matchesSearch) return false;
+
+                const matchesColumns =
+                    (!filters.name || String(currentData.اسم_العميل || '').toLowerCase().includes(filters.name)) &&
+                    (!filters.phone || String(currentData.الهاتف || '').toLowerCase().includes(filters.phone)) &&
+                    (!filters.altPhone || String(currentData.هاتف_بديل || '').toLowerCase().includes(filters.altPhone)) &&
+                    (!filters.zone || String(currentData.الزون || '').toLowerCase().includes(filters.zone)) &&
+                    (!filters.sender || String(currentData.الراسل || '').toLowerCase().includes(filters.sender)) &&
+                    (!filters.amount || String(currentData.المبلغ || '').toLowerCase().includes(filters.amount)) &&
+                    (!filters.rep || String(currentData.المندوب || '').toLowerCase().includes(filters.rep)) &&
+                    (!filters.status || String(currentData.الحالة || '').toLowerCase().includes(filters.status));
+
+                return matchesColumns;
+            });
+        }
+
+        function normalizeHousingComparableValue(key, value) {
+            if (['المبلغ', 'السعر_بعد_التعديل'].includes(key)) {
+                return String(value ?? '').trim();
+            }
+
+            return String(value ?? '').trim();
+        }
+
+        function getHousingRowPayload(id) {
+            return {
+                اسم_العميل: document.getElementById(`housing-name-${id}`)?.value.trim() || '',
+                الهاتف: document.getElementById(`housing-phone-${id}`)?.value.trim() || '',
+                هاتف_بديل: document.getElementById(`housing-alt-${id}`)?.value.trim() || '',
+                الزون: document.getElementById(`housing-zone-${id}`)?.value.trim() || '',
+                الراسل: document.getElementById(`housing-sender-${id}`)?.value.trim() || '',
+                المبلغ: document.getElementById(`housing-amount-${id}`)?.value ?? '',
+                السعر_بعد_التعديل: document.getElementById(`housing-adjusted-${id}`)?.value || null,
+                المندوب: document.getElementById(`housing-rep-${id}`)?.value || null,
+                الحالة: document.getElementById(`housing-status-${id}`)?.value.trim() || ''
+            };
+        }
+
+        function getHousingChangedFields(baseShipment, payload) {
+            const fields = ['اسم_العميل', 'الهاتف', 'هاتف_بديل', 'الزون', 'الراسل', 'المبلغ', 'السعر_بعد_التعديل', 'المندوب', 'الحالة'];
+            return fields.filter(key => normalizeHousingComparableValue(key, payload[key]) !== normalizeHousingComparableValue(key, baseShipment?.[key]));
+        }
+
+        function syncHousingDraft(id) {
+            const shipment = allShipments.find(s => String(s.id) === String(id));
+            if (!shipment) return;
+
+            const payload = getHousingRowPayload(id);
+            const changedFields = getHousingChangedFields(shipment, payload);
+
+            if (changedFields.length) {
+                housingDrafts.set(String(id), payload);
+            } else {
+                housingDrafts.delete(String(id));
+            }
+
+            updateHousingSaveButtonState();
+        }
+
+        function getHousingDraftEntries() {
+            return Array.from(housingDrafts.entries()).map(([id, payload]) => {
+                const shipment = allShipments.find(s => String(s.id) === String(id)) || {};
+                return {
+                    id,
+                    shipment,
+                    payload,
+                    changedFields: getHousingChangedFields(shipment, payload)
+                };
+            }).filter(entry => entry.changedFields.length);
+        }
+
+        function updateHousingSaveButtonState() {
+            const saveBtn = document.getElementById('housingSaveChangesBtn');
+            const badge = document.getElementById('housingChangesBadge');
+            if (!saveBtn || !badge) return;
+
+            const changesCount = getHousingDraftEntries().length;
+            badge.innerText = changesCount;
+            saveBtn.classList.toggle('has-changes', changesCount > 0);
+            saveBtn.classList.toggle('btn-primary', changesCount > 0);
+            saveBtn.classList.toggle('btn-outline-primary', changesCount === 0);
+        }
+
+        function getAppliedHousingChangeEntries() {
+            return allShipments.map(shipment => {
+                const original = originalShipments.get(String(shipment.id)) || {};
+                const priceChanged = normalizeHousingComparableValue('السعر_بعد_التعديل', shipment.السعر_بعد_التعديل) !== normalizeHousingComparableValue('السعر_بعد_التعديل', original.السعر_بعد_التعديل);
+                const phoneChanged = normalizeHousingComparableValue('الهاتف', shipment.الهاتف) !== normalizeHousingComparableValue('الهاتف', original.الهاتف);
+                const altPhoneChanged = normalizeHousingComparableValue('هاتف_بديل', shipment.هاتف_بديل) !== normalizeHousingComparableValue('هاتف_بديل', original.هاتف_بديل);
+                const statusChanged = normalizeHousingComparableValue('الحالة', shipment.الحالة) !== normalizeHousingComparableValue('الحالة', original.الحالة);
+
+                return {
+                    shipment,
+                    priceChanged,
+                    phoneChanged,
+                    altPhoneChanged,
+                    statusChanged
+                };
+            }).filter(entry => entry.priceChanged || entry.phoneChanged || entry.altPhoneChanged || entry.statusChanged);
+        }
+
+        function getAllHousingStatsEntries() {
+            return allShipments.map(shipment => {
+                const original = originalShipments.get(String(shipment.id)) || {};
+                const priceChanged = normalizeHousingComparableValue('السعر_بعد_التعديل', shipment.السعر_بعد_التعديل) !== normalizeHousingComparableValue('السعر_بعد_التعديل', original.السعر_بعد_التعديل);
+                const phoneChanged = normalizeHousingComparableValue('الهاتف', shipment.الهاتف) !== normalizeHousingComparableValue('الهاتف', original.الهاتف);
+                const altPhoneChanged = normalizeHousingComparableValue('هاتف_بديل', shipment.هاتف_بديل) !== normalizeHousingComparableValue('هاتف_بديل', original.هاتف_بديل);
+                const statusChanged = normalizeHousingComparableValue('الحالة', shipment.الحالة) !== normalizeHousingComparableValue('الحالة', original.الحالة);
+
+                return {
+                    shipment,
+                    priceChanged,
+                    phoneChanged,
+                    altPhoneChanged,
+                    statusChanged
+                };
+            });
+        }
+
+        function getHousingResponsibleEmployeeName() {
+            if (currentUser?.role === 'housing') {
+                return currentUser.username || currentUser.full_name || currentUser.phone || 'موظف التسكين الحالي';
+            }
+
+            const housingUsers = allUsers
+                .filter(u => u.role === 'housing')
+                .map(u => u.username || u.full_name || u.phone)
+                .filter(Boolean);
+
+            if (!housingUsers.length) return 'غير محدد';
+            return housingUsers.join(' / ');
+        }
+
+        function getFilteredAppliedHousingChangeEntries(filter = housingStatsFilter) {
+            const entries = getAppliedHousingChangeEntries();
+            if (filter === 'price') {
+                return entries.filter(entry => entry.priceChanged);
+            }
+            if (filter === 'phone') {
+                return entries.filter(entry => entry.phoneChanged || entry.altPhoneChanged);
+            }
+            if (filter === 'status') {
+                return entries.filter(entry => entry.statusChanged);
+            }
+            return entries;
+        }
+
+        function getHousingChangedFieldLabels(entry) {
+            const labels = [];
+            if (entry.phoneChanged) labels.push('الهاتف');
+            if (entry.altPhoneChanged) labels.push('هاتف بديل');
+            if (entry.priceChanged) labels.push('المبلغ');
+            if (entry.statusChanged) labels.push('الحالة');
+            return labels;
+        }
+
+        function getHousingStatsModalHtml(filter = housingStatsFilter) {
+            const allEntries = getAppliedHousingChangeEntries();
+            const filteredEntries = getFilteredAppliedHousingChangeEntries(filter);
+            const responsibleEmployee = getHousingResponsibleEmployeeName();
+            const totalChangedCells = allEntries.reduce((sum, entry) => {
+                let count = 0;
+                if (entry.priceChanged) count += 1;
+                if (entry.phoneChanged) count += 1;
+                if (entry.altPhoneChanged) count += 1;
+                if (entry.statusChanged) count += 1;
+                return sum + count;
+            }, 0);
+
+            const rows = filteredEntries.map((entry, index) => `
+                <tr>
+                    <td>${entry.shipment.order_id || index + 1}</td>
+                    <td>${escapeHtml(responsibleEmployee)}</td>
+                    <td>${escapeHtml(entry.shipment.اسم_العميل || '---')}</td>
+                    <td>${escapeHtml(entry.shipment.الراسل || '---')}</td>
+                    <td class="table-warning fw-bold">${escapeHtml(getHousingChangedFieldLabels(entry).join(' / ') || '---')}</td>
+                </tr>
             `).join('');
+
+            const emptyRow = `<tr><td colspan="5" class="text-center py-4 text-secondary fw-bold">لا توجد شحنات معدلة مطابقة لهذا النوع من التغييرات.</td></tr>`;
+
+            return `
+                <div class="text-end">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <div class="alert alert-primary rounded-4 mb-0 fw-bold">الموظف المسؤول عن تسكين الشحنات: ${escapeHtml(responsibleEmployee)}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-info rounded-4 mb-0 fw-bold">عدد الشحنات التي تغيرت: ${allEntries.length}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-warning rounded-4 mb-0 fw-bold">عدد الخلايا المعدلة: ${totalChangedCells}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <div class="fw-bold text-primary">يتم عرض الشحنات المعدلة فقط مع اسم الموظف والخلية التي تم تعديلها.</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn ${filter === 'all' ? 'btn-dark' : 'btn-outline-dark'} housing-filter-chip" onclick="setHousingStatsFilter('all')">كل التعديلات (${allEntries.length})</button>
+                            <button type="button" class="btn ${filter === 'price' ? 'btn-warning' : 'btn-outline-warning'} housing-filter-chip" onclick="setHousingStatsFilter('price')">تعديل مبلغ (${allEntries.filter(entry => entry.priceChanged).length})</button>
+                            <button type="button" class="btn ${filter === 'phone' ? 'btn-info text-white' : 'btn-outline-info'} housing-filter-chip" onclick="setHousingStatsFilter('phone')">تعديل هاتف / هاتف بديل (${allEntries.filter(entry => entry.phoneChanged || entry.altPhoneChanged).length})</button>
+                            <button type="button" class="btn ${filter === 'status' ? 'btn-secondary' : 'btn-outline-secondary'} housing-filter-chip" onclick="setHousingStatsFilter('status')">تعديل حالة (${allEntries.filter(entry => entry.statusChanged).length})</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle text-center mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>كود الشحنة</th>
+                                    <th>الموظف</th>
+                                    <th>اسم العميل</th>
+                                    <th>الراسل</th>
+                                    <th>الخلية التي تم تعديلها</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows || emptyRow}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openHousingChangesStatsModal() {
+            housingStatsFilter = 'all';
+            if (!allShipments.length) {
+                Swal.fire('لا توجد شحنات', 'لا توجد شحنات متاحة للعرض داخل صفحة المدير حالياً.', 'info');
+                return;
+            }
+
+            Swal.fire({
+                title: 'احصائية التغيرات',
+                html: `<div id="housingStatsModalContent">${getHousingStatsModalHtml()}</div>`,
+                width: 980,
+                showConfirmButton: false,
+                showCloseButton: true
+            });
+        }
+
+        function setHousingStatsFilter(filter) {
+            housingStatsFilter = filter;
+            const container = document.getElementById('housingStatsModalContent');
+            if (!container) return;
+            container.innerHTML = getHousingStatsModalHtml(filter);
+        }
+
+        function getHousingSummaryTableHtml(entries) {
+            const rows = entries.map((entry, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${escapeHtml(entry.payload.اسم_العميل || entry.shipment.اسم_العميل || '---')}</td>
+                    <td>${escapeHtml(entry.payload.الزون || entry.shipment.الزون || '---')}</td>
+                    <td>${escapeHtml(entry.payload.المندوب || entry.shipment.المندوب || 'بدون مندوب')}</td>
+                </tr>
+            `).join('');
+
+            return `
+                <div class="text-end">
+                    <div class="alert alert-primary rounded-4 py-2 mb-3 fw-bold">عدد التغييرات: ${entries.length}</div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle text-center mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>اسم العميل</th>
+                                    <th>الزون</th>
+                                    <th>المندوب</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openHousingChangesModal() {
+            const entries = getHousingDraftEntries();
+            if (!entries.length) {
+                Swal.fire('لا توجد تغييرات', 'لم يتم إجراء أي تعديلات غير محفوظة داخل قسم تسكين الشحنات.', 'info');
+                return;
+            }
+
+            Swal.fire({
+                title: 'مراجعة التغييرات',
+                html: getHousingSummaryTableHtml(entries),
+                width: 820,
+                showCancelButton: true,
+                confirmButtonText: `حفظ ${entries.length} تغييرات`,
+                cancelButtonText: 'إغلاق',
+                focusConfirm: false
+            }).then(result => {
+                if (result.isConfirmed) {
+                    saveAllHousingChanges();
+                }
+            });
+        }
+
+        async function saveAllHousingChanges() {
+            const entries = getHousingDraftEntries();
+            if (!entries.length) return;
+
+            showLoading(true);
+            const results = await Promise.all(entries.map(entry =>
+                supabaseClient
+                    .from(CONFIG.TABLES.SHIPMENTS)
+                    .update(entry.payload)
+                    .eq('id', entry.id)
+            ));
+            showLoading(false);
+
+            const failed = results.find(result => result.error);
+            if (failed) {
+                Swal.fire('خطأ', failed.error.message, 'error');
+                return;
+            }
+
+            entries.forEach(entry => {
+                const index = allShipments.findIndex(s => String(s.id) === String(entry.id));
+                if (index !== -1) {
+                    allShipments[index] = { ...allShipments[index], ...entry.payload };
+                }
+                housingDrafts.delete(String(entry.id));
+            });
+
+            Swal.fire('نجاح', `تم حفظ ${entries.length} تغييرات بنجاح`, 'success');
+            refreshDashboard();
+            updateHousingSaveButtonState();
+        }
+
+        function renderHousingSection() {
+            const totalCountEl = document.getElementById('housingTotalCount');
+            const unassignedCountEl = document.getElementById('housingUnassignedCount');
+            const assignRepEl = document.getElementById('housingAssignRep');
+            const tableEl = document.getElementById('housingShipmentsTable');
+            const unassignedBtn = document.getElementById('housingUnassignedBtn');
+
+            if (!totalCountEl || !unassignedCountEl || !assignRepEl || !tableEl || !unassignedBtn) return;
+
+            const filtered = getHousingFilteredShipments();
+            const unassignedCount = allShipments.filter(s => !s.المندوب).length;
+
+            totalCountEl.innerText = filtered.length;
+            unassignedCountEl.innerText = unassignedCount;
+            assignRepEl.innerHTML = `<option value="">اختر مندوباً للتعيين</option>${getHousingRepOptions(assignRepEl.value)}`;
+            unassignedBtn.classList.toggle('btn-danger', housingUnassignedOnly);
+            unassignedBtn.classList.toggle('btn-outline-danger', !housingUnassignedOnly);
+
+            if (!filtered.length) {
+                tableEl.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-secondary fw-bold">لا توجد شحنات مطابقة.</td></tr>`;
+                updateHousingSaveButtonState();
+                return;
+            }
+
+            tableEl.innerHTML = filtered.map(s => {
+                const currentData = getHousingDisplayShipmentData(s);
+                const changedFields = getHousingChangedFields(s, currentData);
+                const phoneChanged = changedFields.includes('الهاتف');
+                const adjustedPriceChanged = changedFields.includes('السعر_بعد_التعديل');
+
+                return `
+                    <tr>
+                        <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-name-${s.id}" value="${escapeAttr(currentData.اسم_العميل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td><input type="text" class="form-control form-control-sm rounded-3 ${phoneChanged ? 'changed-cell' : ''}" id="housing-phone-${s.id}" value="${escapeAttr(currentData.الهاتف || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-alt-${s.id}" value="${escapeAttr(currentData.هاتف_بديل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-zone-${s.id}" value="${escapeAttr(currentData.الزون || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-sender-${s.id}" value="${escapeAttr(currentData.الراسل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td><input type="number" class="form-control form-control-sm rounded-3" id="housing-amount-${s.id}" value="${escapeAttr(currentData.المبلغ || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td>
+                            <select class="form-select form-select-sm rounded-3" id="housing-rep-${s.id}" onchange="syncHousingDraft('${s.id}')">
+                                <option value="">بدون مندوب</option>
+                                ${getHousingRepOptions(currentData.المندوب || '')}
+                            </select>
+                        </td>
+                        <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-status-${s.id}" value="${escapeAttr(currentData.الحالة || '')}" placeholder="قيد التنفيذ" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td class="text-center">
+                            <input type="hidden" id="housing-adjusted-${s.id}" value="${escapeAttr(currentData.السعر_بعد_التعديل || '')}">
+                            <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="saveHousingShipment('${s.id}')">حفظ</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            updateHousingSaveButtonState();
+        }
+
+        async function saveHousingShipment(id) {
+            const payload = getHousingRowPayload(id);
+
+            showLoading(true);
+            const { error } = await supabaseClient
+                .from(CONFIG.TABLES.SHIPMENTS)
+                .update(payload)
+                .eq('id', id);
+
+            showLoading(false);
+
+            if (error) {
+                Swal.fire('خطأ', error.message, 'error');
+                return;
+            }
+
+            const index = allShipments.findIndex(s => String(s.id) === String(id));
+            if (index !== -1) {
+                allShipments[index] = { ...allShipments[index], ...payload };
+            }
+            housingDrafts.delete(String(id));
+
+            Swal.fire({
+                icon: 'success',
+                title: 'تم حفظ التعديلات',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1800
+            });
+
+            refreshDashboard();
+            updateHousingSaveButtonState();
+        }
+
+        function toggleHousingUnassigned() {
+            housingUnassignedOnly = !housingUnassignedOnly;
+            renderHousingSection();
+        }
+
+        async function assignRepToHousingResults() {
+            const rep = document.getElementById('housingAssignRep').value;
+            if (!rep) {
+                Swal.fire('تنبيه', 'اختر مندوباً أولاً', 'warning');
+                return;
+            }
+
+            const targetIds = getHousingFilteredShipments().map(s => s.id);
+            if (!targetIds.length) {
+                Swal.fire('تنبيه', 'لا توجد شحنات مطابقة للتعيين', 'warning');
+                return;
+            }
+
+            showLoading(true);
+            const { error } = await supabaseClient
+                .from(CONFIG.TABLES.SHIPMENTS)
+                .update({ المندوب: rep })
+                .in('id', targetIds);
+            showLoading(false);
+
+            if (error) {
+                Swal.fire('خطأ', error.message, 'error');
+                return;
+            }
+
+            allShipments = allShipments.map(s => targetIds.includes(s.id) ? { ...s, المندوب: rep } : s);
+            Swal.fire('نجاح', `تم تعيين ${targetIds.length} شحنة إلى ${rep}`, 'success');
+            refreshDashboard();
         }
 
         function getStatusClass(st) {
@@ -578,9 +1345,9 @@
             document.getElementById('userId').value = '';
             document.getElementById('userName').value = '';
             document.getElementById('userPhone').value = '';
+            document.getElementById('userEmail').value = '';
             document.getElementById('userPassword').value = '';
             document.getElementById('userRole').value = 'rep';
-            document.getElementById('userApproved').checked = true;
             userModal.show();
         }
 
@@ -589,9 +1356,9 @@
             document.getElementById('userId').value = user.id;
             document.getElementById('userName').value = user.username || user.full_name;
             document.getElementById('userPhone').value = user.phone;
+            document.getElementById('userEmail').value = user.email || '';
             document.getElementById('userPassword').value = user.password;
             document.getElementById('userRole').value = user.role;
-            document.getElementById('userApproved').checked = user.approved;
             userModal.show();
         }
 
@@ -601,9 +1368,10 @@
             const payload = {
                 username: document.getElementById('userName').value,
                 phone: document.getElementById('userPhone').value,
+                email: document.getElementById('userEmail').value,
                 password: document.getElementById('userPassword').value,
                 role: document.getElementById('userRole').value,
-                approved: document.getElementById('userApproved').checked
+                approved: true
             };
 
             showLoading(true);
@@ -623,14 +1391,6 @@
             }
             showLoading(false);
         };
-
-        async function toggleUserStatus(id, approved) {
-            showLoading(true);
-            const { error } = await supabaseClient.from(CONFIG.TABLES.USERS).update({ approved }).eq('id', id);
-            if (error) Swal.fire('خطأ', error.message, 'error');
-            else init();
-            showLoading(false);
-        }
 
         async function deleteUser(id, name) {
             const confirmed = await Swal.fire({
@@ -705,8 +1465,13 @@
             window.location.href = 'index.html';
         }
 
+        document.getElementById('housingSearch')?.addEventListener('input', renderHousingSection);
+        ['housingFilterName', 'housingFilterPhone', 'housingFilterAltPhone', 'housingFilterZone', 'housingFilterSender', 'housingFilterAmount', 'housingFilterRep', 'housingFilterStatus']
+            .forEach(id => document.getElementById(id)?.addEventListener('input', renderHousingSection));
+
         if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-bs-theme', 'dark');
         init();
     </script>
 </body>
+
 </html>

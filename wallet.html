@@ -55,6 +55,13 @@
                     <h4 id="walletTotalMoney" class="text-2xl font-black text-slate-800 dark:text-white truncate">0 <span class="text-xs">ج.م</span></h4>
                 </div>
             </div>
+
+            <div class="mt-4">
+                <button id="requestSettlementBtn" onclick="requestSettlement()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-hand-holding-usd text-xl"></i>
+                    طلب تسوية / حساب
+                </button>
+            </div>
         </div>
     </main>
 
@@ -72,10 +79,10 @@
             <i class="fas fa-wallet text-xl"></i>
             <span class="text-[10px] font-bold">المحفظة</span>
         </button>
-        <button class="flex flex-col items-center gap-1 text-slate-400">
+        <a href="account.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors">
             <i class="fas fa-user text-xl"></i>
             <span class="text-[10px] font-bold">الحساب</span>
-        </button>
+        </a>
     </nav>
 
     <script src="js/config.js"></script>
@@ -122,7 +129,28 @@
             select.value = currentValue; 
         }
 
-        function updateWalletStats() {
+        let currentWalletBalance = 0;
+        let pendingOrderIds = [];
+
+        async function fetchSettlements() {
+            const { data, error } = await supabaseClient
+                .from(CONFIG.TABLES.SETTLEMENTS)
+                .select('order_ids')
+                .eq('rep_name', user.username || user.phone);
+                
+            let settledIds = new Set();
+            if (data) {
+                 data.forEach(row => {
+                     try {
+                         let ids = JSON.parse(row.order_ids);
+                         ids.forEach(id => settledIds.add(id));
+                     } catch(e) {}
+                 });
+            }
+            return settledIds;
+        }
+
+        async function updateWalletStats() {
             const selectedDate = document.getElementById('walletDateFilter').value;
             let filtered = allShipments.filter(s => ["تم التسليم", "تعديل سعر", "استلم جزئي"].includes(s.الحالة));
             
@@ -130,14 +158,49 @@
                 filtered = filtered.filter(s => s.الابيديت === selectedDate);
             }
 
-            const count = filtered.length;
-            const money = filtered.reduce((acc, s) => {
+            const settledIds = await fetchSettlements();
+            const unrequested = filtered.filter(s => !settledIds.has(s.id));
+
+            pendingOrderIds = unrequested.map(s => s.id);
+            currentWalletBalance = unrequested.reduce((acc, s) => {
                 const val = parseFloat(s.السعر_بعد_التعديل || s.المبلغ || 0);
                 return acc + (isNaN(val) ? 0 : val);
             }, 0);
 
-            document.getElementById('walletShipmentsCount').innerText = count;
-            document.getElementById('walletTotalMoney').innerHTML = `${money} <span class="text-xs">ج.م</span>`;
+            document.getElementById('walletShipmentsCount').innerText = unrequested.length;
+            document.getElementById('walletTotalMoney').innerHTML = `${currentWalletBalance} <span class="text-xs">ج.م</span>`;
+            document.getElementById('requestSettlementBtn').disabled = (currentWalletBalance <= 0 || pendingOrderIds.length === 0);
+        }
+
+        async function requestSettlement() {
+            if (currentWalletBalance <= 0 || pendingOrderIds.length === 0) return;
+
+            const res = await Swal.fire({
+                title: 'تأكيد طلب التسوية',
+                text: `هل أنت متأكد من طلب تسوية مالية بمبلغ ${currentWalletBalance} ج.م؟`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، أرسل الطلب',
+                cancelButtonText: 'إلغاء'
+            });
+
+            if (res.isConfirmed) {
+                const { error } = await supabaseClient
+                    .from(CONFIG.TABLES.SETTLEMENTS)
+                    .insert([{
+                        rep_name: user.username || user.phone,
+                        balance: currentWalletBalance,
+                        order_ids: JSON.stringify(pendingOrderIds),
+                        status: 'pending'
+                    }]);
+
+                if (error) {
+                    Swal.fire('خطأ', 'حدث خطأ أثناء إرسال الطلب', 'error');
+                } else {
+                    Swal.fire('تم بنجاح', 'تم إرسال طلب التسوية للإدارة', 'success');
+                    updateWalletStats();
+                }
+            }
         }
 
         function toggleTheme() {

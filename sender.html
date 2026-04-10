@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-indigo-50/30 min-h-screen">
+<body class="bg-indigo-50/30 dark:bg-slate-950 min-h-screen transition-colors duration-300">
 
     <!-- Header -->
     <header class="glass sticky top-0 z-50 px-6 py-4 mb-8">
@@ -25,9 +25,14 @@
                     <p class="text-xs font-bold text-indigo-600 italic">عميل مميز</p>
                 </div>
             </div>
-            <button onclick="logout()" class="p-3 bg-white text-slate-400 hover:text-rose-500 rounded-xl shadow-sm border border-slate-100 transition-all">
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleTheme()" class="p-3 bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-300 hover:text-indigo-500 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-all">
+                    <i id="themeIcon" class="fas fa-moon"></i>
+                </button>
+                <button onclick="logout()" class="p-3 bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-300 hover:text-rose-500 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-all" title="خروج">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -169,6 +174,19 @@
         function logout() {
             localStorage.removeItem('user');
             window.location.href = 'index.html';
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark');
+            const icon = document.getElementById('themeIcon');
+            if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('rep-theme', isDark ? 'dark' : 'light');
+        }
+
+        if (localStorage.getItem('rep-theme') === 'dark') {
+            document.body.classList.add('dark');
+            const icon = document.getElementById('themeIcon');
+            if (icon) icon.className = 'fas fa-sun';
         }
 
         // Real-time listener
