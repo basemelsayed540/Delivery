@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المدير | نظام الشحن الاحترافي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <!-- Sidebar (Desktop) / Bottom Nav (Mobile) -->
+    <div class="flex flex-col md:flex-row min-h-screen">
+        
+        <!-- Sidebar -->
+        <aside class="w-full md:w-64 glass md:min-h-screen p-6 md:sticky md:top-0 z-50">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h1 class="text-xl font-black text-slate-800 tracking-tight">لوحة المدير</h1>
+            </div>
+
+            <nav class="space-y-2">
+                <button onclick="showSection('dashboard')" class="nav-link active w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all text-indigo-600 bg-indigo-50">
+                    <i class="fas fa-th-large"></i>
+                    <span>الرئيسية</span>
+                </button>
+                <button onclick="showSection('shipments')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all text-slate-500 hover:bg-slate-50">
+                    <i class="fas fa-box"></i>
+                    <span>الشحنات</span>
+                </button>
+                <button onclick="showSection('users')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all text-slate-500 hover:bg-slate-50">
+                    <i class="fas fa-users"></i>
+                    <span>المستخدمين</span>
+                </button>
+                <div class="pt-10">
+                    <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-rose-500 hover:bg-rose-50 transition-all">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>تسجيل الخروج</span>
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 md:p-10">
+            
+            <!-- Header Section -->
+            <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+                <div>
+                    <h2 id="sectionTitle" class="text-3xl font-black text-slate-800">نظرة عامة</h2>
+                    <p class="text-slate-500 font-bold mt-1">إحصائيات النظام اللحظية</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="glass p-3 rounded-xl text-slate-400 hover:text-indigo-600 transition-colors">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <div class="h-10 w-[1px] bg-slate-200 mx-2"></div>
+                    <div class="text-right">
+                        <p id="adminName" class="text-sm font-black text-slate-800">المدير</p>
+                        <p class="text-[10px] font-bold text-indigo-600">مسؤول النظام</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section id="dashboardSection" class="space-y-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="glass p-6 rounded-3xl border-b-4 border-indigo-500">
+                        <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4">
+                            <i class="fas fa-boxes text-xl"></i>
+                        </div>
+                        <h4 class="text-slate-500 font-bold text-sm mb-1">إجمالي الشحنات</h4>
+                        <h3 id="statTotal" class="text-3xl font-black text-slate-800">0</h3>
+                    </div>
+                    <div class="glass p-6 rounded-3xl border-b-4 border-emerald-500">
+                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4">
+                            <i class="fas fa-check-double text-xl"></i>
+                        </div>
+                        <h4 class="text-slate-500 font-bold text-sm mb-1">تمت بنجاح</h4>
+                        <h3 id="statDelivered" class="text-3xl font-black text-slate-800">0</h3>
+                    </div>
+                    <div class="glass p-6 rounded-3xl border-b-4 border-amber-500">
+                        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-4">
+                            <i class="fas fa-clock text-xl"></i>
+                        </div>
+                        <h4 class="text-slate-500 font-bold text-sm mb-1">قيد الانتظار</h4>
+                        <h3 id="statPending" class="text-3xl font-black text-slate-800">0</h3>
+                    </div>
+                    <div class="glass p-6 rounded-3xl border-b-4 border-rose-500">
+                        <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-4">
+                            <i class="fas fa-exclamation-triangle text-xl"></i>
+                        </div>
+                        <h4 class="text-slate-500 font-bold text-sm mb-1">مرفوضة</h4>
+                        <h3 id="statRejected" class="text-3xl font-black text-slate-800">0</h3>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 glass p-6 rounded-3xl">
+                        <h3 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
+                            <i class="fas fa-history text-indigo-500"></i>
+                            أحدث الشحنات
+                        </h3>
+                        <div class="table-container">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-slate-400 text-xs font-black uppercase">
+                                        <th class="pb-4">رقم الأوردر</th>
+                                        <th class="pb-4">المندوب</th>
+                                        <th class="pb-4">العميل</th>
+                                        <th class="pb-4">الحالة</th>
+                                        <th class="pb-4">المبلغ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentShipmentsTable">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="glass p-6 rounded-3xl">
+                        <h3 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
+                            <i class="fas fa-user-clock text-indigo-500"></i>
+                            طلبات الانضمام
+                        </h3>
+                        <div id="pendingUsersList" class="space-y-4">
+                            <!-- Dynamic users -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shipments Section (Hidden by default) -->
+            <section id="shipmentsSection" class="hidden space-y-6">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="relative flex-1">
+                        <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="shipmentSearch" placeholder="بحث شامل في الشحنات..." class="input-field pr-12 font-bold shadow-sm">
+                    </div>
+                    <select class="glass px-6 py-3 rounded-2xl font-bold text-sm text-slate-600 outline-none">
+                        <option value="all">كل الحالات</option>
+                        <option value="تم التسليم">تم التسليم</option>
+                        <option value="قيد التنفيذ">قيد التنفيذ</option>
+                        <option value="رفض">رفض</option>
+                    </select>
+                </div>
+                <!-- Extended list of shipments -->
+                <div class="glass rounded-3xl overflow-hidden">
+                    <div class="table-container">
+                        <table class="w-full text-right">
+                            <thead class="bg-slate-50 border-b border-slate-100">
+                                <tr class="text-slate-400 text-xs font-black">
+                                    <th class="p-4">الكود</th>
+                                    <th class="p-4">التاريخ</th>
+                                    <th class="p-4">العميل</th>
+                                    <th class="p-4">العنوان</th>
+                                    <th class="p-4">المندوب</th>
+                                    <th class="p-4">الحالة</th>
+                                    <th class="p-4">المبلغ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allShipmentsTable">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section (Hidden by default) -->
+            <section id="usersSection" class="hidden space-y-6">
+                <!-- User management UI -->
+            </section>
+
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        const { createClient } = supabase;
+        const supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+        let user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'admin') {
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('adminName').innerText = user.full_name || 'المدير';
+
+        let allShipments = [];
+        let allUsers = [];
+
+        async function fetchData() {
+            const [shipmentsRes, usersRes] = await Promise.all([
+                supabaseClient.from(CONFIG.TABLES.SHIPMENTS).select('*').order('id', { ascending: false }),
+                supabaseClient.from(CONFIG.TABLES.USERS).select('*').order('id', { ascending: false })
+            ]);
+
+            allShipments = shipmentsRes.data || [];
+            allUsers = usersRes.data || [];
+
+            renderDashboard();
+            renderShipmentsList();
+            renderPendingUsers();
+        }
+
+        function renderDashboard() {
+            document.getElementById('statTotal').innerText = allShipments.length;
+            document.getElementById('statDelivered').innerText = allShipments.filter(s => s.الحالة === 'تم التسليم').length;
+            document.getElementById('statPending').innerText = allShipments.filter(s => !s.الحالة || s.الحالة === 'قيد التنفيذ').length;
+            document.getElementById('statRejected').innerText = allShipments.filter(s => s.الحالة === 'رفض').length;
+
+            const recent = allShipments.slice(0, 10);
+            document.getElementById('recentShipmentsTable').innerHTML = recent.map(s => `
+                <tr class="hover:bg-indigo-50/30 transition-colors border-b border-slate-50 last:border-0">
+                    <td class="p-4 text-sm font-black text-slate-800">#${s.order_id}</td>
+                    <td class="p-4 text-xs font-bold text-slate-500">${s.المندوب || 'غير محدد'}</td>
+                    <td class="p-4 text-xs font-bold text-slate-500">${s.اسم_العميل || '---'}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded-md text-[9px] font-black ${getStatusBadgeClass(s.الحالة)}">
+                            ${s.الحالة || 'قيد التنفيذ'}
+                        </span>
+                    </td>
+                    <td class="p-4 text-sm font-black text-indigo-600">${s.المبلغ || 0} ج.م</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderShipmentsList() {
+            document.getElementById('allShipmentsTable').innerHTML = allShipments.map(s => `
+                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
+                    <td class="p-4 text-sm font-black text-slate-800">#${s.order_id}</td>
+                    <td class="p-4 text-[10px] font-bold text-slate-400">${s.الابيديت || '---'}</td>
+                    <td class="p-4 text-xs font-bold text-slate-600">${s.اسم_العميل || '---'}</td>
+                    <td class="p-4 text-[10px] font-bold text-slate-400 truncate max-w-[150px]">${s.العنوان || '---'}</td>
+                    <td class="p-4 text-[10px] font-bold text-indigo-600">${s.المندوب || '---'}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded-md text-[9px] font-black ${getStatusBadgeClass(s.الحالة)}">
+                            ${s.الحالة || 'قيد التنفيذ'}
+                        </span>
+                    </td>
+                    <td class="p-4 text-sm font-black text-slate-800">${s.المبلغ || 0}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPendingUsers() {
+            const pending = allUsers.filter(u => !u.approved);
+            const list = document.getElementById('pendingUsersList');
+            
+            if (pending.length === 0) {
+                list.innerHTML = '<p class="text-center text-slate-400 text-xs py-10 font-bold">لا توجد طلبات معلقة</p>';
+                return;
+            }
+
+            list.innerHTML = pending.map(u => `
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-black">
+                            ${(u.username || u.phone).charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <p class="text-xs font-black text-slate-800">${u.username || u.phone}</p>
+                            <p class="text-[10px] font-bold text-slate-400">${u.role === 'rep' ? 'مندوب' : 'راسل'}</p>
+                        </div>
+                    </div>
+                    <button onclick="approveUser('${u.id}')" class="text-indigo-600 hover:text-indigo-800 p-2 transition-transform active:scale-90">
+                        <i class="fas fa-check-circle text-xl"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function approveUser(id) {
+            const { error } = await supabaseClient
+                .from(CONFIG.TABLES.USERS)
+                .update({ approved: true })
+                .eq('id', id);
+
+            if (error) {
+                Swal.fire('خطأ', 'فشل تفعيل المستخدم', 'error');
+                return;
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'تم تفعيل الحساب',
+                toast: true,
+                timer: 2000,
+                position: 'top-end',
+                showConfirmButton: false
+            });
+            fetchData();
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'تم التسليم': return 'bg-emerald-100 text-emerald-700';
+                case 'تأجيل': return 'bg-amber-100 text-amber-700';
+                case 'رفض': return 'bg-rose-100 text-rose-700';
+                default: return 'bg-indigo-100 text-indigo-700';
+            }
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(section + 'Section').classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-link').forEach(l => {
+                l.classList.remove('active', 'text-indigo-600', 'bg-indigo-50');
+                l.classList.add('text-slate-500');
+            });
+
+            const activeLink = document.querySelector(`[onclick="showSection('${section}')"]`);
+            activeLink.classList.add('active', 'text-indigo-600', 'bg-indigo-50');
+            
+            const titles = { 'dashboard': 'نظرة عامة', 'shipments': 'إدارة الشحنات', 'users': 'إدارة المستخدمين' };
+            document.getElementById('sectionTitle').innerText = titles[section];
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        // Real-time listener
+        supabaseClient
+            .channel('admin_changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments1' }, fetchData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, fetchData)
+            .subscribe();
+
+        fetchData();
+    </script>
+</body>
+</html>
