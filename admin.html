@@ -1,184 +1,372 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة المدير | نظام الشحن الاحترافي</title>
+    <title>لوحة التحكم | نظام الإدارة المركزي</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { 
+            --primary: #3b82f6; 
+            --success: #10b981; 
+            --warning: #f59e0b; 
+            --danger: #ef4444; 
+            --info: #06b6d4; 
+            --card-bg: #ffffff; 
+            --bg-color: #f8fafc; 
+            --text-color: #1e293b; 
+            --border: #e2e8f0; 
+        }
+        [data-bs-theme="dark"] { 
+            --card-bg: #1e293b; 
+            --bg-color: #0f172a; 
+            --text-color: #f8fafc; 
+            --border: #334155; 
+        }
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            transition: 0.3s; 
+        }
+        .navbar { 
+            background: var(--card-bg); 
+            border-bottom: 2px solid var(--primary); 
+        }
+        .order-card { 
+            background: var(--card-bg); 
+            border-radius: 20px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
+            margin-bottom: 20px;
+        }
+        .stats-card-mini { 
+            background: var(--card-bg); 
+            border-radius: 18px; 
+            padding: 20px; 
+            border: 1px solid var(--border); 
+            border-right: 5px solid var(--primary); 
+            transition: 0.3s; 
+            height: 100%; 
+        }
+        .stats-card-mini:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+        }
+        .stats-card-mini h6 { 
+            color: #64748b; 
+            font-size: 0.85rem; 
+            font-weight: 700; 
+            margin-bottom: 8px; 
+        }
+        .table thead th { 
+            background: transparent; 
+            border: none; 
+            font-size: 0.8rem; 
+            color: #64748b; 
+            padding: 15px; 
+        }
+        .table tbody tr { 
+            background: var(--card-bg); 
+            transition: 0.2s; 
+        }
+        .table tbody td { 
+            padding: 15px; 
+            border-top: 1px solid var(--border); 
+        }
+        .btn-action { 
+            width: 35px; 
+            height: 35px; 
+            border-radius: 10px; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: 0.3s; 
+        }
+        .filter-select { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 12px; 
+            padding: 10px 15px; 
+            font-weight: 600; 
+            color: var(--text-color); 
+        }
+        .badge-status { 
+            padding: 6px 12px; 
+            border-radius: 8px; 
+            font-weight: 700; 
+            font-size: 0.75rem; 
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        [data-bs-theme="dark"] .loading-overlay { background: rgba(15, 23, 42, 0.8); }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body>
+    <div id="loading" class="loading-overlay">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
 
-    <!-- Sidebar (Desktop) / Bottom Nav (Mobile) -->
-    <div class="flex flex-col md:flex-row min-h-screen">
-        
-        <!-- Sidebar -->
-        <aside class="w-full md:w-64 glass md:min-h-screen p-6 md:sticky md:top-0 z-50">
-            <div class="flex items-center gap-3 mb-10">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-                    <i class="fas fa-user-shield"></i>
+    <nav class="navbar navbar-expand-lg border-bottom sticky-top shadow-sm">
+        <div class="container pe-4 ps-4">
+            <span class="navbar-brand d-flex align-items-center fw-bold text-primary">
+                <i class="fas fa-shield-alt me-2 fs-3"></i> الإدارة المركزية
+            </span>
+            <div class="d-flex align-items-center gap-3">
+                <button onclick="toggleTheme()" class="btn btn-light rounded-circle shadow-sm"><i class="fas fa-moon"></i></button>
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-gear me-1"></i> الإعدادات
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4">
+                        <li><a class="dropdown-item py-2" href="#" onclick="openChangePasswordModal()"><i class="fas fa-key me-2"></i>تغيير كلمة المرور</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item py-2 text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>خروج</a></li>
+                    </ul>
                 </div>
-                <h1 class="text-xl font-black text-slate-800 tracking-tight">لوحة المدير</h1>
             </div>
+        </div>
+    </nav>
 
-            <nav class="space-y-2">
-                <button onclick="showSection('dashboard')" class="nav-link active w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all text-indigo-600 bg-indigo-50">
-                    <i class="fas fa-th-large"></i>
-                    <span>الرئيسية</span>
-                </button>
-                <button onclick="showSection('shipments')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all text-slate-500 hover:bg-slate-50">
-                    <i class="fas fa-box"></i>
-                    <span>الشحنات</span>
-                </button>
-                <button onclick="showSection('users')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all text-slate-500 hover:bg-slate-50">
-                    <i class="fas fa-users"></i>
-                    <span>المستخدمين</span>
-                </button>
-                <div class="pt-10">
-                    <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-rose-500 hover:bg-rose-50 transition-all">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>تسجيل الخروج</span>
-                    </button>
-                </div>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 p-6 md:p-10">
-            
-            <!-- Header Section -->
-            <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
-                <div>
-                    <h2 id="sectionTitle" class="text-3xl font-black text-slate-800">نظرة عامة</h2>
-                    <p class="text-slate-500 font-bold mt-1">إحصائيات النظام اللحظية</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button class="glass p-3 rounded-xl text-slate-400 hover:text-indigo-600 transition-colors">
-                        <i class="fas fa-bell"></i>
-                    </button>
-                    <div class="h-10 w-[1px] bg-slate-200 mx-2"></div>
-                    <div class="text-right">
-                        <p id="adminName" class="text-sm font-black text-slate-800">المدير</p>
-                        <p class="text-[10px] font-bold text-indigo-600">مسؤول النظام</p>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Dashboard Section -->
-            <section id="dashboardSection" class="space-y-8">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="glass p-6 rounded-3xl border-b-4 border-indigo-500">
-                        <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4">
-                            <i class="fas fa-boxes text-xl"></i>
-                        </div>
-                        <h4 class="text-slate-500 font-bold text-sm mb-1">إجمالي الشحنات</h4>
-                        <h3 id="statTotal" class="text-3xl font-black text-slate-800">0</h3>
-                    </div>
-                    <div class="glass p-6 rounded-3xl border-b-4 border-emerald-500">
-                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4">
-                            <i class="fas fa-check-double text-xl"></i>
-                        </div>
-                        <h4 class="text-slate-500 font-bold text-sm mb-1">تمت بنجاح</h4>
-                        <h3 id="statDelivered" class="text-3xl font-black text-slate-800">0</h3>
-                    </div>
-                    <div class="glass p-6 rounded-3xl border-b-4 border-amber-500">
-                        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-4">
-                            <i class="fas fa-clock text-xl"></i>
-                        </div>
-                        <h4 class="text-slate-500 font-bold text-sm mb-1">قيد الانتظار</h4>
-                        <h3 id="statPending" class="text-3xl font-black text-slate-800">0</h3>
-                    </div>
-                    <div class="glass p-6 rounded-3xl border-b-4 border-rose-500">
-                        <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-4">
-                            <i class="fas fa-exclamation-triangle text-xl"></i>
-                        </div>
-                        <h4 class="text-slate-500 font-bold text-sm mb-1">مرفوضة</h4>
-                        <h3 id="statRejected" class="text-3xl font-black text-slate-800">0</h3>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 glass p-6 rounded-3xl">
-                        <h3 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
-                            <i class="fas fa-history text-indigo-500"></i>
-                            أحدث الشحنات
-                        </h3>
-                        <div class="table-container">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="text-slate-400 text-xs font-black uppercase">
-                                        <th class="pb-4">رقم الأوردر</th>
-                                        <th class="pb-4">المندوب</th>
-                                        <th class="pb-4">العميل</th>
-                                        <th class="pb-4">الحالة</th>
-                                        <th class="pb-4">المبلغ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recentShipmentsTable">
-                                    <!-- Dynamic rows -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="glass p-6 rounded-3xl">
-                        <h3 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
-                            <i class="fas fa-user-clock text-indigo-500"></i>
-                            طلبات الانضمام
-                        </h3>
-                        <div id="pendingUsersList" class="space-y-4">
-                            <!-- Dynamic users -->
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Shipments Section (Hidden by default) -->
-            <section id="shipmentsSection" class="hidden space-y-6">
-                <div class="flex flex-col md:flex-row gap-4">
-                    <div class="relative flex-1">
-                        <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="shipmentSearch" placeholder="بحث شامل في الشحنات..." class="input-field pr-12 font-bold shadow-sm">
-                    </div>
-                    <select class="glass px-6 py-3 rounded-2xl font-bold text-sm text-slate-600 outline-none">
-                        <option value="all">كل الحالات</option>
-                        <option value="تم التسليم">تم التسليم</option>
-                        <option value="قيد التنفيذ">قيد التنفيذ</option>
-                        <option value="رفض">رفض</option>
+    <div class="container py-4">
+        <!-- الفلاتر -->
+        <div class="order-card p-4 mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">📅 التاريخ</label>
+                    <select id="filterDate" class="form-select filter-select" onchange="refreshDashboard()">
+                        <option value="">كل التواريخ</option>
                     </select>
                 </div>
-                <!-- Extended list of shipments -->
-                <div class="glass rounded-3xl overflow-hidden">
-                    <div class="table-container">
-                        <table class="w-full text-right">
-                            <thead class="bg-slate-50 border-b border-slate-100">
-                                <tr class="text-slate-400 text-xs font-black">
-                                    <th class="p-4">الكود</th>
-                                    <th class="p-4">التاريخ</th>
-                                    <th class="p-4">العميل</th>
-                                    <th class="p-4">العنوان</th>
-                                    <th class="p-4">المندوب</th>
-                                    <th class="p-4">الحالة</th>
-                                    <th class="p-4">المبلغ</th>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">📍 المنطقة</label>
+                    <select id="filterZone" class="form-select filter-select" onchange="refreshDashboard()">
+                        <option value="">كل المناطق</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">🤝 المندوب</label>
+                    <select id="filterRep" class="form-select filter-select" onchange="refreshDashboard()">
+                        <option value="">كل المناديب</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">🏢 الراسل</label>
+                    <select id="filterOffice" class="form-select filter-select" onchange="refreshDashboard()">
+                        <option value="">كل المكاتب</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">🔴 الحالة</label>
+                    <select id="filterStatus" class="form-select filter-select" onchange="refreshDashboard()">
+                        <option value="">كل الحالات</option>
+                        <option value="تم التسليم">تم التسليم</option>
+                        <option value="تأجيل">مؤجل</option>
+                        <option value="رفض">مرفوض</option>
+                        <option value="pending">قيد التوصيل</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button onclick="resetFilters()" class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold">إعادة تعيين</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- الإحصائيات -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-2 col-6">
+                <div class="stats-card-mini" style="border-right-color: var(--primary)">
+                    <h6>إجمالي الشحنات</h6><h4 id="statTotal" class="m-0 fw-bold">0</h4>
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="stats-card-mini" style="border-right-color: var(--success)">
+                    <h6>تم تسليمها</h6><h4 id="statDelivered" class="m-0 fw-bold text-success">0</h4>
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="stats-card-mini" style="border-right-color: var(--info)">
+                    <h6>إجمالي التحصيل</h6><h4 id="statCollected" class="m-0 fw-bold text-primary">0 ج</h4>
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="stats-card-mini" style="border-right-color: #6366f1">
+                    <h6>عدد المناديب</h6><h4 id="statReps" class="m-0 fw-bold" style="color: #6366f1">0</h4>
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="stats-card-mini" style="border-right-color: #8b5cf6">
+                    <h6>عدد المكاتب</h6><h4 id="statOffices" class="m-0 fw-bold" style="color: #8b5cf6">0</h4>
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="stats-card-mini" style="border-right-color: var(--danger)">
+                    <h6>بدون مندوب</h6><h4 id="statUnassigned" class="m-0 fw-bold text-danger">0</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- أداء المناديب -->
+            <div class="col-12">
+                <div class="order-card p-4 shadow-sm">
+                    <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-users-cog me-2"></i>تحليلات أداء المناديب</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle m-0">
+                            <thead>
+                                <tr>
+                                    <th>المندوب</th>
+                                    <th class="text-center">إجمالي</th>
+                                    <th>منفذ</th>
+                                    <th>مؤجل</th>
+                                    <th>مرفوض</th>
+                                    <th>قيد</th>
+                                    <th>تحصيل</th>
+                                    <th>نسبة النجاح</th>
                                 </tr>
                             </thead>
-                            <tbody id="allShipmentsTable">
+                            <tbody id="repsStatsTable">
+                                <!-- Dynamic dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إدارة الحسابات -->
+            <div class="col-12">
+                <div class="order-card p-4 shadow-sm border-0">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold m-0 text-primary">
+                            <i class="fas fa-user-check me-2"></i>إدارة حسابات المناديب والراسلين
+                        </h5>
+                        <button class="btn btn-primary btn-sm rounded-pill px-4" onclick="openAddUserModal()">
+                            <i class="fas fa-plus me-1"></i> إضافة حساب جديد
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>الرقم</th>
+                                    <th>النوع</th>
+                                    <th>الحالة</th>
+                                    <th class="text-center">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
                                 <!-- Dynamic rows -->
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </section>
+            </div>
+            
+            <!-- سجل العمليات -->
+            <div class="col-12">
+                <div class="order-card p-4 shadow-sm border-0">
+                    <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-history me-2"></i>أحدث الشحنات</h5>
+                    <div class="table-responsive" style="max-height: 400px;">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>الكود</th>
+                                    <th>العميل</th>
+                                    <th>المنطقة</th>
+                                    <th>المندوب</th>
+                                    <th>الحالة</th>
+                                    <th>المبلغ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentShipmentsTable">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <!-- Users Section (Hidden by default) -->
-            <section id="usersSection" class="hidden space-y-6">
-                <!-- User management UI -->
-            </section>
+    <!-- Modal: Add/Edit User -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold" id="userModalTitle">إضافة حساب جديد</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="userForm">
+                        <input type="hidden" id="userId">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">الاسم الكامل</label>
+                            <input type="text" id="userName" class="form-control rounded-3" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">رقم الموبايل (يستخدم كاسم دخول)</label>
+                            <input type="text" id="userPhone" class="form-control rounded-3" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">نوع الحساب</label>
+                            <select id="userRole" class="form-select rounded-3">
+                                <option value="rep">مندوب توصيل</option>
+                                <option value="sender">راسل (عميل)</option>
+                                <option value="admin">مدير</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">كلمة المرور</label>
+                            <input type="password" id="userPassword" class="form-control rounded-3" required>
+                        </div>
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="userApproved" checked>
+                            <label class="form-check-label small fw-bold" for="userApproved">تفعيل الحساب فوراً</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">حفظ البيانات</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        </main>
+    <!-- Modal: Change Admin Password -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-dark text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-key me-2"></i>تغيير كلمة مرور المدير</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="changePasswordForm">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">كلمة المرور الجديدة</label>
+                            <input type="password" id="newAdminPassword" class="form-control rounded-3" required minlength="6">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">تأكيد كلمة المرور</label>
+                            <input type="password" id="confirmAdminPassword" class="form-control rounded-3" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-bold">تحديث كلمة المرور</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="js/config.js"></script>
@@ -186,142 +374,330 @@
         const { createClient } = supabase;
         const supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
-        let user = JSON.parse(localStorage.getItem('user'));
-        if (!user || user.role !== 'admin') {
+        let currentUser = JSON.parse(localStorage.getItem('user'));
+        if (!currentUser || currentUser.role !== 'admin') {
             window.location.href = 'index.html';
         }
-
-        document.getElementById('adminName').innerText = user.full_name || 'المدير';
 
         let allShipments = [];
         let allUsers = [];
 
-        async function fetchData() {
-            const [shipmentsRes, usersRes] = await Promise.all([
-                supabaseClient.from(CONFIG.TABLES.SHIPMENTS).select('*').order('id', { ascending: false }),
-                supabaseClient.from(CONFIG.TABLES.USERS).select('*').order('id', { ascending: false })
-            ]);
-
-            allShipments = shipmentsRes.data || [];
-            allUsers = usersRes.data || [];
-
-            renderDashboard();
-            renderShipmentsList();
-            renderPendingUsers();
+        async function init() {
+            showLoading(true);
+            try {
+                await Promise.all([fetchShipments(), fetchUsers()]);
+                populateFilters();
+                refreshDashboard();
+            } catch (error) {
+                console.error("Init error:", error);
+                Swal.fire('خطأ', 'فشل في جلب البيانات من السيرفر', 'error');
+            }
+            showLoading(false);
         }
 
-        function renderDashboard() {
-            document.getElementById('statTotal').innerText = allShipments.length;
-            document.getElementById('statDelivered').innerText = allShipments.filter(s => s.الحالة === 'تم التسليم').length;
-            document.getElementById('statPending').innerText = allShipments.filter(s => !s.الحالة || s.الحالة === 'قيد التنفيذ').length;
-            document.getElementById('statRejected').innerText = allShipments.filter(s => s.الحالة === 'رفض').length;
-
-            const recent = allShipments.slice(0, 10);
-            document.getElementById('recentShipmentsTable').innerHTML = recent.map(s => `
-                <tr class="hover:bg-indigo-50/30 transition-colors border-b border-slate-50 last:border-0">
-                    <td class="p-4 text-sm font-black text-slate-800">#${s.order_id}</td>
-                    <td class="p-4 text-xs font-bold text-slate-500">${s.المندوب || 'غير محدد'}</td>
-                    <td class="p-4 text-xs font-bold text-slate-500">${s.اسم_العميل || '---'}</td>
-                    <td class="p-4">
-                        <span class="px-2 py-1 rounded-md text-[9px] font-black ${getStatusBadgeClass(s.الحالة)}">
-                            ${s.الحالة || 'قيد التنفيذ'}
-                        </span>
-                    </td>
-                    <td class="p-4 text-sm font-black text-indigo-600">${s.المبلغ || 0} ج.م</td>
-                </tr>
-            `).join('');
+        async function fetchShipments() {
+            const { data, error } = await supabaseClient
+                .from(CONFIG.TABLES.SHIPMENTS)
+                .select('*')
+                .order('order_id', { ascending: false });
+            if (error) throw error;
+            allShipments = data || [];
         }
 
-        function renderShipmentsList() {
-            document.getElementById('allShipmentsTable').innerHTML = allShipments.map(s => `
-                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
-                    <td class="p-4 text-sm font-black text-slate-800">#${s.order_id}</td>
-                    <td class="p-4 text-[10px] font-bold text-slate-400">${s.الابيديت || '---'}</td>
-                    <td class="p-4 text-xs font-bold text-slate-600">${s.اسم_العميل || '---'}</td>
-                    <td class="p-4 text-[10px] font-bold text-slate-400 truncate max-w-[150px]">${s.العنوان || '---'}</td>
-                    <td class="p-4 text-[10px] font-bold text-indigo-600">${s.المندوب || '---'}</td>
-                    <td class="p-4">
-                        <span class="px-2 py-1 rounded-md text-[9px] font-black ${getStatusBadgeClass(s.الحالة)}">
-                            ${s.الحالة || 'قيد التنفيذ'}
-                        </span>
-                    </td>
-                    <td class="p-4 text-sm font-black text-slate-800">${s.المبلغ || 0}</td>
-                </tr>
-            `).join('');
+        async function fetchUsers() {
+            const { data, error } = await supabaseClient
+                .from(CONFIG.TABLES.USERS)
+                .select('*')
+                .order('id', { ascending: false });
+            if (error) throw error;
+            allUsers = data || [];
         }
 
-        function renderPendingUsers() {
-            const pending = allUsers.filter(u => !u.approved);
-            const list = document.getElementById('pendingUsersList');
+        function populateFilters() {
+            const dates = [...new Set(allShipments.map(s => s.الابيديت).filter(Boolean))].sort().reverse();
+            const zones = [...new Set(allShipments.map(s => s.الزون).filter(Boolean))].sort();
+            const reps = [...new Set(allShipments.map(s => s.المندوب).filter(Boolean))].sort();
+            const offices = [...new Set(allShipments.map(s => s.الراسل).filter(Boolean))].sort();
+
+            fillSelect('filterDate', dates);
+            fillSelect('filterZone', zones);
+            fillSelect('filterRep', reps);
+            fillSelect('filterOffice', offices);
+        }
+
+        function fillSelect(id, list) {
+            const select = document.getElementById(id);
+            const currentVal = select.value;
+            select.innerHTML = `<option value="">${select.options[0].text}</option>`;
+            list.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = opt.text = item;
+                if(item === currentVal) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function refreshDashboard() {
+            const filters = {
+                date: document.getElementById('filterDate').value,
+                zone: document.getElementById('filterZone').value,
+                rep: document.getElementById('filterRep').value,
+                office: document.getElementById('filterOffice').value,
+                status: document.getElementById('filterStatus').value
+            };
+
+            const filtered = allShipments.filter(s => {
+                if (filters.date && s.الابيديت !== filters.date) return false;
+                if (filters.zone && s.الزون !== filters.zone) return false;
+                if (filters.rep && s.المندوب !== filters.rep) return false;
+                if (filters.office && s.الراسل !== filters.office) return false;
+                if (filters.status) {
+                    if (filters.status === 'pending') {
+                        if (s.الحالة && s.الحالة !== '') return false;
+                    } else if (s.الحالة !== filters.status) return false;
+                }
+                return true;
+            });
+
+            updateStats(filtered);
+            renderRepsStats(filtered);
+            renderUsers();
+            renderRecentShipments(filtered.slice(0, 50));
+        }
+
+        function updateStats(data) {
+            const delivered = data.filter(s => ["تم التسليم", "تعديل سعر", "استلم جزئي"].includes(s.الحالة));
+            const collected = delivered.reduce((acc, s) => {
+                const price = s.السعر_بعد_التعديل || s.المبلغ || 0;
+                return acc + parseFloat(price);
+            }, 0);
+
+            document.getElementById('statTotal').innerText = data.length;
+            document.getElementById('statDelivered').innerText = delivered.length;
+            document.getElementById('statCollected').innerText = Math.round(collected) + ' ج';
+            document.getElementById('statReps').innerText = new Set(data.map(s => s.المندوب).filter(Boolean)).size;
+            document.getElementById('statOffices').innerText = new Set(data.map(s => s.الراسل).filter(Boolean)).size;
+            document.getElementById('statUnassigned').innerText = data.filter(s => !s.المندوب).length;
+        }
+
+        function renderRepsStats(data) {
+            const repsData = {};
+            const activeReps = new Set(allUsers.filter(u => u.role === 'rep' && u.approved).map(u => u.username));
             
-            if (pending.length === 0) {
-                list.innerHTML = '<p class="text-center text-slate-400 text-xs py-10 font-bold">لا توجد طلبات معلقة</p>';
+            // إضافة كل المناديب الموجودين في السيستم حتى لو معندهمش شغل حالياً
+            activeReps.forEach(name => {
+                repsData[name] = { total: 0, delivered: 0, postponed: 0, rejected: 0, pending: 0, collected: 0 };
+            });
+
+            data.forEach(s => {
+                const name = s.المندوب;
+                if (!name) return;
+                if (!repsData[name]) repsData[name] = { total: 0, delivered: 0, postponed: 0, rejected: 0, pending: 0, collected: 0 };
+                
+                repsData[name].total++;
+                const st = s.الحالة || '';
+                if (["تم التسليم", "تعديل سعر", "استلم جزئي"].includes(st)) {
+                    repsData[name].delivered++;
+                    repsData[name].collected += parseFloat(s.السعر_بعد_التعديل || s.المبلغ || 0);
+                } else if (st === 'تأجيل') repsData[name].postponed++;
+                else if (st === 'رفض') repsData[name].rejected++;
+                else repsData[name].pending++;
+            });
+
+            const sorted = Object.entries(repsData).sort((a,b) => b[1].total - a[1].total);
+            document.getElementById('repsStatsTable').innerHTML = sorted.map(([name, stats]) => {
+                const pct = stats.total > 0 ? (stats.delivered / stats.total * 100).toFixed(1) : 0;
+                return `
+                    <tr>
+                        <td class="fw-bold">${name}</td>
+                        <td class="text-center"><span class="badge bg-light text-dark border">${stats.total}</span></td>
+                        <td class="text-success fw-bold">${stats.delivered}</td>
+                        <td class="text-warning fw-bold">${stats.postponed}</td>
+                        <td class="text-danger fw-bold">${stats.rejected}</td>
+                        <td class="text-info fw-bold">${stats.pending}</td>
+                        <td class="fw-bold">${Math.round(stats.collected)} ج</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height:8px;">
+                                    <div class="progress-bar bg-success" style="width:${pct}%"></div>
+                                </div>
+                                <small class="fw-bold">${pct}%</small>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderUsers() {
+            document.getElementById('usersTable').innerHTML = allUsers.map(u => `
+                <tr>
+                    <td><strong>${u.username || u.full_name || '---'}</strong></td>
+                    <td>${u.phone}</td>
+                    <td><span class="badge bg-light text-dark">${u.role === 'rep' ? 'مندوب' : (u.role === 'sender' ? 'راسل' : 'مدير')}</span></td>
+                    <td>
+                        <span class="badge ${u.approved ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} px-2 py-1">
+                            ${u.approved ? 'مفعل' : 'معلق'}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button onclick="editUser(${JSON.stringify(u).replace(/"/g, '&quot;')})" class="btn-action bg-primary-subtle text-primary"><i class="fas fa-edit"></i></button>
+                            ${!u.approved ? `<button onclick="toggleUserStatus('${u.id}', true)" class="btn-action bg-success-subtle text-success"><i class="fas fa-check"></i></button>` : `<button onclick="toggleUserStatus('${u.id}', false)" class="btn-action bg-warning-subtle text-warning"><i class="fas fa-ban"></i></button>`}
+                            <button onclick="deleteUser('${u.id}', '${u.username}')" class="btn-action bg-danger-subtle text-danger"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderRecentShipments(data) {
+            document.getElementById('recentShipmentsTable').innerHTML = data.map(s => `
+                <tr class="small">
+                    <td>#${s.order_id}</td>
+                    <td>${s.اسم_العميل || '---'}</td>
+                    <td>${s.الزون || '---'}</td>
+                    <td class="text-primary fw-bold">${s.المندوب || 'غير محدد'}</td>
+                    <td><span class="badge-status ${getStatusClass(s.الحالة)}">${s.الحالة || 'قيد التنفيذ'}</span></td>
+                    <td class="fw-bold">${s.المبلغ} ج</td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusClass(st) {
+            if (["تم التسليم", "تعديل سعر", "استلم جزئي"].includes(st)) return 'bg-success text-white';
+            if (st === 'تأجيل') return 'bg-warning text-dark';
+            if (st === 'رفض') return 'bg-danger text-white';
+            return 'bg-secondary text-white';
+        }
+
+        // User Management CRUD
+        const userModal = new bootstrap.Modal(document.getElementById('userModal'));
+        function openAddUserModal() {
+            document.getElementById('userModalTitle').innerText = 'إضافة حساب جديد';
+            document.getElementById('userId').value = '';
+            document.getElementById('userName').value = '';
+            document.getElementById('userPhone').value = '';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userRole').value = 'rep';
+            document.getElementById('userApproved').checked = true;
+            userModal.show();
+        }
+
+        function editUser(user) {
+            document.getElementById('userModalTitle').innerText = 'تعديل بيانات الحساب';
+            document.getElementById('userId').value = user.id;
+            document.getElementById('userName').value = user.username || user.full_name;
+            document.getElementById('userPhone').value = user.phone;
+            document.getElementById('userPassword').value = user.password;
+            document.getElementById('userRole').value = user.role;
+            document.getElementById('userApproved').checked = user.approved;
+            userModal.show();
+        }
+
+        document.getElementById('userForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('userId').value;
+            const payload = {
+                username: document.getElementById('userName').value,
+                phone: document.getElementById('userPhone').value,
+                password: document.getElementById('userPassword').value,
+                role: document.getElementById('userRole').value,
+                approved: document.getElementById('userApproved').checked
+            };
+
+            showLoading(true);
+            let res;
+            if (id) {
+                res = await supabaseClient.from(CONFIG.TABLES.USERS).update(payload).eq('id', id);
+            } else {
+                res = await supabaseClient.from(CONFIG.TABLES.USERS).insert([payload]);
+            }
+
+            if (res.error) {
+                Swal.fire('خطأ', res.error.message, 'error');
+            } else {
+                Swal.fire('نجاح', 'تم حفظ البيانات بنجاح', 'success');
+                userModal.hide();
+                init();
+            }
+            showLoading(false);
+        };
+
+        async function toggleUserStatus(id, approved) {
+            showLoading(true);
+            const { error } = await supabaseClient.from(CONFIG.TABLES.USERS).update({ approved }).eq('id', id);
+            if (error) Swal.fire('خطأ', error.message, 'error');
+            else init();
+            showLoading(false);
+        }
+
+        async function deleteUser(id, name) {
+            const confirmed = await Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: `حذف حساب "${name}" نهائياً!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، حذف',
+                cancelButtonText: 'إلغاء'
+            });
+
+            if (confirmed.isConfirmed) {
+                showLoading(true);
+                const { error } = await supabaseClient.from(CONFIG.TABLES.USERS).delete().eq('id', id);
+                if (error) Swal.fire('خطأ', error.message, 'error');
+                else init();
+                showLoading(false);
+            }
+        }
+
+        // Change Admin Password Logic
+        const changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+        function openChangePasswordModal() { changePasswordModal.show(); }
+        
+        document.getElementById('changePasswordForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const pass = document.getElementById('newAdminPassword').value;
+            const conf = document.getElementById('confirmAdminPassword').value;
+
+            if (pass !== conf) {
+                Swal.fire('خطأ', 'كلمتا المرور غير متطابقتين', 'error');
                 return;
             }
 
-            list.innerHTML = pending.map(u => `
-                <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-black">
-                            ${(u.username || u.phone).charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                            <p class="text-xs font-black text-slate-800">${u.username || u.phone}</p>
-                            <p class="text-[10px] font-bold text-slate-400">${u.role === 'rep' ? 'مندوب' : 'راسل'}</p>
-                        </div>
-                    </div>
-                    <button onclick="approveUser('${u.id}')" class="text-indigo-600 hover:text-indigo-800 p-2 transition-transform active:scale-90">
-                        <i class="fas fa-check-circle text-xl"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        async function approveUser(id) {
+            showLoading(true);
             const { error } = await supabaseClient
                 .from(CONFIG.TABLES.USERS)
-                .update({ approved: true })
-                .eq('id', id);
+                .update({ password: pass })
+                .eq('id', currentUser.id);
 
             if (error) {
-                Swal.fire('خطأ', 'فشل تفعيل المستخدم', 'error');
-                return;
+                Swal.fire('خطأ', error.message, 'error');
+            } else {
+                Swal.fire('نجاح', 'تم تحديث كلمة المرور بنجاح', 'success');
+                changePasswordModal.hide();
+                // تحديث المعلومات المحلية
+                currentUser.password = pass;
+                localStorage.setItem('user', JSON.stringify(currentUser));
             }
+            showLoading(false);
+        };
 
-            Swal.fire({
-                icon: 'success',
-                title: 'تم تفعيل الحساب',
-                toast: true,
-                timer: 2000,
-                position: 'top-end',
-                showConfirmButton: false
-            });
-            fetchData();
+        function resetFilters() {
+            document.querySelectorAll('.filter-select').forEach(s => s.value = '');
+            document.getElementById('filterStatus').value = '';
+            refreshDashboard();
         }
 
-        function getStatusBadgeClass(status) {
-            switch(status) {
-                case 'تم التسليم': return 'bg-emerald-100 text-emerald-700';
-                case 'تأجيل': return 'bg-amber-100 text-amber-700';
-                case 'رفض': return 'bg-rose-100 text-rose-700';
-                default: return 'bg-indigo-100 text-indigo-700';
-            }
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-bs-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-bs-theme', target);
+            localStorage.setItem('theme', target);
         }
 
-        function showSection(section) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.getElementById(section + 'Section').classList.remove('hidden');
-            
-            document.querySelectorAll('.nav-link').forEach(l => {
-                l.classList.remove('active', 'text-indigo-600', 'bg-indigo-50');
-                l.classList.add('text-slate-500');
-            });
-
-            const activeLink = document.querySelector(`[onclick="showSection('${section}')"]`);
-            activeLink.classList.add('active', 'text-indigo-600', 'bg-indigo-50');
-            
-            const titles = { 'dashboard': 'نظرة عامة', 'shipments': 'إدارة الشحنات', 'users': 'إدارة المستخدمين' };
-            document.getElementById('sectionTitle').innerText = titles[section];
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
         }
 
         function logout() {
@@ -329,14 +705,8 @@
             window.location.href = 'index.html';
         }
 
-        // Real-time listener
-        supabaseClient
-            .channel('admin_changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments1' }, fetchData)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, fetchData)
-            .subscribe();
-
-        fetchData();
+        if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-bs-theme', 'dark');
+        init();
     </script>
 </body>
 </html>

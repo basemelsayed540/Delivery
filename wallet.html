@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المحفظة | نظام الشحن الاحترافي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-indigo-50/50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
+
+    <!-- Header -->
+    <header class="glass sticky top-0 z-50 px-4 py-4 mb-6">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-800 dark:text-white">المحفظة</h1>
+                    <p class="text-xs font-bold text-indigo-600" id="repName">مندوب توصيل</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleTheme()" class="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+                    <i id="themeIcon" class="fas fa-moon text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 pb-24">
+        
+        <div class="glass p-6 rounded-3xl space-y-6">
+            <div>
+                <label class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">تصفية حسب التاريخ (الابيديت)</label>
+                <div class="relative">
+                    <select id="walletDateFilter" onchange="updateWalletStats()" class="w-full glass px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-white outline-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 appearance-none focus:border-indigo-500">
+                        <option value="all">كل التواريخ</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 text-center">
+                    <p class="text-xs font-black text-indigo-600 dark:text-indigo-400 mb-2">إجمالي الشحنات (منفذة)</p>
+                    <h4 id="walletShipmentsCount" class="text-4xl font-black text-slate-800 dark:text-white">0</h4>
+                </div>
+                <div class="bg-emerald-50 dark:bg-emerald-900/30 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 text-center">
+                    <p class="text-xs font-black text-emerald-600 dark:text-emerald-400 mb-2">إجمالي التحصيل</p>
+                    <h4 id="walletTotalMoney" class="text-2xl font-black text-slate-800 dark:text-white truncate">0 <span class="text-xs">ج.م</span></h4>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Navigation Bottom (Mobile Only) -->
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass rounded-full px-8 py-4 flex items-center justify-between shadow-2xl z-50">
+        <a href="rep.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors">
+            <i class="fas fa-box text-xl"></i>
+            <span class="text-[10px] font-bold">شحناتي</span>
+        </a>
+        <a href="map.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors">
+            <i class="fas fa-map-marked-alt text-xl"></i>
+            <span class="text-[10px] font-bold">الخريطة</span>
+        </a>
+        <button class="flex flex-col items-center gap-1 text-indigo-600">
+            <i class="fas fa-wallet text-xl"></i>
+            <span class="text-[10px] font-bold">المحفظة</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-slate-400">
+            <i class="fas fa-user text-xl"></i>
+            <span class="text-[10px] font-bold">الحساب</span>
+        </button>
+    </nav>
+
+    <script src="js/config.js"></script>
+    <script>
+        const { createClient } = supabase;
+        const supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+        let user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'rep') {
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('repName').innerText = user.full_name || user.username || user.phone;
+
+        let allShipments = [];
+
+        async function fetchShipments() {
+            const { data, error } = await supabaseClient
+                .from(CONFIG.TABLES.SHIPMENTS)
+                .select('*')
+                .eq('المندوب', user.username || user.phone)
+                .order('id', { ascending: false });
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            allShipments = data;
+            populateDates();
+            updateWalletStats();
+        }
+
+        function populateDates() {
+            const dates = [...new Set(allShipments.map(s => s.الابيديت).filter(Boolean))].sort().reverse();
+            const select = document.getElementById('walletDateFilter');
+            
+            const currentValue = select.value;
+            select.innerHTML = '<option value="all">كل التواريخ</option>';
+            
+            dates.forEach(d => {
+                select.innerHTML += `<option value="${d}">${d}</option>`;
+            });
+            select.value = currentValue; 
+        }
+
+        function updateWalletStats() {
+            const selectedDate = document.getElementById('walletDateFilter').value;
+            let filtered = allShipments.filter(s => ["تم التسليم", "تعديل سعر", "استلم جزئي"].includes(s.الحالة));
+            
+            if (selectedDate !== 'all') {
+                filtered = filtered.filter(s => s.الابيديت === selectedDate);
+            }
+
+            const count = filtered.length;
+            const money = filtered.reduce((acc, s) => {
+                const val = parseFloat(s.السعر_بعد_التعديل || s.المبلغ || 0);
+                return acc + (isNaN(val) ? 0 : val);
+            }, 0);
+
+            document.getElementById('walletShipmentsCount').innerText = count;
+            document.getElementById('walletTotalMoney').innerHTML = `${money} <span class="text-xs">ج.م</span>`;
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('themeIcon');
+            const isDark = body.classList.toggle('dark');
+            
+            icon.className = isDark ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+            localStorage.setItem('rep-theme', isDark ? 'dark' : 'light');
+        }
+
+        if (localStorage.getItem('rep-theme') === 'dark') {
+            document.body.classList.add('dark');
+            document.getElementById('themeIcon').className = 'fas fa-sun text-xl';
+        }
+
+        // Real-time listener
+        supabaseClient
+            .channel('public:shipments1')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments1' }, payload => {
+                fetchShipments();
+            })
+            .subscribe();
+
+        fetchShipments();
+    </script>
+</body>
+</html>
