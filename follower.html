@@ -198,7 +198,12 @@
             values.forEach(val => {
                 select.innerHTML += `<option value="${val}">${val}</option>`;
             });
-            select.value = current;
+            if (id === 'filterUpdate') {
+                const savedDate = getSavedDateFilter();
+                select.value = current || (savedDate && values.includes(savedDate) ? savedDate : '');
+            } else {
+                select.value = current;
+            }
         }
 
         function isPriceEditShipment(shipment) {
@@ -299,6 +304,10 @@
 
             renderPagination(totalPages);
         }
+
+        document.getElementById('filterUpdate').addEventListener('change', (event) => {
+            saveDateFilter(event.target.value);
+        });
 
         function renderPagination(totalPages) {
             const container = document.getElementById('paginationContainer');

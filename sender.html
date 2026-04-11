@@ -100,6 +100,11 @@
 
         let myShipments = [];
 
+        function isPendingStatus(status) {
+            const normalizedStatus = String(status || '').trim();
+            return normalizedStatus === '' || normalizedStatus === 'قيد' || normalizedStatus === 'قيد التنفيذ' || normalizedStatus === 'قيد التوصيل';
+        }
+
         async function fetchMyShipments() {
             const { data, error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
@@ -139,7 +144,7 @@
                     <td class="p-4 text-sm font-black text-indigo-600">${s.المبلغ || 0} ج.م</td>
                     <td class="p-4">
                         <span class="px-2 py-1 rounded-md text-[9px] font-black ${getStatusBadgeClass(s.الحالة)}">
-                            ${(!s.الحالة || ['قيد', 'قيد التنفيذ', 'قيد التوصيل'].includes(s.الحالة)) ? 'قيد التوصيل' : (['الغاء', 'إلغاء', 'رفض'].includes(s.الحالة) ? 'رفض' : s.الحالة)}
+                            ${isPendingStatus(s.الحالة) ? 'قيد التوصيل' : (['الغاء', 'إلغاء', 'رفض'].includes(s.الحالة) ? 'رفض' : s.الحالة)}
                         </span>
                     </td>
                     <td class="p-4">
@@ -157,7 +162,7 @@
         function updateStats() {
             document.getElementById('totalOrders').innerText = myShipments.length;
             document.getElementById('deliveredOrders').innerText = myShipments.filter(s => s.الحالة === 'تم التسليم' || s.الحالة === 'تم').length;
-            document.getElementById('pendingOrders').innerText = myShipments.filter(s => !s.الحالة || ['قيد', 'قيد التنفيذ', 'قيد التوصيل'].includes(s.الحالة)).length;
+            document.getElementById('pendingOrders').innerText = myShipments.filter(s => isPendingStatus(s.الحالة)).length;
         }
 
         function getStatusBadgeClass(status) {

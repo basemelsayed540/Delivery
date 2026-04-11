@@ -40,7 +40,7 @@
                 <label class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">تصفية حسب التاريخ (الابيديت)</label>
                 <div class="relative">
                     <select id="walletDateFilter" onchange="updateWalletStats()" class="w-full glass px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-white outline-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 appearance-none focus:border-indigo-500">
-                        <option value="all">كل التواريخ</option>
+                        <option value="">اختر الابيديت</option>
                     </select>
                     <i class="fas fa-chevron-down absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                 </div>
@@ -59,9 +59,10 @@
                     <p class="text-xs font-black text-rose-600 dark:text-rose-400 mb-2">رفض</p>
                     <h4 id="walletRejectedCount" class="text-3xl font-black text-slate-800 dark:text-white">0</h4>
                 </div>
-                <div class="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 text-center">
-                    <p class="text-xs font-black text-indigo-600 dark:text-indigo-400 mb-2">منفذ</p>
-                    <h4 id="walletShipmentsCount" class="text-3xl font-black text-slate-800 dark:text-white">0</h4>
+                <div class="bg-sky-50 dark:bg-sky-900/30 p-4 rounded-2xl border border-sky-100 dark:border-sky-800/50 text-center">
+                    <p class="text-xs font-black text-sky-600 dark:text-sky-400 mb-2">شحن</p>
+                    <h4 id="walletShippingCount" class="text-3xl font-black text-slate-800 dark:text-white">0</h4>
+                    <p id="walletShippingAmount" class="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">0 ج.م</p>
                 </div>
                 <div class="bg-amber-50 dark:bg-amber-900/30 p-4 rounded-2xl border border-amber-100 dark:border-amber-800/50 text-center">
                     <p class="text-xs font-black text-amber-600 dark:text-amber-400 mb-2">قيد التوصيل</p>
@@ -142,17 +143,18 @@
             const select = document.getElementById('walletDateFilter');
             
             const currentValue = select.value;
-            select.innerHTML = '<option value="all">كل التواريخ</option>';
+            select.innerHTML = '<option value="">اختر الابيديت</option>';
             
             dates.forEach(d => {
                 select.innerHTML += `<option value="${d}">${d}</option>`;
             });
-            select.value = currentValue; 
+            const savedDate = getSavedDateFilter();
+            select.value = currentValue || (savedDate && dates.includes(savedDate) ? savedDate : '');
         }
 
         let currentWalletBalance = 0;
         let pendingOrderIds = [];
-        let currentSettlementDate = 'all';
+        let currentSettlementDate = '';
 
         function isPriceEditShipment(shipment) {
             const normalizedStatus = String(shipment?.الحالة || '').trim();
@@ -185,6 +187,16 @@
             return Number.isNaN(value) ? 0 : value;
         }
 
+        function getShipmentAmount(shipment) {
+            const value = parseFloat(shipment?.السعر_بعد_التعديل || shipment?.المبلغ || 0);
+            return Number.isNaN(value) ? 0 : value;
+        }
+
+        function getAdjustedShipmentAmount(shipment) {
+            const value = parseFloat(shipment?.السعر_بعد_التعديل || 0);
+            return Number.isNaN(value) ? 0 : value;
+        }
+
         function isCommissionEligibleShipment(shipment) {
             const normalizedStatus = String(shipment?.الحالة || '').trim();
             return normalizedStatus === 'تم' || normalizedStatus === 'تم التسليم' || normalizedStatus === 'شحن' || isPriceEditShipment(shipment);
@@ -211,44 +223,55 @@
         async function updateWalletStats() {
             const selectedDate = document.getElementById('walletDateFilter').value;
             currentSettlementDate = selectedDate;
-            let filteredByDate = [...allShipments];
-            
-            if (selectedDate !== 'all') {
-                filteredByDate = filteredByDate.filter(s => s.الابيديت === selectedDate);
+            if (!selectedDate) {
+                pendingOrderIds = [];
+                currentWalletBalance = 0;
+                document.getElementById('walletDeliveredCount').innerText = 0;
+                document.getElementById('walletPriceEditedCount').innerText = 0;
+                document.getElementById('walletRejectedCount').innerText = 0;
+                document.getElementById('walletShippingCount').innerText = 0;
+                document.getElementById('walletShippingAmount').innerText = `0 ج.م`;
+                document.getElementById('walletInTransitCount').innerText = 0;
+                document.getElementById('walletTotalMoney').innerHTML = `0 <span class="text-xs">ج.م</span>`;
+                document.getElementById('walletCommissionTotal').innerHTML = `0 <span class="text-xs text-slate-800 dark:text-white">ج.م</span>`;
+                document.getElementById('requestSettlementBtn').disabled = true;
+                return;
             }
+
+            let filteredByDate = allShipments.filter(s => s.الابيديت === selectedDate);
 
             const deliveredCount = filteredByDate.filter(s => isDeliveredShipment(s)).length;
             const priceEditedCount = filteredByDate.filter(s => isPriceEditShipment(s)).length;
             const rejectedCount = filteredByDate.filter(s => isRejectedShipment(s)).length;
+            const shippingShipments = filteredByDate.filter(s => String(s.الحالة || '').trim() === 'شحن');
             const inTransitCount = filteredByDate.filter(s => isPendingShipment(s)).length;
-            let filtered = filteredByDate.filter(s => isDeliveredShipment(s) || isPriceEditShipment(s));
+            let filtered = filteredByDate.filter(s => isCommissionEligibleShipment(s));
 
             const settledIds = await fetchSettlements();
             const unrequested = filtered.filter(s => !settledIds.has(s.id));
 
             pendingOrderIds = unrequested.map(s => s.id);
-            currentWalletBalance = unrequested.reduce((acc, s) => {
-                const val = parseFloat(s.السعر_بعد_التعديل || s.المبلغ || 0);
-                return acc + (isNaN(val) ? 0 : val);
-            }, 0);
+            currentWalletBalance = unrequested.reduce((acc, shipment) => acc + getAdjustedShipmentAmount(shipment), 0);
             const currentCommissionTotal = filteredByDate
                 .filter(isCommissionEligibleShipment)
                 .reduce((acc, shipment) => acc + getShipmentCommission(shipment), 0);
+            const shippingAmount = shippingShipments.reduce((acc, shipment) => acc + getShipmentAmount(shipment), 0);
 
             document.getElementById('walletDeliveredCount').innerText = deliveredCount;
             document.getElementById('walletPriceEditedCount').innerText = priceEditedCount;
             document.getElementById('walletRejectedCount').innerText = rejectedCount;
-            document.getElementById('walletShipmentsCount').innerText = unrequested.length;
+            document.getElementById('walletShippingCount').innerText = shippingShipments.length;
+            document.getElementById('walletShippingAmount').innerText = `${shippingAmount} ج.م`;
             document.getElementById('walletInTransitCount').innerText = inTransitCount;
             document.getElementById('walletTotalMoney').innerHTML = `${currentWalletBalance} <span class="text-xs">ج.م</span>`;
-            document.getElementById('walletCommissionTotal').innerHTML = `${currentCommissionTotal} <span class="text-xs">ج.م</span>`;
+            document.getElementById('walletCommissionTotal').innerHTML = `${currentCommissionTotal} <span class="text-xs text-slate-800 dark:text-white">ج.م</span>`;
             document.getElementById('requestSettlementBtn').disabled = (currentWalletBalance <= 0 || pendingOrderIds.length === 0);
         }
 
         async function requestSettlement() {
             if (currentWalletBalance <= 0 || pendingOrderIds.length === 0) return;
 
-            if (currentSettlementDate === 'all') {
+            if (!currentSettlementDate) {
                 Swal.fire('تنبيه', 'يرجى اختيار الابيديت أولاً قبل طلب التسوية.', 'warning');
                 return;
             }
@@ -284,23 +307,30 @@
             });
 
             if (res.isConfirmed) {
+                const repName = String(user.username || user.full_name || user.phone || '').trim();
+                const sanitizedOrderIds = [...new Set((pendingOrderIds || []).map(id => String(id)).filter(Boolean))];
                 const { error } = await supabaseClient
                     .from(CONFIG.TABLES.SETTLEMENTS)
                     .insert([{
-                        rep_name: user.username || user.phone,
-                        balance: currentWalletBalance,
-                        order_ids: JSON.stringify(pendingOrderIds),
+                        rep_name: repName,
+                        balance: Number(currentWalletBalance) || 0,
+                        order_ids: JSON.stringify(sanitizedOrderIds),
                         status: 'pending'
                     }]);
 
                 if (error) {
-                    Swal.fire('خطأ', 'حدث خطأ أثناء إرسال الطلب', 'error');
+                    console.error('Settlement request error:', error);
+                    Swal.fire('خطأ', error.message || 'حدث خطأ أثناء إرسال الطلب', 'error');
                 } else {
                     Swal.fire('تم بنجاح', 'تم إرسال طلب التسوية للإدارة', 'success');
                     updateWalletStats();
                 }
             }
         }
+
+        document.getElementById('walletDateFilter').addEventListener('change', (event) => {
+            saveDateFilter(event.target.value);
+        });
 
         function toggleTheme() {
             const body = document.body;

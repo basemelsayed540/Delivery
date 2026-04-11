@@ -38,25 +38,21 @@
 
     <main class="max-w-4xl mx-auto px-4 pb-24">
         <div class="mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="glass rounded-3xl p-5 shadow-sm border border-white/40">
-                    <div class="flex items-center justify-between mb-3 gap-3">
-                        <div>
-                            <p class="text-xs font-black tracking-wide text-indigo-600">نسبة الإنجاز</p>
-                            <h2 class="text-2xl font-black text-slate-800 dark:text-white"><span id="progressPercent">0</span>%</h2>
-                        </div>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-slate-400">تم التسليم</p>
-                            <p class="text-sm font-black text-slate-700 dark:text-slate-200"><span id="progressDelivered">0</span> / <span id="progressTotal">0</span></p>
-                        </div>
+            <div class="glass rounded-3xl p-5 shadow-sm border border-white/40">
+                <div class="flex items-start justify-between gap-4 mb-3">
+                    <div class="min-w-0">
+                        <p class="text-xs font-black tracking-wide text-indigo-600">نسبة الإنجاز</p>
+                        <h2 class="text-2xl font-black text-slate-800 dark:text-white"><span id="progressPercent">0</span>%</h2>
+                        <p class="text-sm font-black text-slate-700 dark:text-slate-200"><span id="progressDelivered">0</span> / <span id="progressTotal">0</span></p>
                     </div>
-                    <div class="w-full h-3 bg-slate-200/80 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div id="progressBar" class="h-full bg-gradient-to-l from-emerald-500 to-indigo-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    <div class="min-w-0 text-left">
+                        <p class="text-xs font-black tracking-wide text-emerald-600 mb-1">عمولة المندوب</p>
+                        <h2 id="repCommissionTotal" class="text-2xl font-black text-slate-800 dark:text-white">0 <span class="text-sm">ج.م</span></h2>
+                        <p id="repShippingStats" class="mt-1 text-xs font-bold text-slate-500 dark:text-slate-300">المطلوب توريده: 0 شحنة | 0 ج.م</p>
                     </div>
                 </div>
-                <div class="glass rounded-3xl p-5 shadow-sm border border-white/40">
-                    <p class="text-xs font-black tracking-wide text-emerald-600 mb-2">عمولة المندوب</p>
-                    <h2 id="repCommissionTotal" class="text-3xl font-black text-slate-800 dark:text-white">0 <span class="text-sm">ج.م</span></h2>
+                <div class="w-full h-3 bg-slate-200/80 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-gradient-to-l from-emerald-500 to-indigo-600 rounded-full transition-all duration-500" style="width: 0%"></div>
                 </div>
             </div>
         </div>
@@ -81,7 +77,7 @@
             </div>
 
             <div id="statusFilters" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <button onclick="setFilter('قيد التنفيذ')" class="filter-btn active whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-indigo-600 text-white border border-indigo-600">
+                <button onclick="setFilter('قيد التوصيل')" class="filter-btn active whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-indigo-600 text-white border border-indigo-600">
                     قيد التوصيل (<span id="count-pending">0</span>)
                 </button>
                 <button onclick="setFilter('تم التسليم')" class="filter-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200">
@@ -150,15 +146,27 @@
         document.getElementById('repName').innerText = user.full_name || user.username || user.phone;
 
         let allShipments = [];
-        let currentFilter = 'قيد التنفيذ';
+        let currentFilter = 'قيد التوصيل';
         let activeShipmentMenuId = null;
         let lockedShipmentIds = new Set();
 
+        function getRepIdentifiers() {
+            return [...new Set([
+                user.full_name,
+                user.username,
+                user.phone
+            ].map(value => String(value || '').trim()).filter(Boolean))];
+        }
+
+        function normalizeComparableValue(value) {
+            return String(value || '').replace(/\s+/g, ' ').trim();
+        }
+
         async function fetchShipments() {
+            const repIdentifiers = getRepIdentifiers();
             const { data, error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
                 .select('*')
-                .eq('المندوب', user.username || user.phone)
                 .order('id', { ascending: false });
 
             if (error) {
@@ -166,7 +174,8 @@
                 return;
             }
 
-            allShipments = data;
+            const normalizedRepIdentifiers = repIdentifiers.map(normalizeComparableValue);
+            allShipments = (data || []).filter(shipment => normalizedRepIdentifiers.includes(normalizeComparableValue(shipment?.المندوب)));
             await fetchLockedShipmentIds();
             populateDropdowns();
             updateFilterCounters();
@@ -174,10 +183,11 @@
         }
 
         async function fetchLockedShipmentIds() {
+            const repIdentifiers = getRepIdentifiers();
             const { data, error } = await supabaseClient
                 .from(CONFIG.TABLES.SETTLEMENTS)
                 .select('order_ids')
-                .eq('rep_name', user.username || user.phone);
+                .in('rep_name', repIdentifiers);
 
             if (error) {
                 console.error(error);
@@ -220,6 +230,12 @@
                 opt.innerText = item;
                 select.appendChild(opt);
             });
+            if (id === 'filterDate') {
+                const savedDate = getSavedDateFilter();
+                if (savedDate && items.includes(savedDate)) {
+                    select.value = savedDate;
+                }
+            }
         }
 
         function isPriceEditShipment(shipment) {
@@ -235,8 +251,8 @@
         }
 
         function isPendingStatus(status) {
-            const normalizedStatus = String(status || '').trim();
-            return normalizedStatus === '' || normalizedStatus === 'قيد' || normalizedStatus === 'قيد التنفيذ' || normalizedStatus === 'قيد التوصيل';
+            const normalizedStatus = String(status || '').replace(/\s+/g, ' ').trim();
+            return normalizedStatus === '' || normalizedStatus === 'قيد' || normalizedStatus === 'قيد التوصيل' || normalizedStatus === 'قيد التنفيذ';
         }
 
         function isDelayedStatus(status) {
@@ -254,37 +270,69 @@
             return Number.isNaN(value) ? 0 : value;
         }
 
+        function getShipmentAmount(shipment) {
+            const value = parseFloat(shipment?.السعر_بعد_التعديل || shipment?.المبلغ || 0);
+            return Number.isNaN(value) ? 0 : value;
+        }
+
+        function getAdjustedShipmentAmount(shipment) {
+            const value = parseFloat(shipment?.السعر_بعد_التعديل || 0);
+            return Number.isNaN(value) ? 0 : value;
+        }
+
         function isCommissionEligibleShipment(shipment) {
             const normalizedStatus = String(shipment?.الحالة || '').trim();
             return normalizedStatus === 'تم' || normalizedStatus === 'تم التسليم' || normalizedStatus === 'شحن' || isPriceEditShipment(shipment);
         }
 
+        function getDateFilteredShipments() {
+            const dateF = document.getElementById('filterDate')?.value || '';
+            if (!dateF) return [];
+            return allShipments.filter(s => s.الابيديت === dateF);
+        }
+
         function updateFilterCounters() {
-            const total = allShipments.length;
-            const delivered = allShipments.filter(s => isDeliveredStatus(s.الحالة, s)).length;
-            const pending = allShipments.filter(s => isPendingStatus(s.الحالة)).length;
+            const scopedShipments = getDateFilteredShipments();
+            const total = scopedShipments.length;
+            const delivered = scopedShipments.filter(s => isDeliveredStatus(s.الحالة, s)).length;
+            const pending = scopedShipments.filter(s => isPendingStatus(s.الحالة)).length;
             const progress = total ? Math.round((delivered / total) * 100) : 0;
 
             document.getElementById('count-all').innerText = total;
             document.getElementById('count-pending').innerText = pending;
             document.getElementById('count-delivered').innerText = delivered;
-            document.getElementById('count-delayed').innerText = allShipments.filter(s => isDelayedStatus(s.الحالة)).length;
-            document.getElementById('count-rejected').innerText = allShipments.filter(s => isRejectedStatus(s.الحالة)).length;
-            document.getElementById('count-price').innerText = allShipments.filter(s => isPriceEditShipment(s)).length;
+            document.getElementById('count-delayed').innerText = scopedShipments.filter(s => isDelayedStatus(s.الحالة)).length;
+            document.getElementById('count-rejected').innerText = scopedShipments.filter(s => isRejectedStatus(s.الحالة)).length;
+            document.getElementById('count-price').innerText = scopedShipments.filter(s => isPriceEditShipment(s)).length;
 
             document.getElementById('progressPercent').innerText = progress;
             document.getElementById('progressDelivered').innerText = delivered;
             document.getElementById('progressTotal').innerText = total;
             document.getElementById('progressBar').style.width = `${progress}%`;
-            document.getElementById('repCommissionTotal').innerHTML = `${allShipments.filter(isCommissionEligibleShipment).reduce((acc, shipment) => acc + getShipmentCommission(shipment), 0)} <span class="text-sm">ج.م</span>`;
+            document.getElementById('repCommissionTotal').innerHTML = `${scopedShipments.filter(isCommissionEligibleShipment).reduce((acc, shipment) => acc + getShipmentCommission(shipment), 0)} <span class="text-sm text-slate-800 dark:text-white">ج.م</span>`;
+            const remittanceShipments = scopedShipments.filter(s => isCommissionEligibleShipment(s) && !isShipmentLocked(s.id));
+            const remittanceAmount = remittanceShipments.reduce((acc, shipment) => acc + getAdjustedShipmentAmount(shipment), 0);
+            document.getElementById('repShippingStats').innerText = `المطلوب توريده: ${remittanceShipments.length} شحنة | ${remittanceAmount} ج.م`;
         }
 
         function renderShipments() {
+            updateFilterCounters();
+
             const list = document.getElementById('shipmentsList');
             const search = document.getElementById('searchInput').value.toLowerCase();
             const dateF = document.getElementById('filterDate').value;
             const zoneF = document.getElementById('filterZone').value;
             const senderF = document.getElementById('filterSender').value;
+
+            if (!dateF) {
+                list.innerHTML = `
+                    <div class="text-center py-10 opacity-60">
+                        <i class="fas fa-calendar-alt text-5xl mb-3"></i>
+                        <p class="font-bold">يرجى اختيار الابيديت أولاً لعرض الشحنات وتشغيل الفلاتر والإحصائيات</p>
+                    </div>
+                `;
+                return;
+            }
             
             const filtered = allShipments.filter(s => {
                 const matchSearch = String(s.order_id).toLowerCase().includes(search) || 
@@ -293,7 +341,7 @@
                 
                 let matchFilter = false;
                 if (currentFilter === 'all') matchFilter = true;
-                else if (currentFilter === 'قيد التنفيذ') matchFilter = isPendingStatus(s.الحالة);
+                else if (currentFilter === 'قيد التوصيل' || currentFilter === 'قيد التنفيذ') matchFilter = isPendingStatus(s.الحالة);
                 else if (currentFilter === 'تم التسليم') matchFilter = isDeliveredStatus(s.الحالة, s);
                 else if (currentFilter === 'تعديل سعر') matchFilter = isPriceEditShipment(s);
                 else if (currentFilter === 'تأجيل') matchFilter = isDelayedStatus(s.الحالة);
@@ -509,10 +557,17 @@
                 return;
             }
 
+            const shipment = allShipments.find(s => s.id == id);
+            if (!shipment) return;
+
             const normalizedStatus = status === 'تم التسليم' ? 'تم' : (status === 'تأجيل' ? 'مؤجل' : status);
             const updatePayload = {
                 الحالة: normalizedStatus
             };
+
+            if (normalizedStatus === 'تم') {
+                updatePayload.السعر_بعد_التعديل = getShipmentAmount(shipment);
+            }
 
             if (normalizedStatus !== 'رفض' && normalizedStatus !== 'مؤجل') {
                 updatePayload.سبب_الحالة = null;
@@ -541,6 +596,9 @@
             const index = allShipments.findIndex(s => s.id == id);
             if (index !== -1) {
                 allShipments[index].الحالة = normalizedStatus;
+                if (Object.prototype.hasOwnProperty.call(updatePayload, 'السعر_بعد_التعديل')) {
+                    allShipments[index].السعر_بعد_التعديل = updatePayload.السعر_بعد_التعديل;
+                }
                 if (Object.prototype.hasOwnProperty.call(updatePayload, 'سبب_الحالة')) {
                     allShipments[index].سبب_الحالة = updatePayload.سبب_الحالة;
                 }
@@ -662,6 +720,9 @@
             renderShipments();
         }
 
+        document.getElementById('filterDate').addEventListener('change', (event) => {
+            saveDateFilter(event.target.value);
+        });
         document.getElementById('searchInput').addEventListener('input', renderShipments);
         document.addEventListener('click', (event) => {
             const menu = document.getElementById('shipmentMenu');

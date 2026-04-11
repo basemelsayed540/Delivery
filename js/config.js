@@ -7,3 +7,18 @@ const CONFIG = {
         SETTLEMENTS: 'settlements'
     }
 };
+
+CONFIG.DATE_FILTER_STORAGE_KEY = 'global-selected-abydet';
+
+function getSavedDateFilter() {
+    return localStorage.getItem(CONFIG.DATE_FILTER_STORAGE_KEY) || '';
+}
+
+function saveDateFilter(value) {
+    const normalizedValue = String(value || '').trim();
+    if (normalizedValue) {
+        localStorage.setItem(CONFIG.DATE_FILTER_STORAGE_KEY, normalizedValue);
+    } else {
+        localStorage.removeItem(CONFIG.DATE_FILTER_STORAGE_KEY);
+    }
+}

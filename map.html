@@ -85,6 +85,11 @@
         let currentPolyline = null;
         let distanceLabel = null;
 
+        function isPendingStatus(status) {
+            const normalizedStatus = String(status || '').trim();
+            return normalizedStatus === '' || normalizedStatus === 'قيد' || normalizedStatus === 'قيد التنفيذ' || normalizedStatus === 'قيد التوصيل';
+        }
+
         // Icons
         const repIcon = L.divIcon({
             html: '<div class="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white"><i class="fas fa-motorcycle"></i></div>',
@@ -156,7 +161,7 @@
             }
 
             // Only pending deliveries
-            const pendingShipments = data.filter(s => !s.الحالة || s.الحالة === 'قيد التنفيذ' || s.الحالة === 'تأجيل');
+            const pendingShipments = data.filter(s => isPendingStatus(s.الحالة));
             
             if (pendingShipments.length === 0) {
                 document.getElementById('mapStatus').innerText = "لا توجد شحنات قيد التوصيل";

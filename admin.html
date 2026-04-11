@@ -385,7 +385,7 @@
                                         <tr>
                                             <th>المندوب</th>
                                             <th class="text-center">إجمالي</th>
-                                            <th>منفذ</th>
+                                            <th>تم</th>
                                             <th>مؤجل</th>
                                             <th>مرفوض</th>
                                             <th>قيد</th>
@@ -611,12 +611,27 @@
         }
 
         async function fetchShipments() {
-            const { data, error } = await supabaseClient
-                .from(CONFIG.TABLES.SHIPMENTS)
-                .select('*')
-                .order('order_id', { ascending: false });
-            if (error) throw error;
-            allShipments = data || [];
+            const pageSize = 1000;
+            let from = 0;
+            let fetchedAll = [];
+
+            while (true) {
+                const { data, error } = await supabaseClient
+                    .from(CONFIG.TABLES.SHIPMENTS)
+                    .select('*')
+                    .order('order_id', { ascending: false })
+                    .range(from, from + pageSize - 1);
+
+                if (error) throw error;
+
+                const chunk = data || [];
+                fetchedAll = fetchedAll.concat(chunk);
+
+                if (chunk.length < pageSize) break;
+                from += pageSize;
+            }
+
+            allShipments = fetchedAll;
             if (!originalShipments.size) {
                 originalShipments = new Map(allShipments.map(s => [String(s.id), { ...s }]));
             }
@@ -652,7 +667,7 @@
                     if (currentFilters.office && col !== 'الراسل' && s.الراسل !== currentFilters.office) match = false;
                     if (currentFilters.status && col !== 'الحالة') {
                         if (currentFilters.status === 'pending') {
-                            if (s.الحالة && s.الحالة !== '') match = false;
+                            if (!isAdminPendingStatus(s.الحالة)) match = false;
                         } else if (s.الحالة !== currentFilters.status) {
                             match = false;
                         }
@@ -691,6 +706,13 @@
                 if (key === currentVal) opt.selected = true;
                 select.appendChild(opt);
             });
+
+            if (id === 'filterDate' && !currentVal) {
+                const savedDate = getSavedDateFilter();
+                if (savedDate && keys.includes(savedDate)) {
+                    select.value = savedDate;
+                }
+            }
         }
 
         function refreshDashboard() {
@@ -709,7 +731,7 @@
                 if (filters.office && s.الراسل !== filters.office) return false;
                 if (filters.status) {
                     if (filters.status === 'pending') {
-                        if (s.الحالة && s.الحالة !== '') return false;
+                        if (!isAdminPendingStatus(s.الحالة)) return false;
                     } else if (s.الحالة !== filters.status) return false;
                 }
                 return true;
@@ -724,7 +746,7 @@
         }
 
         function updateStats(data) {
-            const delivered = data.filter(s => ["تم التسليم", "تعديل سعر", "استلم جزئي"].includes(s.الحالة));
+            const delivered = data.filter(s => isAdminDeliveredShipment(s));
             const collected = delivered.reduce((acc, s) => {
                 const price = s.السعر_بعد_التعديل || s.المبلغ || 0;
                 return acc + parseFloat(price);
@@ -753,11 +775,11 @@
                 if (!repsData[name]) repsData[name] = { total: 0, delivered: 0, postponed: 0, rejected: 0, pending: 0, collected: 0 };
                 
                 repsData[name].total++;
-                const st = s.الحالة || '';
-                if (["تم التسليم", "تعديل سعر", "استلم جزئي"].includes(st)) {
+                const st = getAdminDisplayStatus(s);
+                if (isAdminDeliveredShipment(s)) {
                     repsData[name].delivered++;
                     repsData[name].collected += parseFloat(s.السعر_بعد_التعديل || s.المبلغ || 0);
-                } else if (st === 'تأجيل') repsData[name].postponed++;
+                } else if (st === 'مؤجل') repsData[name].postponed++;
                 else if (st === 'رفض') repsData[name].rejected++;
                 else repsData[name].pending++;
             });
@@ -810,10 +832,41 @@
                     <td>${s.اسم_العميل || '---'}</td>
                     <td>${s.الزون || '---'}</td>
                     <td class="text-primary fw-bold">${s.المندوب || 'غير محدد'}</td>
-                    <td><span class="badge-status ${getStatusClass(s.الحالة)}">${s.الحالة || 'قيد التنفيذ'}</span></td>
+                    <td><span class="badge-status ${getStatusClass(s)}">${getAdminDisplayStatus(s)}</span></td>
                     <td class="fw-bold">${s.المبلغ} ج</td>
                 </tr>
                     `).join('');
+        }
+
+        function isAdminPriceEditShipment(shipment) {
+            const normalizedStatus = String(shipment?.الحالة || '').trim();
+            const normalizedReason = String(shipment?.سبب_الحالة || '').trim();
+            return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر';
+        }
+
+        function isAdminDeliveredShipment(shipment) {
+            const normalizedStatus = String(shipment?.الحالة || '').trim();
+            return ["تم", "تم التسليم", "شحن", "استلم جزئي"].includes(normalizedStatus) || isAdminPriceEditShipment(shipment);
+        }
+
+        function isAdminRejectedStatus(status) {
+            const normalizedStatus = String(status || '').trim();
+            return ["رفض", "الغاء", "إلغاء"].includes(normalizedStatus);
+        }
+
+        function isAdminPendingStatus(status) {
+            const normalizedStatus = String(status || '').trim();
+            return !normalizedStatus || ["قيد", "قيد التنفيذ", "قيد التوصيل", "pending"].includes(normalizedStatus);
+        }
+
+        function getAdminDisplayStatus(shipment) {
+            const normalizedStatus = String(shipment?.الحالة || '').trim();
+            if (isAdminPriceEditShipment(shipment)) return 'تعديل سعر';
+            if (isAdminDeliveredShipment(shipment)) return 'تم';
+            if (normalizedStatus === 'تأجيل' || normalizedStatus === 'مؤجل') return 'مؤجل';
+            if (isAdminRejectedStatus(normalizedStatus)) return 'رفض';
+            if (isAdminPendingStatus(normalizedStatus)) return 'قيد التوصيل';
+            return normalizedStatus || 'قيد التوصيل';
         }
 
         function getHousingRepOptions(selectedValue = '') {
@@ -1331,9 +1384,10 @@
             refreshDashboard();
         }
 
-        function getStatusClass(st) {
-            if (["تم التسليم", "تعديل سعر", "استلم جزئي"].includes(st)) return 'bg-success text-white';
-            if (st === 'تأجيل') return 'bg-warning text-dark';
+        function getStatusClass(shipment) {
+            const st = typeof shipment === 'string' ? shipment : getAdminDisplayStatus(shipment);
+            if (["تم", "تعديل سعر"].includes(st)) return 'bg-success text-white';
+            if (st === 'مؤجل') return 'bg-warning text-dark';
             if (st === 'رفض') return 'bg-danger text-white';
             return 'bg-secondary text-white';
         }
@@ -1446,8 +1500,13 @@
         function resetFilters() {
             document.querySelectorAll('.filter-select').forEach(s => s.value = '');
             document.getElementById('filterStatus').value = '';
+            saveDateFilter('');
             refreshDashboard();
         }
+
+        document.getElementById('filterDate').addEventListener('change', (event) => {
+            saveDateFilter(event.target.value);
+        });
 
         function toggleTheme() {
             const current = document.body.getAttribute('data-bs-theme');
