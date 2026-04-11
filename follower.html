@@ -101,7 +101,7 @@
                             <th class="p-3 text-sm font-bold whitespace-nowrap">سبب الحالة</th>
                             <th class="p-3 text-sm font-bold min-w-[150px]">ملاحظات</th>
                             <th class="p-3 text-sm font-bold whitespace-nowrap">السعر أضافي</th>
-                            <th class="p-3 text-sm font-bold text-center whitespace-nowrap">مشاركة</th>
+                            <th class="p-3 text-sm font-bold text-center whitespace-nowrap">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="shipmentsTableBody" class="divide-y divide-slate-100">
@@ -112,6 +112,11 @@
             </div>
             <!-- Pagination Container -->
             <div id="paginationContainer" class="mt-6 mb-2 flex justify-center items-center gap-2 flex-wrap" dir="ltr"></div>
+        </div>
+        <div id="shipmentMenu" class="hidden fixed z-50 min-w-[220px] rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
+            <button onclick="copyShipmentDataFromMenu()" class="w-full rounded-xl px-4 py-3 text-right text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100">
+                نسخ بيانات الشحنة
+            </button>
         </div>
         
     </main>
@@ -130,6 +135,7 @@
 
         let allShipments = [];
         let currentPage = 1;
+        let activeShipmentMenuId = null;
         const itemsPerPage = 30;
 
         function filterData() {
@@ -195,6 +201,36 @@
             select.value = current;
         }
 
+        function isPriceEditShipment(shipment) {
+            const normalizedStatus = String(shipment?.الحالة || '').trim();
+            const normalizedReason = String(shipment?.سبب_الحالة || '').trim();
+            return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر';
+        }
+
+        function isPendingStatus(status) {
+            const normalizedStatus = String(status || '').trim();
+            return normalizedStatus === '' || normalizedStatus === 'قيد' || normalizedStatus === 'قيد التنفيذ' || normalizedStatus === 'قيد التوصيل';
+        }
+
+        function isRejectedStatus(status) {
+            const normalizedStatus = String(status || '').trim();
+            return normalizedStatus === 'رفض' || normalizedStatus === 'الغاء' || normalizedStatus === 'إلغاء';
+        }
+
+        function getShipmentDisplayStatus(shipment) {
+            const normalizedStatus = String(shipment?.الحالة || '').trim();
+            if (isPriceEditShipment(shipment)) return 'تعديل سعر';
+            if (isPendingStatus(normalizedStatus)) return 'قيد التوصيل';
+            if (normalizedStatus === 'تأجيل' || normalizedStatus === 'مؤجل') return 'مؤجل';
+            if (isRejectedStatus(normalizedStatus)) return 'رفض';
+            return normalizedStatus || 'قيد التوصيل';
+        }
+
+        function getShipmentDisplayReason(shipment) {
+            if (isPriceEditShipment(shipment)) return 'تعديل سعر';
+            return shipment.سبب_الحالة || '---';
+        }
+
         function renderTable() {
             const fRep = document.getElementById('filterRep').value;
             const fZone = document.getElementById('filterZone').value;
@@ -245,15 +281,18 @@
                     <td class="p-3 text-sm font-bold text-indigo-600">${s.المبلغ || '0'} ج</td>
                     <td class="p-3 text-sm font-bold text-slate-700">${s.المندوب || 'غير محدد'}</td>
                     <td class="p-3 ">
-                        <span class="inline-block px-2 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-md">${s.الحالة || 'قيد التنفيذ'}</span>
+                        <span class="inline-block px-2 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-md">${getShipmentDisplayStatus(s)}</span>
                     </td>
-                    <td class="p-3 text-xs text-slate-600">${s.سبب_الحالة || '---'}</td>
+                    <td class="p-3 text-xs text-slate-600">${getShipmentDisplayReason(s)}</td>
                     <td class="p-3 text-xs text-slate-500">${s.ملاحظات || '---'}</td>
                     <td class="p-3 text-sm font-bold text-emerald-600">${s.السعر_بعد_التعديل || '---'}</td>
                     <td class="p-3 text-center">
-                        <button onclick='shareWhatsApp(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-[#25D366] text-white p-2 rounded-lg shadow-sm hover:bg-[#1ebd5a] transition-colors focus:ring-2 focus:ring-[#25D366] focus:ring-offset-1 tooltip" title="مشاركة عبر واتساب">
-                            <i class="fab fa-whatsapp text-lg"></i>
-                        </button>
+                        <div class="flex items-center justify-center gap-2 flex-wrap">
+                            ${renderShipmentContactActions(s)}
+                            <button onclick="toggleShipmentMenu(event, '${s.id}')" class="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:text-indigo-600" title="خيارات الشحنة" aria-label="خيارات الشحنة">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -308,7 +347,115 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        async function shareWhatsApp(shipment) {
+        function getShipmentById(id) {
+            return allShipments.find(s => String(s.id) === String(id));
+        }
+
+        function getShipmentPhone(shipment, key) {
+            return (shipment[key] || '').toString().trim();
+        }
+
+        function hasShipmentPhone(shipment, key) {
+            return Boolean(getShipmentPhone(shipment, key));
+        }
+
+        function renderShipmentContactActions(shipment) {
+            const primary = hasShipmentPhone(shipment, 'الهاتف') ? `
+                <button onclick='shareWhatsApp(${JSON.stringify(shipment).replace(/'/g, "&apos;")}, "الهاتف")' class="bg-[#25D366] text-white p-2 rounded-lg shadow-sm hover:bg-[#1ebd5a] transition-colors focus:ring-2 focus:ring-[#25D366] focus:ring-offset-1 tooltip" title="واتساب الهاتف">
+                    <i class="fab fa-whatsapp text-lg"></i>
+                </button>
+                <a href="tel:${getShipmentPhone(shipment, 'الهاتف')}" class="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-indigo-600 shadow-sm transition-colors hover:text-indigo-700" title="اتصال الهاتف" aria-label="اتصال الهاتف">
+                    <i class="fas fa-phone-alt"></i>
+                </a>
+            ` : '';
+
+            const secondary = hasShipmentPhone(shipment, 'هاتف_بديل') ? `
+                <button onclick='shareWhatsApp(${JSON.stringify(shipment).replace(/'/g, "&apos;")}, "هاتف_بديل")' class="bg-[#25D366] text-white p-2 rounded-lg shadow-sm hover:bg-[#1ebd5a] transition-colors focus:ring-2 focus:ring-[#25D366] focus:ring-offset-1 tooltip" title="واتساب الهاتف البديل">
+                    <i class="fab fa-whatsapp text-lg"></i>
+                </button>
+                <a href="tel:${getShipmentPhone(shipment, 'هاتف_بديل')}" class="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-indigo-600 shadow-sm transition-colors hover:text-indigo-700" title="اتصال الهاتف البديل" aria-label="اتصال الهاتف البديل">
+                    <i class="fas fa-phone-alt"></i>
+                </a>
+            ` : '';
+
+            return `${primary}${secondary}`;
+        }
+
+        function formatShipmentCopyText(shipment) {
+            const getValue = (value) => {
+                if (value === null || value === undefined || value === '') return '---';
+                return String(value);
+            };
+
+            return [
+                `اسم العميل: ${getValue(shipment.اسم_العميل)}`,
+                `العنوان: ${getValue(shipment.العنوان)}`,
+                `الزون: ${getValue(shipment.الزون)}`,
+                `المنتج: ${getValue(shipment.المنتج)}`,
+                `الهاتف: ${getValue(shipment.الهاتف)}`,
+                `هاتف بديل: ${getValue(shipment.هاتف_بديل)}`,
+                `المبلغ: ${getValue(shipment.المبلغ)}`,
+                `الكود: ${getValue(shipment.الكود)}`,
+                `الراسل: ${getValue(shipment.الراسل)}`,
+                `المندوب: ${getValue(shipment.المندوب)}`
+            ].join('\n');
+        }
+
+        function closeShipmentMenu() {
+            const menu = document.getElementById('shipmentMenu');
+            menu.classList.add('hidden');
+            activeShipmentMenuId = null;
+        }
+
+        function toggleShipmentMenu(event, shipmentId) {
+            event.stopPropagation();
+            const menu = document.getElementById('shipmentMenu');
+            const isOpenForSameShipment = activeShipmentMenuId === shipmentId && !menu.classList.contains('hidden');
+
+            if (isOpenForSameShipment) {
+                closeShipmentMenu();
+                return;
+            }
+
+            activeShipmentMenuId = shipmentId;
+            menu.classList.remove('hidden');
+
+            const menuWidth = 220;
+            const menuHeight = 64;
+            const left = Math.max(12, Math.min(event.clientX - menuWidth + 20, window.innerWidth - menuWidth - 12));
+            const top = Math.max(12, Math.min(event.clientY + 12, window.innerHeight - menuHeight - 12));
+
+            menu.style.left = `${left}px`;
+            menu.style.top = `${top}px`;
+        }
+
+        async function copyShipmentData(id) {
+            const shipment = getShipmentById(id);
+            if (!shipment) return;
+
+            try {
+                await navigator.clipboard.writeText(formatShipmentCopyText(shipment));
+                closeShipmentMenu();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم نسخ بيانات الشحنة',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 1800
+                });
+            } catch (error) {
+                closeShipmentMenu();
+                Swal.fire('خطأ', 'فشل نسخ بيانات الشحنة', 'error');
+            }
+        }
+
+        function copyShipmentDataFromMenu() {
+            if (!activeShipmentMenuId) return;
+            copyShipmentData(activeShipmentMenuId);
+        }
+
+        async function shareWhatsApp(shipment, phoneKey = 'الهاتف') {
             // Template: اسم العميل، العنوان، الزون، المنتج، الهاتف، هاتف بديل، المبلغ، المكتب، الكود، والمندوب
             const info = [
                 `📦 *بيانات الشحنة:* #${shipment.order_id || '---'}`,
@@ -327,7 +474,7 @@
                 await navigator.clipboard.writeText(info);
                 
                 // Construct WA link (prefer primary phone, format number if needed)
-                let tel = shipment.الهاتف || '';
+                let tel = getShipmentPhone(shipment, phoneKey);
                 // Simple format to add +20 if it's an Egyptian 010/011/etc
                 if(tel.startsWith('01') && tel.length === 11) {
                     tel = '+20' + tel.substring(1);
@@ -357,6 +504,15 @@
             if (icon) icon.className = isDark ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
             localStorage.setItem('rep-theme', isDark ? 'dark' : 'light');
         }
+
+        document.addEventListener('click', (event) => {
+            const menu = document.getElementById('shipmentMenu');
+            if (!menu.contains(event.target)) {
+                closeShipmentMenu();
+            }
+        });
+        window.addEventListener('resize', closeShipmentMenu);
+        window.addEventListener('scroll', closeShipmentMenu);
 
         if (localStorage.getItem('rep-theme') === 'dark') {
             document.body.classList.add('dark');
