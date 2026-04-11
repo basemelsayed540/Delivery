@@ -211,16 +211,31 @@
         }
 
         function populateDropdowns() {
-            const dates = [...new Set(allShipments.map(s => s.الابيديت).filter(Boolean))].sort().reverse();
-            const zones = [...new Set(allShipments.map(s => s.الزون).filter(Boolean))].sort();
-            const senders = [...new Set(allShipments.map(s => s.الراسل).filter(Boolean))].sort();
+            const currentDate = document.getElementById('filterDate')?.value || '';
+            const currentZone = document.getElementById('filterZone')?.value || '';
+            const currentSender = document.getElementById('filterSender')?.value || '';
 
-            fillSelect('filterDate', dates, 'الابيديت');
-            fillSelect('filterZone', zones, 'الزون');
-            fillSelect('filterSender', senders, 'الراسل');
+            const dates = [...new Set(allShipments
+                .filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender))
+                .map(s => s.الابيديت)
+                .filter(Boolean))].sort().reverse();
+
+            const zones = [...new Set(allShipments
+                .filter(s => (!currentDate || s.الابيديت === currentDate) && (!currentSender || s.الراسل === currentSender))
+                .map(s => s.الزون)
+                .filter(Boolean))].sort();
+
+            const senders = [...new Set(allShipments
+                .filter(s => (!currentDate || s.الابيديت === currentDate) && (!currentZone || s.الزون === currentZone))
+                .map(s => s.الراسل)
+                .filter(Boolean))].sort();
+
+            fillSelect('filterDate', dates, 'الابيديت', currentDate);
+            fillSelect('filterZone', zones, 'الزون', currentZone);
+            fillSelect('filterSender', senders, 'الراسل', currentSender);
         }
 
-        function fillSelect(id, items, defaultText) {
+        function fillSelect(id, items, defaultText, currentValue = '') {
             const select = document.getElementById(id);
             if (!select) return;
             select.innerHTML = `<option value="">${defaultText}</option>`;
@@ -232,10 +247,12 @@
             });
             if (id === 'filterDate') {
                 const savedDate = getSavedDateFilter();
-                if (savedDate && items.includes(savedDate)) {
+                if ((!currentValue || !items.includes(currentValue)) && savedDate && items.includes(savedDate)) {
                     select.value = savedDate;
+                    return;
                 }
             }
+            select.value = items.includes(currentValue) ? currentValue : '';
         }
 
         function isPriceEditShipment(shipment) {
@@ -316,6 +333,7 @@
         }
 
         function renderShipments() {
+            populateDropdowns();
             updateFilterCounters();
 
             const list = document.getElementById('shipmentsList');
@@ -566,20 +584,17 @@
             };
 
             if (normalizedStatus === 'تم') {
-                updatePayload.السعر_بعد_التعديل = getShipmentAmount(shipment);
-            }
-
-            if (normalizedStatus !== 'رفض' && normalizedStatus !== 'مؤجل') {
-                updatePayload.سبب_الحالة = null;
+                updatePayload.السعر_بعد_التعديل = Number(getShipmentAmount(shipment)) || 0;
             }
 
             const { error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
                 .update(updatePayload)
-                .eq('id', id);
+                .eq('id', Number(id) || id);
 
             if (error) {
-                Swal.fire('خطأ', 'فشل تحديث الحالة', 'error');
+                console.error('Update shipment status error:', error);
+                Swal.fire('خطأ', error.message || 'فشل تحديث الحالة', 'error');
                 return;
             }
 
@@ -598,9 +613,6 @@
                 allShipments[index].الحالة = normalizedStatus;
                 if (Object.prototype.hasOwnProperty.call(updatePayload, 'السعر_بعد_التعديل')) {
                     allShipments[index].السعر_بعد_التعديل = updatePayload.السعر_بعد_التعديل;
-                }
-                if (Object.prototype.hasOwnProperty.call(updatePayload, 'سبب_الحالة')) {
-                    allShipments[index].سبب_الحالة = updatePayload.سبب_الحالة;
                 }
             }
             updateFilterCounters();
@@ -640,23 +652,20 @@
             const { error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
                 .update({
-                    الحالة: 'تم',
-                    سبب_الحالة: 'تعديل سعر',
-                    ملاحظات: null,
+                    الحالة: 'تعديل سعر',
                     السعر_بعد_التعديل: normalizedPrice
                 })
-                .eq('id', id);
+                .eq('id', Number(id) || id);
 
             if (error) {
-                Swal.fire('خطأ', 'فشل تعديل السعر', 'error');
+                console.error('Edit shipment price error:', error);
+                Swal.fire('خطأ', error.message || 'فشل تعديل السعر', 'error');
                 return;
             }
 
             const index = allShipments.findIndex(s => s.id == id);
             if (index !== -1) {
-                allShipments[index].الحالة = 'تم';
-                allShipments[index].سبب_الحالة = 'تعديل سعر';
-                allShipments[index].ملاحظات = null;
+                allShipments[index].الحالة = 'تعديل سعر';
                 allShipments[index].السعر_بعد_التعديل = normalizedPrice;
             }
 
@@ -723,6 +732,8 @@
         document.getElementById('filterDate').addEventListener('change', (event) => {
             saveDateFilter(event.target.value);
         });
+        document.getElementById('filterZone').addEventListener('change', populateDropdowns);
+        document.getElementById('filterSender').addEventListener('change', populateDropdowns);
         document.getElementById('searchInput').addEventListener('input', renderShipments);
         document.addEventListener('click', (event) => {
             const menu = document.getElementById('shipmentMenu');
