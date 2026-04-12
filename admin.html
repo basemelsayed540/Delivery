@@ -241,6 +241,9 @@
         <aside class="bg-white shadow-sm border-end p-3 d-none d-md-block"
             style="width: 250px; flex-shrink: 0; position: sticky; top: 0; min-height: 100vh;">
             <div class="nav flex-column gap-2 mt-2">
+                <button class="btn text-start sidebar-tab text-secondary fw-bold"
+                    onclick="showAdminSection('housing', this)"><i class="fas fa-boxes-stacked me-2"></i> تسكين
+                    الشحنات</button>
                 <button class="btn text-start sidebar-tab active-tab text-primary shadow-sm bg-light fw-bold"
                     onclick="showAdminSection('stats', this)"><i class="fas fa-chart-line me-2"></i> احصائية
                     المندوب</button>
@@ -266,6 +269,9 @@
             </div>
             <div class="offcanvas-body">
                 <div class="nav flex-column gap-2">
+                    <button class="btn text-start sidebar-tab text-secondary fw-bold"
+                        onclick="showAdminSection('housing', this, true)"><i class="fas fa-boxes-stacked me-2"></i>
+                        تسكين الشحنات</button>
                     <button class="btn text-start sidebar-tab active-tab text-primary shadow-sm bg-light fw-bold"
                         onclick="showAdminSection('stats', this, true)"><i class="fas fa-chart-line me-2"></i> احصائية
                         المندوب</button>
@@ -375,7 +381,7 @@
 
                 <div class="row g-4">
                     <!-- أداء المناديب -->
-                    <div class="col-12">
+                    <div class="col-12 admin-only">
                         <div class="order-card p-4 shadow-sm">
                             <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-users-cog me-2"></i>تحليلات أداء
                                 المناديب</h5>
@@ -415,20 +421,109 @@
                                 <i class="fas fa-plus me-1"></i> إضافة حساب جديد
                             </button>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>الاسم</th>
-                                        <th>الرقم</th>
-                                        <th>النوع</th>
-                                        <th class="text-center">الإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="usersTable">
-                                    <!-- Dynamic rows -->
-                                </tbody>
-                            </table>
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <div class="border rounded-4 p-3 bg-light-subtle">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold m-0 text-primary">
+                                            <i class="fas fa-motorcycle me-2"></i>قسم المناديب
+                                        </h6>
+                                        <span class="badge bg-primary-subtle text-primary" id="repUsersCount">0</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>الاسم</th>
+                                                    <th>الرقم</th>
+                                                    <th>النوع</th>
+                                                    <th class="text-center">الإجراءات</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="repUsersTable">
+                                                <!-- Dynamic rows -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="border rounded-4 p-3 bg-light-subtle">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold m-0 text-primary">
+                                            <i class="fas fa-headset me-2"></i>قسم المتابعة
+                                        </h6>
+                                        <span class="badge bg-info-subtle text-info" id="followerUsersCount">0</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>الاسم</th>
+                                                    <th>الرقم</th>
+                                                    <th>النوع</th>
+                                                    <th class="text-center">الإجراءات</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="followerUsersTable">
+                                                <!-- Dynamic rows -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="border rounded-4 p-3 bg-light-subtle">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold m-0 text-primary">
+                                            <i class="fas fa-boxes-stacked me-2"></i>قسم تسكين الشحنات
+                                        </h6>
+                                        <span class="badge bg-warning-subtle text-warning"
+                                            id="housingUsersCount">0</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>الاسم</th>
+                                                    <th>الرقم</th>
+                                                    <th>النوع</th>
+                                                    <th class="text-center">الإجراءات</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="housingUsersTable">
+                                                <!-- Dynamic rows -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="border rounded-4 p-3 bg-light-subtle">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold m-0 text-secondary">
+                                            <i class="fas fa-users me-2"></i>حسابات أخرى
+                                        </h6>
+                                        <span class="badge bg-secondary-subtle text-secondary"
+                                            id="otherUsersCount">0</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>الاسم</th>
+                                                    <th>الرقم</th>
+                                                    <th>النوع</th>
+                                                    <th class="text-center">الإجراءات</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="otherUsersTable">
+                                                <!-- Dynamic rows -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -460,7 +555,141 @@
                 </div>
             </div>
 
-            <div id="section-housing" style="display: none;"></div>
+            <div id="section-housing" style="display: none;">
+                <div class="order-card p-4 shadow-sm border-0">
+                    <!-- Toolbar -->
+                    <div class="housing-toolbar mb-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+                            <h5 class="fw-bold m-0 text-primary"><i class="fas fa-boxes-stacked me-2"></i>تسكين الشحنات
+                            </h5>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <span class="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
+                                    <i class="fas fa-box me-1"></i> إجمالي: <span id="housingTotalCount">0</span>
+                                </span>
+                                <span class="badge bg-danger-subtle text-danger fs-6 px-3 py-2 rounded-pill">
+                                    <i class="fas fa-user-slash me-1"></i> بدون مندوب: <span
+                                        id="housingUnassignedCount">0</span>
+                                </span>
+                                <button id="housingUnassignedBtn"
+                                    class="btn btn-outline-danger btn-sm rounded-pill fw-bold"
+                                    onclick="toggleHousingUnassigned()">
+                                    <i class="fas fa-filter me-1"></i> بدون مندوب فقط
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-3">
+                                <input id="housingSearch" type="text" class="form-control rounded-pill"
+                                    placeholder="🔍 بحث سريع في كل الحقول...">
+                            </div>
+                            <div class="col-md-3">
+                                <input id="housingNewRepName" type="text" class="form-control rounded-pill"
+                                    placeholder="✍️ اكتب اسم المندوب للتعيين..."
+                                    oninput="updateHousingAssignButtons()">
+                            </div>
+                            <div class="col-md-2">
+                                <select id="housingAssignRep" class="form-select rounded-pill">
+                                    <option value="">اختر مندوباً للتعيين</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-success w-100 rounded-pill fw-bold"
+                                    onclick="assignRepToHousingResults()">
+                                    <i class="fas fa-user-check me-1"></i> تعيين للظاهرين
+                                </button>
+                            </div>
+                            <div class="col-md-1">
+                                <button id="housingUndoBtn"
+                                    class="btn btn-outline-warning w-100 rounded-pill fw-bold"
+                                    onclick="undoHousingAction()" disabled title="تراجع (Ctrl+Z)">
+                                    <i class="fas fa-undo"></i>
+                                    <span class="badge bg-warning text-dark ms-1 d-none" id="housingUndoBadge">0</span>
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <button id="housingSaveChangesBtn"
+                                    class="btn btn-outline-primary w-100 rounded-pill fw-bold housing-save-btn"
+                                    onclick="openHousingChangesModal()">
+                                    <i class="fas fa-save me-1"></i> حفظ الكل
+                                    <span class="badge bg-white text-primary housing-save-count"
+                                        id="housingChangesBadge">0</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipments Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="min-width: 1000px;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="min-width:100px" class="text-center">تعيين مندوب</th>
+                                    <th style="min-width:140px">اسم العميل</th>
+                                    <th style="min-width:100px">الزون</th>
+                                    <th style="min-width:110px">المنتج</th>
+                                    <th style="min-width:120px">الهاتف</th>
+                                    <th style="min-width:120px">هاتف بديل</th>
+                                    <th style="min-width:90px">المبلغ</th>
+                                    <th style="min-width:120px">الراسل</th>
+                                    <th style="min-width:140px">المندوب</th>
+                                    <th style="min-width:115px">الحالة</th>
+                                </tr>
+                                <tr class="bg-white border-bottom">
+                                    <th class="py-1 px-2 text-center">
+                                        <button class="btn btn-outline-secondary btn-sm rounded-3 w-100"
+                                            onclick="clearHousingFilters()" title="مسح الفلاتر">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </th>
+                                    <th class="py-1 px-2">
+                                        <input id="housingFilterName" type="text"
+                                            class="form-control form-control-sm rounded-3" placeholder="🔍 اسم العميل">
+                                    </th>
+                                    <th class="py-1 px-2">
+                                        <input id="housingFilterZone" list="dl-housingZone" type="text"
+                                            class="form-control form-control-sm rounded-3" placeholder="🔍 الزون">
+                                        <datalist id="dl-housingZone"></datalist>
+                                    </th>
+                                    <th class="py-1 px-2 text-center text-muted small">—</th>
+                                    <th class="py-1 px-2">
+                                        <input id="housingFilterPhone" type="text"
+                                            class="form-control form-control-sm rounded-3" placeholder="🔍 الهاتف">
+                                    </th>
+                                    <th class="py-1 px-2">
+                                        <input id="housingFilterAltPhone" type="text"
+                                            class="form-control form-control-sm rounded-3" placeholder="🔍 هاتف بديل">
+                                    </th>
+                                    <th class="py-1 px-2">
+                                        <input id="housingFilterAmount" type="text"
+                                            class="form-control form-control-sm rounded-3" placeholder="🔍 المبلغ">
+                                    </th>
+                                    <th class="py-1 px-2">
+                                        <input id="housingFilterSender" list="dl-housingSender" type="text"
+                                            class="form-control form-control-sm rounded-3" placeholder="🔍 الراسل">
+                                        <datalist id="dl-housingSender"></datalist>
+                                    </th>
+                                    <th class="py-1 px-2">
+                                        <input id="housingFilterRep" list="dl-housingRep" type="text"
+                                            class="form-control form-control-sm rounded-3" placeholder="🔍 المندوب">
+                                        <datalist id="dl-housingRep"></datalist>
+                                    </th>
+                                    <th class="py-1 px-2">
+                                        <input id="housingFilterStatus" list="dl-housingStatus" type="text"
+                                            class="form-control form-control-sm rounded-3" placeholder="🔍 الحالة">
+                                        <datalist id="dl-housingStatus"></datalist>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="housingShipmentsTable">
+                                <tr>
+                                    <td colspan="10" class="text-center py-4 text-secondary fw-bold">جاري التحميل...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </div>
 
@@ -554,6 +783,7 @@
         let housingUnassignedOnly = false;
         let housingDrafts = new Map();
         let housingStatsFilter = 'all';
+        let housingUndoStack = []; // Each entry: { label, snapshots: [{id, fields}] }
 
         async function init() {
             showLoading(true);
@@ -589,6 +819,9 @@
 
             // Show target section
             document.getElementById('section-' + sectionId).style.display = 'block';
+
+            // Save active section to localStorage
+            localStorage.setItem('adminActiveSection', sectionId);
 
             // Update active states on sidebar buttons
             const buttons = document.querySelectorAll('.sidebar-tab');
@@ -687,6 +920,21 @@
 
         function populateFilters() {
             updateFilterDropdowns(allShipments);
+            populateHousingFilters();
+        }
+
+        function populateHousingFilters() {
+            const getUnique = (key) => [...new Set(allShipments.map(s => s[key]).filter(Boolean))].sort();
+            
+            const fillDatalist = (id, values) => {
+                const dl = document.getElementById(id);
+                if (dl) dl.innerHTML = values.map(v => `<option value="${escapeAttr(v)}"></option>`).join('');
+            };
+
+            fillDatalist('dl-housingZone', getUnique('الزون'));
+            fillDatalist('dl-housingSender', getUnique('الراسل'));
+            fillDatalist('dl-housingRep', getUnique('المندوب'));
+            fillDatalist('dl-housingStatus', getUnique('الحالة'));
         }
 
         function fillSelect(id, countsMap, currentVal, reverse = false) {
@@ -763,7 +1011,7 @@
         function renderRepsStats(data) {
             const repsData = {};
             const activeReps = new Set(allUsers.filter(u => u.role === 'rep' && u.approved).map(u => u.username));
-            
+
             // إضافة كل المناديب الموجودين في السيستم حتى لو معندهمش شغل حالياً
             activeReps.forEach(name => {
                 repsData[name] = { total: 0, delivered: 0, postponed: 0, rejected: 0, pending: 0, collected: 0 };
@@ -773,7 +1021,7 @@
                 const name = s.المندوب;
                 if (!name) return;
                 if (!repsData[name]) repsData[name] = { total: 0, delivered: 0, postponed: 0, rejected: 0, pending: 0, collected: 0 };
-                
+
                 repsData[name].total++;
                 const st = getAdminDisplayStatus(s);
                 if (isAdminDeliveredShipment(s)) {
@@ -784,7 +1032,7 @@
                 else repsData[name].pending++;
             });
 
-            const sorted = Object.entries(repsData).sort((a,b) => b[1].total - a[1].total);
+            const sorted = Object.entries(repsData).sort((a, b) => b[1].total - a[1].total);
             document.getElementById('repsStatsTable').innerHTML = sorted.map(([name, stats]) => {
                 const pct = stats.total > 0 ? (stats.delivered / stats.total * 100).toFixed(1) : 0;
                 return `
@@ -823,6 +1071,53 @@
                     </td>
                 </tr>
                     `).join('');
+        }
+
+        function getUserRoleLabel(role) {
+            if (role === 'rep') return 'مندوب';
+            if (role === 'sender') return 'راسل';
+            if (role === 'follower') return 'متابعة';
+            if (role === 'housing') return 'تسكين الشحنات';
+            return 'مدير';
+        }
+
+        function getUsersTableRow(user) {
+            return `
+                <tr>
+                    <td><strong>${user.username || user.full_name || '---'}</strong></td>
+                    <td>${user.phone || '---'}</td>
+                    <td><span class="badge bg-light text-dark">${getUserRoleLabel(user.role)}</span></td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button onclick="editUser(${JSON.stringify(user).replace(/"/g, '&quot;')})" class="btn-action bg-primary-subtle text-primary"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteUser('${user.id}', '${user.username}')" class="btn-action bg-danger-subtle text-danger"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function renderUsersSection(tableId, countId, users, emptyMessage) {
+            const table = document.getElementById(tableId);
+            const count = document.getElementById(countId);
+            if (!table || !count) return;
+
+            count.innerText = users.length;
+            table.innerHTML = users.length
+                ? users.map(getUsersTableRow).join('')
+                : `<tr><td colspan="4" class="text-center py-4 text-secondary fw-bold">${emptyMessage}</td></tr>`;
+        }
+
+        function renderUsers() {
+            const repUsers = allUsers.filter(u => u.role === 'rep');
+            const followerUsers = allUsers.filter(u => u.role === 'follower');
+            const housingUsers = allUsers.filter(u => u.role === 'housing');
+            const otherUsers = allUsers.filter(u => !['rep', 'follower', 'housing'].includes(u.role));
+
+            renderUsersSection('repUsersTable', 'repUsersCount', repUsers, 'لا توجد حسابات داخل قسم المناديب.');
+            renderUsersSection('followerUsersTable', 'followerUsersCount', followerUsers, 'لا توجد حسابات داخل قسم المتابعة.');
+            renderUsersSection('housingUsersTable', 'housingUsersCount', housingUsers, 'لا توجد حسابات داخل قسم تسكين الشحنات.');
+            renderUsersSection('otherUsersTable', 'otherUsersCount', otherUsers, 'لا توجد حسابات أخرى حالياً.');
         }
 
         function renderRecentShipments(data) {
@@ -876,7 +1171,14 @@
                 .filter(Boolean);
 
             const uniqueReps = [...new Set(reps)].sort();
-            return uniqueReps.map(rep => `<option value="${escapeAttr(rep)}" ${rep === selectedValue ? 'selected' : ''}>${escapeHtml(rep)}</option>`).join('');
+
+            // If the currently assigned rep is not in allUsers (e.g. typed manually), still show it
+            const selected = (selectedValue || '').trim();
+            if (selected && !uniqueReps.includes(selected)) {
+                uniqueReps.unshift(selected);
+            }
+
+            return uniqueReps.map(rep => `<option value="${escapeAttr(rep)}" ${rep === selected ? 'selected' : ''}>${escapeHtml(rep)}</option>`).join('');
         }
 
         function escapeHtml(value) {
@@ -952,6 +1254,14 @@
             }
 
             return String(value ?? '').trim();
+        }
+
+        function toArabicNumerals(value) {
+            return String(value ?? '').replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+        }
+
+        function fromArabicNumerals(value) {
+            return String(value ?? '').replace(/[٠-٩]/g, d => d.charCodeAt(0) - 0x0660);
         }
 
         function getHousingRowPayload(id) {
@@ -1277,7 +1587,7 @@
             unassignedBtn.classList.toggle('btn-outline-danger', !housingUnassignedOnly);
 
             if (!filtered.length) {
-                tableEl.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-secondary fw-bold">لا توجد شحنات مطابقة.</td></tr>`;
+                tableEl.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-secondary fw-bold">لا توجد شحنات مطابقة.</td></tr>`;
                 updateHousingSaveButtonState();
                 return;
             }
@@ -1288,14 +1598,22 @@
                 const phoneChanged = changedFields.includes('الهاتف');
                 const adjustedPriceChanged = changedFields.includes('السعر_بعد_التعديل');
 
+                const newRepName = (document.getElementById('housingNewRepName')?.value || '').trim();
                 return `
                     <tr>
+                        <td><input type="hidden" id="housing-adjusted-${s.id}" value="${escapeAttr(currentData.السعر_بعد_التعديل || '')}">
+                            ${newRepName
+                                ? `<button class="btn btn-sm btn-warning rounded-pill px-2 fw-bold housing-assign-btn" style="font-size:0.78rem;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="تعيين: ${escapeAttr(newRepName)}" onclick="assignNewRepToShipment('${s.id}', this)">${escapeHtml(newRepName)}</button>`
+                                : `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 fw-bold" style="font-size:0.78rem;" disabled title="اكتب اسم المندوب أولاً"><i class='fas fa-user-plus'></i></button>`
+                            }
+                        </td>
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-name-${s.id}" value="${escapeAttr(currentData.اسم_العميل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-zone-${s.id}" value="${escapeAttr(currentData.الزون || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td class="text-center small fw-bold text-secondary">${escapeHtml(currentData.المنتج || currentData.الصنف || '---')}</td>
                         <td><input type="text" class="form-control form-control-sm rounded-3 ${phoneChanged ? 'changed-cell' : ''}" id="housing-phone-${s.id}" value="${escapeAttr(currentData.الهاتف || '')}" oninput="syncHousingDraft('${s.id}')"></td>
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-alt-${s.id}" value="${escapeAttr(currentData.هاتف_بديل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
-                        <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-zone-${s.id}" value="${escapeAttr(currentData.الزون || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td><input type="text" inputmode="numeric" dir="ltr" class="form-control form-control-sm rounded-3 text-end" id="housing-amount-${s.id}" value="${escapeAttr(currentData.المبلغ || '')}" oninput="syncHousingDraft('${s.id}')"></td>
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-sender-${s.id}" value="${escapeAttr(currentData.الراسل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
-                        <td><input type="number" class="form-control form-control-sm rounded-3" id="housing-amount-${s.id}" value="${escapeAttr(currentData.المبلغ || '')}" oninput="syncHousingDraft('${s.id}')"></td>
                         <td>
                             <select class="form-select form-select-sm rounded-3" id="housing-rep-${s.id}" onchange="syncHousingDraft('${s.id}')">
                                 <option value="">بدون مندوب</option>
@@ -1303,10 +1621,6 @@
                             </select>
                         </td>
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-status-${s.id}" value="${escapeAttr(currentData.الحالة || '')}" placeholder="قيد التنفيذ" oninput="syncHousingDraft('${s.id}')"></td>
-                        <td class="text-center">
-                            <input type="hidden" id="housing-adjusted-${s.id}" value="${escapeAttr(currentData.السعر_بعد_التعديل || '')}">
-                            <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="saveHousingShipment('${s.id}')">حفظ</button>
-                        </td>
                     </tr>
                 `;
             }).join('');
@@ -1317,6 +1631,15 @@
         async function saveHousingShipment(id) {
             const payload = getHousingRowPayload(id);
 
+            // --- Undo: snapshot previous state ---
+            const prevShipment = allShipments.find(s => String(s.id) === String(id));
+            if (prevShipment) {
+                const prevFields = {};
+                Object.keys(payload).forEach(k => { prevFields[k] = prevShipment[k] ?? null; });
+                housingUndoStack.push({ label: `حفظ شحنة #${prevShipment.order_id || id}`, snapshots: [{ id, fields: prevFields }] });
+                updateHousingUndoButtonState();
+            }
+
             showLoading(true);
             const { error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
@@ -1326,6 +1649,8 @@
             showLoading(false);
 
             if (error) {
+                housingUndoStack.pop();
+                updateHousingUndoButtonState();
                 Swal.fire('خطأ', error.message, 'error');
                 return;
             }
@@ -1354,6 +1679,57 @@
             renderHousingSection();
         }
 
+        let _housingAssignDebounce = null;
+        function updateHousingAssignButtons() {
+            const newRepName = (document.getElementById('housingNewRepName')?.value || '').trim();
+
+            // Fast path: update already-rendered assign buttons in-place
+            document.querySelectorAll('.housing-assign-btn').forEach(btn => {
+                btn.innerText = newRepName || '—';
+                btn.title = newRepName ? `تعيين: ${newRepName}` : 'اكتب اسم المندوب أولاً';
+            });
+
+            // Debounced re-render to swap placeholder ↔ name buttons
+            clearTimeout(_housingAssignDebounce);
+            _housingAssignDebounce = setTimeout(() => renderHousingSection(), 300);
+        }
+
+        function assignNewRepToShipment(id, btnEl) {
+            const newRepName = (document.getElementById('housingNewRepName')?.value || '').trim();
+            if (!newRepName) {
+                Swal.fire('تنبيه', 'يرجى كتابة اسم المندوب في حقل التعيين أولاً', 'warning');
+                return;
+            }
+
+            // Update the dropdown in this row (draft only - no DB save yet)
+            const repSelect = document.getElementById(`housing-rep-${id}`);
+            if (repSelect) {
+                let found = false;
+                for (let opt of repSelect.options) {
+                    if (opt.value === newRepName) { opt.selected = true; found = true; break; }
+                }
+                if (!found) {
+                    const newOpt = document.createElement('option');
+                    newOpt.value = newRepName;
+                    newOpt.text = newRepName;
+                    newOpt.selected = true;
+                    repSelect.appendChild(newOpt);
+                }
+                // Sync draft → activates "حفظ الكل" pulse + counter
+                syncHousingDraft(id);
+            }
+
+            Swal.fire({
+                icon: 'info',
+                title: `تم تحديد: ${newRepName}`,
+                text: 'اضغط "حفظ الكل" لحفظ التغييرات',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1800
+            });
+        }
+
         async function assignRepToHousingResults() {
             const rep = document.getElementById('housingAssignRep').value;
             if (!rep) {
@@ -1367,6 +1743,14 @@
                 return;
             }
 
+            // --- Undo: snapshot previous reps for all targets ---
+            const snapshots = targetIds.map(id => {
+                const s = allShipments.find(sh => String(sh.id) === String(id));
+                return { id, fields: { المندوب: s ? (s.المندوب ?? null) : null } };
+            });
+            housingUndoStack.push({ label: `تعيين جماعي "${rep}" لـ ${targetIds.length} شحنة`, snapshots });
+            updateHousingUndoButtonState();
+
             showLoading(true);
             const { error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
@@ -1375,6 +1759,8 @@
             showLoading(false);
 
             if (error) {
+                housingUndoStack.pop();
+                updateHousingUndoButtonState();
                 Swal.fire('خطأ', error.message, 'error');
                 return;
             }
@@ -1383,6 +1769,78 @@
             Swal.fire('نجاح', `تم تعيين ${targetIds.length} شحنة إلى ${rep}`, 'success');
             refreshDashboard();
         }
+
+        function updateHousingUndoButtonState() {
+            const btn = document.getElementById('housingUndoBtn');
+            const badge = document.getElementById('housingUndoBadge');
+            if (!btn) return;
+            const count = housingUndoStack.length;
+            btn.disabled = count === 0;
+            btn.classList.toggle('btn-warning', count > 0);
+            btn.classList.toggle('btn-outline-warning', count === 0);
+            if (badge) {
+                badge.innerText = count;
+                badge.classList.toggle('d-none', count === 0);
+            }
+            btn.title = count > 0
+                ? `تراجع: ${housingUndoStack[count - 1].label} (Ctrl+Z)`
+                : 'لا توجد عمليات للتراجع';
+        }
+
+        async function undoHousingAction() {
+            if (!housingUndoStack.length) return;
+            const entry = housingUndoStack.pop();
+            updateHousingUndoButtonState();
+
+            showLoading(true);
+            const results = await Promise.all(entry.snapshots.map(snap =>
+                supabaseClient
+                    .from(CONFIG.TABLES.SHIPMENTS)
+                    .update(snap.fields)
+                    .eq('id', snap.id)
+            ));
+            showLoading(false);
+
+            const failed = results.find(r => r.error);
+            if (failed) {
+                housingUndoStack.push(entry);
+                updateHousingUndoButtonState();
+                Swal.fire('خطأ', 'فشل التراجع: ' + failed.error.message, 'error');
+                return;
+            }
+
+            entry.snapshots.forEach(snap => {
+                const index = allShipments.findIndex(s => String(s.id) === String(snap.id));
+                if (index !== -1) {
+                    allShipments[index] = { ...allShipments[index], ...snap.fields };
+                }
+                housingDrafts.delete(String(snap.id));
+            });
+
+            Swal.fire({
+                icon: 'info',
+                title: 'تم التراجع',
+                text: entry.label,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2200
+            });
+
+            refreshDashboard();
+            updateHousingSaveButtonState();
+        }
+
+        // Ctrl+Z shortcut — only active when housing section is visible
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                const housingSection = document.getElementById('section-housing');
+                if (housingSection && housingSection.style.display !== 'none') {
+                    e.preventDefault();
+                    undoHousingAction();
+                }
+            }
+        });
 
         function getStatusClass(shipment) {
             const st = typeof shipment === 'string' ? shipment : getAdminDisplayStatus(shipment);
@@ -1468,7 +1926,7 @@
         // Change Admin Password Logic
         const changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
         function openChangePasswordModal() { changePasswordModal.show(); }
-        
+
         document.getElementById('changePasswordForm').onsubmit = async (e) => {
             e.preventDefault();
             const pass = document.getElementById('newAdminPassword').value;
@@ -1525,11 +1983,29 @@
         }
 
         document.getElementById('housingSearch')?.addEventListener('input', renderHousingSection);
-        ['housingFilterName', 'housingFilterPhone', 'housingFilterAltPhone', 'housingFilterZone', 'housingFilterSender', 'housingFilterAmount', 'housingFilterRep', 'housingFilterStatus']
+        ['housingFilterName', 'housingFilterZone', 'housingFilterPhone', 'housingFilterAltPhone', 'housingFilterAmount', 'housingFilterRep', 'housingFilterStatus']
             .forEach(id => document.getElementById(id)?.addEventListener('input', renderHousingSection));
 
+        function clearHousingFilters() {
+            ['housingFilterName', 'housingFilterZone', 'housingFilterPhone', 'housingFilterAltPhone', 'housingFilterAmount', 'housingFilterRep', 'housingFilterStatus'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            const search = document.getElementById('housingSearch');
+            if (search) search.value = '';
+            renderHousingSection();
+        }
+
         if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-bs-theme', 'dark');
-        init();
+        init().then(() => {
+            const savedSection = localStorage.getItem('adminActiveSection') || 'stats';
+            const validSections = ['stats', 'users', 'recent', 'housing'];
+            const targetSection = validSections.includes(savedSection) ? savedSection : 'stats';
+            const matchBtn = Array.from(document.querySelectorAll('.sidebar-tab')).find(
+                btn => btn.getAttribute('onclick')?.includes(`'${targetSection}'`)
+            );
+            showAdminSection(targetSection, matchBtn || null);
+        });
     </script>
 </body>
 
