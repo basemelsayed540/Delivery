@@ -137,11 +137,50 @@
         let currentPage = 1;
         let activeShipmentMenuId = null;
         const itemsPerPage = 30;
+        const FOLLOWER_UI_STATE_KEY = 'followerUiState';
+
+        function saveFollowerUiState() {
+            try {
+                localStorage.setItem(FOLLOWER_UI_STATE_KEY, JSON.stringify({
+                    search: document.getElementById('searchInput')?.value || '',
+                    rep: document.getElementById('filterRep')?.value || '',
+                    zone: document.getElementById('filterZone')?.value || '',
+                    sender: document.getElementById('filterSender')?.value || '',
+                    update: document.getElementById('filterUpdate')?.value || '',
+                    currentPage
+                }));
+            } catch (error) {}
+        }
+
+        function restoreFollowerUiState() {
+            let state = null;
+            try {
+                state = JSON.parse(localStorage.getItem(FOLLOWER_UI_STATE_KEY) || 'null');
+            } catch (error) {
+                state = null;
+            }
+
+            if (!state) return;
+
+            const searchInput = document.getElementById('searchInput');
+            const filterRep = document.getElementById('filterRep');
+            const filterZone = document.getElementById('filterZone');
+            const filterSender = document.getElementById('filterSender');
+            const filterUpdate = document.getElementById('filterUpdate');
+
+            if (searchInput) searchInput.value = state.search || '';
+            if (filterRep) filterRep.value = state.rep || '';
+            if (filterZone) filterZone.value = state.zone || '';
+            if (filterSender) filterSender.value = state.sender || '';
+            if (filterUpdate) filterUpdate.value = state.update || '';
+            currentPage = Number(state.currentPage) || 1;
+        }
 
         function filterData() {
             currentPage = 1;
             populateFilters();
             renderTable();
+            saveFollowerUiState();
         }
 
         async function fetchShipments() {
@@ -157,6 +196,7 @@
             }
 
             allShipments = data || [];
+            restoreFollowerUiState();
             populateFilters();
             renderTable();
         }
@@ -269,6 +309,7 @@
             if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="10" class="text-center p-8 text-slate-500 font-bold">لا توجد شحنات مطابقة للفلاتر</td></tr>`;
                 pagination.innerHTML = '';
+                saveFollowerUiState();
                 return;
             }
 
@@ -303,6 +344,7 @@
             `).join('');
 
             renderPagination(totalPages);
+            saveFollowerUiState();
         }
 
         document.getElementById('filterUpdate').addEventListener('change', (event) => {
@@ -354,6 +396,7 @@
             currentPage = page;
             renderTable();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            saveFollowerUiState();
         }
 
         function getShipmentById(id) {

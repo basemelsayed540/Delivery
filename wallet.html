@@ -120,6 +120,29 @@
         document.getElementById('repName').innerText = user.full_name || user.username || user.phone;
 
         let allShipments = [];
+        const WALLET_UI_STATE_KEY = 'walletUiState';
+
+        function saveWalletUiState() {
+            try {
+                localStorage.setItem(WALLET_UI_STATE_KEY, JSON.stringify({
+                    date: document.getElementById('walletDateFilter')?.value || ''
+                }));
+            } catch (error) {}
+        }
+
+        function restoreWalletUiState() {
+            let state = null;
+            try {
+                state = JSON.parse(localStorage.getItem(WALLET_UI_STATE_KEY) || 'null');
+            } catch (error) {
+                state = null;
+            }
+
+            const select = document.getElementById('walletDateFilter');
+            if (select && state?.date) {
+                select.value = state.date;
+            }
+        }
 
         async function fetchShipments() {
             const { data, error } = await supabaseClient
@@ -135,6 +158,7 @@
 
             allShipments = data;
             populateDates();
+            restoreWalletUiState();
             updateWalletStats();
         }
 
@@ -235,6 +259,7 @@
                 document.getElementById('walletTotalMoney').innerHTML = `0 <span class="text-xs">ج.م</span>`;
                 document.getElementById('walletCommissionTotal').innerHTML = `0 <span class="text-xs text-slate-800 dark:text-white">ج.م</span>`;
                 document.getElementById('requestSettlementBtn').disabled = true;
+                saveWalletUiState();
                 return;
             }
 
@@ -266,6 +291,7 @@
             document.getElementById('walletTotalMoney').innerHTML = `${currentWalletBalance} <span class="text-xs">ج.م</span>`;
             document.getElementById('walletCommissionTotal').innerHTML = `${currentCommissionTotal} <span class="text-xs text-slate-800 dark:text-white">ج.م</span>`;
             document.getElementById('requestSettlementBtn').disabled = (currentWalletBalance <= 0 || pendingOrderIds.length === 0);
+            saveWalletUiState();
         }
 
         async function requestSettlement() {
@@ -330,6 +356,7 @@
 
         document.getElementById('walletDateFilter').addEventListener('change', (event) => {
             saveDateFilter(event.target.value);
+            saveWalletUiState();
         });
 
         function toggleTheme() {

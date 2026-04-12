@@ -140,6 +140,91 @@
             border-color: rgba(245, 158, 11, 0.45) !important;
         }
 
+        .phone-match-text {
+            color: #16a34a !important;
+            font-weight: 700;
+        }
+
+        .housing-duplicate-row td {
+            background: rgba(34, 197, 94, 0.08);
+        }
+
+        .housing-duplicate-row:hover td {
+            background: rgba(34, 197, 94, 0.18) !important;
+        }
+
+        .housing-duplicate-row .form-control,
+        .housing-duplicate-row .form-select {
+            border-color: rgba(34, 197, 94, 0.35);
+        }
+
+        .housing-duplicate-badge {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #15803d;
+            background: rgba(34, 197, 94, 0.14);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: 999px;
+            padding: 2px 8px;
+        }
+
+        .housing-editdate-menu {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .housing-editdate-item {
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .housing-editdate-item:hover {
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .housing-table thead tr:first-child th {
+            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #0f172a;
+            font-weight: 800;
+            text-align: center;
+            border-bottom: 0;
+            box-shadow:
+                inset 0 -3px 0 rgba(59, 130, 246, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                0 6px 14px rgba(15, 23, 42, 0.08);
+            letter-spacing: 0.15px;
+            padding-top: 16px;
+            padding-bottom: 16px;
+            position: relative;
+        }
+
+        .housing-table thead tr:first-child th:first-child {
+            border-top-right-radius: 14px;
+        }
+
+        .housing-table thead tr:first-child th:last-child {
+            border-top-left-radius: 14px;
+        }
+
+        .housing-table thead tr:first-child th:not(:last-child) {
+            border-left: 1px solid rgba(148, 163, 184, 0.22);
+        }
+
+        [data-bs-theme="dark"] .housing-table thead tr:first-child th {
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: #e2e8f0;
+            box-shadow:
+                inset 0 -3px 0 rgba(96, 165, 250, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06),
+                0 6px 14px rgba(0, 0, 0, 0.22);
+        }
+
+        [data-bs-theme="dark"] .housing-table thead tr:first-child th:not(:last-child) {
+            border-left-color: rgba(148, 163, 184, 0.18);
+        }
+
         .housing-toolbar {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(6, 182, 212, 0.08));
             border: 1px solid var(--border);
@@ -174,6 +259,32 @@
             border-radius: 999px;
             font-weight: 700;
             padding: 8px 16px;
+        }
+
+        .housing-table {
+            table-layout: fixed;
+            width: 100%;
+            min-width: 1000px;
+        }
+
+        .housing-table th,
+        .housing-table td {
+            width: 10%;
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            vertical-align: middle;
+        }
+
+        .housing-table .form-control,
+        .housing-table .form-select,
+        .housing-table .btn {
+            max-width: 100%;
+        }
+
+        .housing-table .housing-assign-btn {
+            white-space: normal !important;
+            line-height: 1.2;
         }
 
         @keyframes housingPulse {
@@ -580,7 +691,7 @@
                         <div class="row g-2 align-items-end">
                             <div class="col-md-3">
                                 <input id="housingSearch" type="text" class="form-control rounded-pill"
-                                    placeholder="🔍 بحث سريع في كل الحقول...">
+                                    placeholder="🔍 ابحث في اسم العميل أو الهاتف أو البديل أو كود الشحنة...">
                             </div>
                             <div class="col-md-3">
                                 <input id="housingNewRepName" type="text" class="form-control rounded-pill"
@@ -606,33 +717,95 @@
                                     <span class="badge bg-warning text-dark ms-1 d-none" id="housingUndoBadge">0</span>
                                 </button>
                             </div>
-                            <div class="col-md-2">
-                                <button id="housingSaveChangesBtn"
-                                    class="btn btn-outline-primary w-100 rounded-pill fw-bold housing-save-btn"
-                                    onclick="openHousingChangesModal()">
-                                    <i class="fas fa-save me-1"></i> حفظ الكل
-                                    <span class="badge bg-white text-primary housing-save-count"
-                                        id="housingChangesBadge">0</span>
-                                </button>
+                            <div class="col-md-6">
+                                <div class="d-flex flex-wrap gap-2 align-items-end">
+                                    <div class="dropdown flex-grow-1" style="min-width: 180px;">
+                                        <button id="housingEditDateFilterBtn"
+                                            class="btn btn-outline-secondary w-100 rounded-pill fw-bold dropdown-toggle"
+                                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                            <i class="fas fa-calendar-days me-1"></i> الابيديت
+                                            <span class="badge bg-secondary ms-1"
+                                                id="housingEditDateFilterBadge">0</span>
+                                        </button>
+                                        <div class="dropdown-menu p-2 shadow-lg housing-editdate-menu"
+                                            style="min-width: 260px;">
+                                            <div class="d-flex gap-2 mb-2">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary flex-fill"
+                                                    onclick="clearHousingEditDateFilters()">مسح</button>
+                                                <button type="button" class="btn btn-sm btn-primary flex-fill"
+                                                    onclick="selectAllHousingEditDateFilters()">الكل</button>
+                                            </div>
+                                            <div id="housingEditDateFilterList" class="d-grid gap-1"></div>
+                                        </div>
+                                    </div>
+                                    <div class="dropdown flex-grow-1" style="min-width: 180px;">
+                                        <button id="housingStatusFilterBtn"
+                                            class="btn btn-outline-secondary w-100 rounded-pill fw-bold dropdown-toggle"
+                                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                            <i class="fas fa-circle-check me-1"></i> الحالة
+                                            <span class="badge bg-secondary ms-1"
+                                                id="housingStatusFilterBadge">0</span>
+                                        </button>
+                                        <div class="dropdown-menu p-2 shadow-lg housing-editdate-menu"
+                                            style="min-width: 260px;">
+                                            <div class="d-flex gap-2 mb-2">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary flex-fill"
+                                                    onclick="clearHousingStatusFilters()">مسح</button>
+                                                <button type="button" class="btn btn-sm btn-primary flex-fill"
+                                                    onclick="selectAllHousingStatusFilters()">الكل</button>
+                                            </div>
+                                            <div id="housingStatusFilterList" class="d-grid gap-1"></div>
+                                        </div>
+                                    </div>
+                                    <div class="dropdown flex-grow-1" style="min-width: 180px;">
+                                        <button id="housingRepFilterBtn"
+                                            class="btn btn-outline-secondary w-100 rounded-pill fw-bold dropdown-toggle"
+                                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                            <i class="fas fa-user-check me-1"></i> المندوب
+                                            <span class="badge bg-secondary ms-1"
+                                                id="housingRepFilterBadge">0</span>
+                                        </button>
+                                        <div class="dropdown-menu p-2 shadow-lg housing-editdate-menu"
+                                            style="min-width: 260px;">
+                                            <div class="d-flex gap-2 mb-2">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary flex-fill"
+                                                    onclick="clearHousingRepFilters()">مسح</button>
+                                                <button type="button" class="btn btn-sm btn-primary flex-fill"
+                                                    onclick="selectAllHousingRepFilters()">الكل</button>
+                                            </div>
+                                            <div id="housingRepFilterList" class="d-grid gap-1"></div>
+                                        </div>
+                                    </div>
+                                    <button id="housingSaveChangesBtn"
+                                        class="btn btn-outline-primary flex-grow-1 rounded-pill fw-bold housing-save-btn"
+                                        onclick="openHousingChangesModal()">
+                                        <i class="fas fa-save me-1"></i> حفظ الكل
+                                        <span class="badge bg-white text-primary housing-save-count"
+                                            id="housingChangesBadge">0</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Shipments Table -->
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" style="min-width: 1000px;">
+                        <table class="table table-hover align-middle mb-0 housing-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="min-width:100px" class="text-center">تعيين مندوب</th>
-                                    <th style="min-width:140px">اسم العميل</th>
-                                    <th style="min-width:100px">الزون</th>
-                                    <th style="min-width:110px">المنتج</th>
-                                    <th style="min-width:120px">الهاتف</th>
-                                    <th style="min-width:120px">هاتف بديل</th>
-                                    <th style="min-width:90px">المبلغ</th>
-                                    <th style="min-width:120px">الراسل</th>
-                                    <th style="min-width:140px">المندوب</th>
-                                    <th style="min-width:115px">الحالة</th>
+                                    <th class="text-center">تعيين مندوب</th>
+                                    <th>اسم العميل</th>
+                                    <th>الزون</th>
+                                    <th>المنتج</th>
+                                    <th>الهاتف</th>
+                                    <th>هاتف بديل</th>
+                                    <th>المبلغ</th>
+                                    <th>الراسل</th>
+                                    <th>المندوب</th>
+                                    <th>الحالة</th>
                                 </tr>
                                 <tr class="bg-white border-bottom">
                                     <th class="py-1 px-2 text-center">
@@ -650,7 +823,11 @@
                                             class="form-control form-control-sm rounded-3" placeholder="🔍 الزون">
                                         <datalist id="dl-housingZone"></datalist>
                                     </th>
-                                    <th class="py-1 px-2 text-center text-muted small">—</th>
+                                    <th class="py-1 px-2">
+                                        <input id="housingFilterProduct" list="dl-housingProduct" type="text"
+                                            class="form-control form-control-sm rounded-3" placeholder="🔍 المنتج">
+                                        <datalist id="dl-housingProduct"></datalist>
+                                    </th>
                                     <th class="py-1 px-2">
                                         <input id="housingFilterPhone" type="text"
                                             class="form-control form-control-sm rounded-3" placeholder="🔍 الهاتف">
@@ -784,6 +961,9 @@
         let housingDrafts = new Map();
         let housingStatsFilter = 'all';
         let housingUndoStack = []; // Each entry: { label, snapshots: [{id, fields}] }
+        const savedAdminSection = localStorage.getItem('adminActiveSection') || 'stats';
+        const validAdminSections = ['stats', 'users', 'recent', 'housing'];
+        const initialAdminSection = validAdminSections.includes(savedAdminSection) ? savedAdminSection : 'stats';
 
         async function init() {
             showLoading(true);
@@ -806,8 +986,11 @@
                 el.style.display = 'none';
             });
 
-            const statsTab = Array.from(document.querySelectorAll('.sidebar-tab')).find(btn => btn.getAttribute('onclick')?.includes("'stats'"));
-            showAdminSection('stats', statsTab || null);
+            const allowedSection = ['housing', 'stats'].includes(initialAdminSection) ? initialAdminSection : 'stats';
+            const matchBtn = Array.from(document.querySelectorAll('.sidebar-tab')).find(
+                btn => btn.getAttribute('onclick')?.includes(`'${allowedSection}'`)
+            );
+            showAdminSection(allowedSection, matchBtn || null);
         }
 
         function showAdminSection(sectionId, btnElem, isMobile = false) {
@@ -932,9 +1115,14 @@
             };
 
             fillDatalist('dl-housingZone', getUnique('الزون'));
+            fillDatalist('dl-housingProduct', [...new Set([...getUnique('المنتج'), ...getUnique('الصنف')])]);
             fillDatalist('dl-housingSender', getUnique('الراسل'));
             fillDatalist('dl-housingRep', getUnique('المندوب'));
             fillDatalist('dl-housingStatus', getUnique('الحالة'));
+            populateHousingEditDateFilter();
+            populateHousingStatusFilter();
+            populateHousingRepFilter();
+            restoreHousingUiState();
         }
 
         function fillSelect(id, countsMap, currentVal, reverse = false) {
@@ -1199,46 +1387,269 @@
             return { ...shipment, ...draft };
         }
 
+        const HOUSING_UI_STATE_KEY = 'housingUiState';
+
+        function getHousingUiState() {
+            return {
+                search: (document.getElementById('housingSearch')?.value || '').trim(),
+                name: (document.getElementById('housingFilterName')?.value || '').trim(),
+                phone: (document.getElementById('housingFilterPhone')?.value || '').trim(),
+                altPhone: (document.getElementById('housingFilterAltPhone')?.value || '').trim(),
+                zone: (document.getElementById('housingFilterZone')?.value || '').trim(),
+                product: (document.getElementById('housingFilterProduct')?.value || '').trim(),
+                sender: (document.getElementById('housingFilterSender')?.value || '').trim(),
+                amount: (document.getElementById('housingFilterAmount')?.value || '').trim(),
+                rep: (document.getElementById('housingFilterRep')?.value || '').trim(),
+                status: (document.getElementById('housingFilterStatus')?.value || '').trim(),
+                editDates: getHousingEditDateFilters(),
+                statuses: getHousingStatusFilters(),
+                reps: getHousingRepFilters(),
+                unassignedOnly: housingUnassignedOnly
+            };
+        }
+
+        function saveHousingUiState() {
+            try {
+                localStorage.setItem(HOUSING_UI_STATE_KEY, JSON.stringify(getHousingUiState()));
+            } catch (error) {
+                // Ignore storage errors.
+            }
+        }
+
+        function restoreHousingUiState() {
+            let state = null;
+            try {
+                state = JSON.parse(localStorage.getItem(HOUSING_UI_STATE_KEY) || 'null');
+            } catch (error) {
+                state = null;
+            }
+
+            if (!state) {
+                updateHousingEditDateFilterBadge();
+                updateHousingStatusFilterBadge();
+                updateHousingRepFilterBadge();
+                return;
+            }
+
+            const setValue = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.value = value || '';
+            };
+
+            setValue('housingSearch', state.search);
+            setValue('housingFilterName', state.name);
+            setValue('housingFilterPhone', state.phone);
+            setValue('housingFilterAltPhone', state.altPhone);
+            setValue('housingFilterZone', state.zone);
+            setValue('housingFilterProduct', state.product);
+            setValue('housingFilterSender', state.sender);
+            setValue('housingFilterAmount', state.amount);
+            setValue('housingFilterRep', state.rep);
+            setValue('housingFilterStatus', state.status);
+
+            housingUnassignedOnly = !!state.unassignedOnly;
+
+            document.querySelectorAll('.housing-editdate-option').forEach(cb => {
+                cb.checked = Array.isArray(state.editDates) && state.editDates.includes(cb.value);
+            });
+
+            document.querySelectorAll('.housing-status-option').forEach(cb => {
+                cb.checked = Array.isArray(state.statuses) && state.statuses.includes(cb.value);
+            });
+
+            document.querySelectorAll('.housing-rep-option').forEach(cb => {
+                cb.checked = Array.isArray(state.reps) && state.reps.includes(cb.value);
+            });
+
+            updateHousingEditDateFilterBadge();
+            updateHousingStatusFilterBadge();
+            updateHousingRepFilterBadge();
+        }
+
+        function getHousingEditDateFilters() {
+            return Array.from(document.querySelectorAll('.housing-editdate-option:checked'))
+                .map(el => String(el.value || '').trim())
+                .filter(Boolean);
+        }
+
+        function updateHousingEditDateFilterBadge() {
+            const badge = document.getElementById('housingEditDateFilterBadge');
+            if (!badge) return;
+            const selectedCount = getHousingEditDateFilters().length;
+            badge.innerText = selectedCount;
+            badge.classList.toggle('bg-secondary', selectedCount === 0);
+            badge.classList.toggle('bg-primary', selectedCount > 0);
+        }
+
+        function getHousingStatusFilters() {
+            return Array.from(document.querySelectorAll('.housing-status-option:checked'))
+                .map(el => String(el.value || '').trim())
+                .filter(Boolean);
+        }
+
+        function updateHousingStatusFilterBadge() {
+            const badge = document.getElementById('housingStatusFilterBadge');
+            if (!badge) return;
+            const selectedCount = getHousingStatusFilters().length;
+            badge.innerText = selectedCount;
+            badge.classList.toggle('bg-secondary', selectedCount === 0);
+            badge.classList.toggle('bg-primary', selectedCount > 0);
+        }
+
+        function getHousingRepFilters() {
+            return Array.from(document.querySelectorAll('.housing-rep-option:checked'))
+                .map(el => String(el.value || '').trim())
+                .filter(Boolean);
+        }
+
+        function updateHousingRepFilterBadge() {
+            const badge = document.getElementById('housingRepFilterBadge');
+            if (!badge) return;
+            const selectedCount = getHousingRepFilters().length;
+            badge.innerText = selectedCount;
+            badge.classList.toggle('bg-secondary', selectedCount === 0);
+            badge.classList.toggle('bg-primary', selectedCount > 0);
+        }
+
+        function populateHousingEditDateFilter() {
+            const list = document.getElementById('housingEditDateFilterList');
+            if (!list) return;
+
+            const selected = new Set(getHousingEditDateFilters());
+            const dates = [...new Set(allShipments.map(s => String(s.الابيديت || '').trim()).filter(Boolean))]
+                .sort((a, b) => b.localeCompare(a));
+
+            if (!dates.length) {
+                list.innerHTML = `<div class="text-center text-secondary small fw-bold py-2">لا توجد قيم</div>`;
+                updateHousingEditDateFilterBadge();
+                return;
+            }
+
+            list.innerHTML = dates.map(date => `
+                <label class="form-check housing-editdate-item d-flex align-items-center gap-2 px-2 py-1 rounded-3 mb-0">
+                    <input class="form-check-input housing-editdate-option m-0" type="checkbox" value="${escapeAttr(date)}" ${selected.has(date) ? 'checked' : ''}>
+                    <span class="small fw-bold">${escapeHtml(date)}</span>
+                </label>
+            `).join('');
+
+            list.querySelectorAll('.housing-editdate-option').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    updateHousingEditDateFilterBadge();
+                    renderHousingSection();
+                });
+            });
+
+            updateHousingEditDateFilterBadge();
+        }
+
+        function populateHousingStatusFilter() {
+            const list = document.getElementById('housingStatusFilterList');
+            if (!list) return;
+
+            const selected = new Set(getHousingStatusFilters());
+            const statuses = [...new Set(allShipments.map(s => String(s.الحالة || '').trim()).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b));
+
+            if (!statuses.length) {
+                list.innerHTML = `<div class="text-center text-secondary small fw-bold py-2">لا توجد قيم</div>`;
+                updateHousingStatusFilterBadge();
+                return;
+            }
+
+            list.innerHTML = statuses.map(status => `
+                <label class="form-check housing-editdate-item d-flex align-items-center gap-2 px-2 py-1 rounded-3 mb-0">
+                    <input class="form-check-input housing-status-option m-0" type="checkbox" value="${escapeAttr(status)}" ${selected.has(status) ? 'checked' : ''}>
+                    <span class="small fw-bold">${escapeHtml(status)}</span>
+                </label>
+            `).join('');
+
+            list.querySelectorAll('.housing-status-option').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    updateHousingStatusFilterBadge();
+                    renderHousingSection();
+                });
+            });
+
+            updateHousingStatusFilterBadge();
+        }
+
+        function populateHousingRepFilter() {
+            const list = document.getElementById('housingRepFilterList');
+            if (!list) return;
+
+            const selected = new Set(getHousingRepFilters());
+            const reps = [...new Set(allShipments.map(s => String(s.المندوب || '').trim()).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b));
+
+            if (!reps.length) {
+                list.innerHTML = `<div class="text-center text-secondary small fw-bold py-2">لا توجد قيم</div>`;
+                updateHousingRepFilterBadge();
+                return;
+            }
+
+            list.innerHTML = reps.map(rep => `
+                <label class="form-check housing-editdate-item d-flex align-items-center gap-2 px-2 py-1 rounded-3 mb-0">
+                    <input class="form-check-input housing-rep-option m-0" type="checkbox" value="${escapeAttr(rep)}" ${selected.has(rep) ? 'checked' : ''}>
+                    <span class="small fw-bold">${escapeHtml(rep)}</span>
+                </label>
+            `).join('');
+
+            list.querySelectorAll('.housing-rep-option').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    updateHousingRepFilterBadge();
+                    renderHousingSection();
+                });
+            });
+
+            updateHousingRepFilterBadge();
+        }
+
         function getHousingColumnFilters() {
             return {
                 name: (document.getElementById('housingFilterName')?.value || '').trim().toLowerCase(),
                 phone: (document.getElementById('housingFilterPhone')?.value || '').trim().toLowerCase(),
                 altPhone: (document.getElementById('housingFilterAltPhone')?.value || '').trim().toLowerCase(),
                 zone: (document.getElementById('housingFilterZone')?.value || '').trim().toLowerCase(),
+                product: (document.getElementById('housingFilterProduct')?.value || '').trim().toLowerCase(),
                 sender: (document.getElementById('housingFilterSender')?.value || '').trim().toLowerCase(),
                 amount: (document.getElementById('housingFilterAmount')?.value || '').trim().toLowerCase(),
                 rep: (document.getElementById('housingFilterRep')?.value || '').trim().toLowerCase(),
-                status: (document.getElementById('housingFilterStatus')?.value || '').trim().toLowerCase()
+                status: (document.getElementById('housingFilterStatus')?.value || '').trim().toLowerCase(),
+                editDates: getHousingEditDateFilters(),
+                statuses: getHousingStatusFilters(),
+                reps: getHousingRepFilters()
             };
         }
 
         function getHousingFilteredShipments() {
             const search = (document.getElementById('housingSearch')?.value || '').trim().toLowerCase();
             const filters = getHousingColumnFilters();
+            const searchActive = search.length >= 3;
 
             return allShipments.filter(s => {
                 const currentData = getHousingDisplayShipmentData(s);
                 const matchUnassigned = !housingUnassignedOnly || !currentData.المندوب;
                 if (!matchUnassigned) return false;
 
-                const matchesSearch = !search || [
+                const matchesSearch = !searchActive || [
                     currentData.اسم_العميل,
                     currentData.الهاتف,
                     currentData.هاتف_بديل,
-                    currentData.الزون,
-                    currentData.الراسل,
-                    currentData.المندوب,
-                    currentData.الحالة,
-                    currentData.order_id
+                    currentData.order_id,
+                    currentData.كود_الشحنة
                 ].some(value => String(value || '').toLowerCase().includes(search));
 
                 if (!matchesSearch) return false;
 
                 const matchesColumns =
+                    (!filters.editDates.length || filters.editDates.includes(String(currentData.الابيديت || '').trim())) &&
+                    (!filters.statuses.length || filters.statuses.includes(String(currentData.الحالة || '').trim())) &&
+                    (!filters.reps.length || filters.reps.includes(String(currentData.المندوب || '').trim())) &&
                     (!filters.name || String(currentData.اسم_العميل || '').toLowerCase().includes(filters.name)) &&
                     (!filters.phone || String(currentData.الهاتف || '').toLowerCase().includes(filters.phone)) &&
                     (!filters.altPhone || String(currentData.هاتف_بديل || '').toLowerCase().includes(filters.altPhone)) &&
                     (!filters.zone || String(currentData.الزون || '').toLowerCase().includes(filters.zone)) &&
+                    (!filters.product || String(currentData.المنتج || currentData.الصنف || '').toLowerCase().includes(filters.product)) &&
                     (!filters.sender || String(currentData.الراسل || '').toLowerCase().includes(filters.sender)) &&
                     (!filters.amount || String(currentData.المبلغ || '').toLowerCase().includes(filters.amount)) &&
                     (!filters.rep || String(currentData.المندوب || '').toLowerCase().includes(filters.rep)) &&
@@ -1577,6 +1988,9 @@
 
             if (!totalCountEl || !unassignedCountEl || !assignRepEl || !tableEl || !unassignedBtn) return;
 
+            updateHousingEditDateFilterBadge();
+            updateHousingStatusFilterBadge();
+            updateHousingRepFilterBadge();
             const filtered = getHousingFilteredShipments();
             const unassignedCount = allShipments.filter(s => !s.المندوب).length;
 
@@ -1588,30 +2002,49 @@
 
             if (!filtered.length) {
                 tableEl.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-secondary fw-bold">لا توجد شحنات مطابقة.</td></tr>`;
+                saveHousingUiState();
                 updateHousingSaveButtonState();
                 return;
             }
+
+            const customerNameCounts = new Map();
+            allShipments.forEach(shipment => {
+                const name = String(getHousingDisplayShipmentData(shipment).اسم_العميل || '').trim();
+                if (!name) return;
+                customerNameCounts.set(name, (customerNameCounts.get(name) || 0) + 1);
+            });
 
             tableEl.innerHTML = filtered.map(s => {
                 const currentData = getHousingDisplayShipmentData(s);
                 const changedFields = getHousingChangedFields(s, currentData);
                 const phoneChanged = changedFields.includes('الهاتف');
                 const adjustedPriceChanged = changedFields.includes('السعر_بعد_التعديل');
+                const phoneValue = String(currentData.الهاتف || '').trim();
+                const altPhoneValue = String(currentData.هاتف_بديل || '').trim();
+                const customerNumberValue = String(currentData.رقم_العميل || currentData['رقم العميل'] || s.رقم_العميل || s['رقم العميل'] || '').trim();
+                const phoneMatch = phoneValue && altPhoneValue && phoneValue === altPhoneValue;
+                const phoneCustomerMatch = phoneValue && customerNumberValue && phoneValue === customerNumberValue;
+                const altPhoneCustomerMatch = altPhoneValue && customerNumberValue && altPhoneValue === customerNumberValue;
+                const phoneHighlight = phoneMatch || phoneCustomerMatch;
+                const altPhoneHighlight = phoneMatch || altPhoneCustomerMatch;
+                const customerName = String(currentData.اسم_العميل || '').trim();
+                const hasAnotherShipment = customerName && (customerNameCounts.get(customerName) || 0) > 1;
 
                 const newRepName = (document.getElementById('housingNewRepName')?.value || '').trim();
                 return `
-                    <tr>
+                    <tr class="${hasAnotherShipment ? 'housing-duplicate-row' : ''}" title="${hasAnotherShipment ? 'له شحنة أخرى لنفس العميل' : ''}">
                         <td><input type="hidden" id="housing-adjusted-${s.id}" value="${escapeAttr(currentData.السعر_بعد_التعديل || '')}">
                             ${newRepName
-                                ? `<button class="btn btn-sm btn-warning rounded-pill px-2 fw-bold housing-assign-btn" style="font-size:0.78rem;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="تعيين: ${escapeAttr(newRepName)}" onclick="assignNewRepToShipment('${s.id}', this)">${escapeHtml(newRepName)}</button>`
+                                ? `<button class="btn btn-sm btn-warning rounded-pill px-2 fw-bold housing-assign-btn" style="font-size:0.78rem;max-width:110px;" title="تعيين: ${escapeAttr(newRepName)}" onclick="assignNewRepToShipment('${s.id}', this)">${escapeHtml(newRepName)}</button>`
                                 : `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 fw-bold" style="font-size:0.78rem;" disabled title="اكتب اسم المندوب أولاً"><i class='fas fa-user-plus'></i></button>`
                             }
+                            ${hasAnotherShipment ? `<div class="housing-duplicate-badge">له شحنة أخرى</div>` : ''}
                         </td>
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-name-${s.id}" value="${escapeAttr(currentData.اسم_العميل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-zone-${s.id}" value="${escapeAttr(currentData.الزون || '')}" oninput="syncHousingDraft('${s.id}')"></td>
                         <td class="text-center small fw-bold text-secondary">${escapeHtml(currentData.المنتج || currentData.الصنف || '---')}</td>
-                        <td><input type="text" class="form-control form-control-sm rounded-3 ${phoneChanged ? 'changed-cell' : ''}" id="housing-phone-${s.id}" value="${escapeAttr(currentData.الهاتف || '')}" oninput="syncHousingDraft('${s.id}')"></td>
-                        <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-alt-${s.id}" value="${escapeAttr(currentData.هاتف_بديل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td><input type="text" class="form-control form-control-sm rounded-3 ${phoneChanged ? 'changed-cell' : ''} ${phoneHighlight ? 'phone-match-text' : ''}" id="housing-phone-${s.id}" value="${escapeAttr(currentData.الهاتف || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td><input type="text" class="form-control form-control-sm rounded-3 ${altPhoneHighlight ? 'phone-match-text' : ''}" id="housing-alt-${s.id}" value="${escapeAttr(currentData.هاتف_بديل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
                         <td><input type="text" inputmode="numeric" dir="ltr" class="form-control form-control-sm rounded-3 text-end" id="housing-amount-${s.id}" value="${escapeAttr(currentData.المبلغ || '')}" oninput="syncHousingDraft('${s.id}')"></td>
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-sender-${s.id}" value="${escapeAttr(currentData.الراسل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
                         <td>
@@ -1625,6 +2058,7 @@
                 `;
             }).join('');
 
+            saveHousingUiState();
             updateHousingSaveButtonState();
         }
 
@@ -1677,6 +2111,7 @@
         function toggleHousingUnassigned() {
             housingUnassignedOnly = !housingUnassignedOnly;
             renderHousingSection();
+            saveHousingUiState();
         }
 
         let _housingAssignDebounce = null;
@@ -1983,28 +2418,71 @@
         }
 
         document.getElementById('housingSearch')?.addEventListener('input', renderHousingSection);
-        ['housingFilterName', 'housingFilterZone', 'housingFilterPhone', 'housingFilterAltPhone', 'housingFilterAmount', 'housingFilterRep', 'housingFilterStatus']
+        ['housingFilterName', 'housingFilterZone', 'housingFilterProduct', 'housingFilterPhone', 'housingFilterAltPhone', 'housingFilterAmount', 'housingFilterRep', 'housingFilterStatus']
             .forEach(id => document.getElementById(id)?.addEventListener('input', renderHousingSection));
 
         function clearHousingFilters() {
-            ['housingFilterName', 'housingFilterZone', 'housingFilterPhone', 'housingFilterAltPhone', 'housingFilterAmount', 'housingFilterRep', 'housingFilterStatus'].forEach(id => {
+            ['housingFilterName', 'housingFilterZone', 'housingFilterProduct', 'housingFilterPhone', 'housingFilterAltPhone', 'housingFilterAmount', 'housingFilterRep', 'housingFilterStatus'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
+            clearHousingEditDateFilters(true);
+            clearHousingStatusFilters(true);
+            clearHousingRepFilters(true);
             const search = document.getElementById('housingSearch');
             if (search) search.value = '';
             renderHousingSection();
+            saveHousingUiState();
+        }
+
+        function clearHousingEditDateFilters(silent = false) {
+            document.querySelectorAll('.housing-editdate-option').forEach(cb => cb.checked = false);
+            updateHousingEditDateFilterBadge();
+            if (!silent) renderHousingSection();
+            saveHousingUiState();
+        }
+
+        function selectAllHousingEditDateFilters(silent = false) {
+            document.querySelectorAll('.housing-editdate-option').forEach(cb => cb.checked = true);
+            updateHousingEditDateFilterBadge();
+            if (!silent) renderHousingSection();
+            saveHousingUiState();
+        }
+
+        function clearHousingStatusFilters(silent = false) {
+            document.querySelectorAll('.housing-status-option').forEach(cb => cb.checked = false);
+            updateHousingStatusFilterBadge();
+            if (!silent) renderHousingSection();
+            saveHousingUiState();
+        }
+
+        function selectAllHousingStatusFilters(silent = false) {
+            document.querySelectorAll('.housing-status-option').forEach(cb => cb.checked = true);
+            updateHousingStatusFilterBadge();
+            if (!silent) renderHousingSection();
+            saveHousingUiState();
+        }
+
+        function clearHousingRepFilters(silent = false) {
+            document.querySelectorAll('.housing-rep-option').forEach(cb => cb.checked = false);
+            updateHousingRepFilterBadge();
+            if (!silent) renderHousingSection();
+            saveHousingUiState();
+        }
+
+        function selectAllHousingRepFilters(silent = false) {
+            document.querySelectorAll('.housing-rep-option').forEach(cb => cb.checked = true);
+            updateHousingRepFilterBadge();
+            if (!silent) renderHousingSection();
+            saveHousingUiState();
         }
 
         if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-bs-theme', 'dark');
         init().then(() => {
-            const savedSection = localStorage.getItem('adminActiveSection') || 'stats';
-            const validSections = ['stats', 'users', 'recent', 'housing'];
-            const targetSection = validSections.includes(savedSection) ? savedSection : 'stats';
             const matchBtn = Array.from(document.querySelectorAll('.sidebar-tab')).find(
-                btn => btn.getAttribute('onclick')?.includes(`'${targetSection}'`)
+                btn => btn.getAttribute('onclick')?.includes(`'${initialAdminSection}'`)
             );
-            showAdminSection(targetSection, matchBtn || null);
+            showAdminSection(initialAdminSection, matchBtn || null);
         });
     </script>
 </body>

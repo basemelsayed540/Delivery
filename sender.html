@@ -99,6 +99,28 @@
         document.getElementById('senderName').innerText = user.full_name || user.username || user.phone;
 
         let myShipments = [];
+        const SENDER_UI_STATE_KEY = 'senderUiState';
+
+        function saveSenderUiState() {
+            try {
+                localStorage.setItem(SENDER_UI_STATE_KEY, JSON.stringify({
+                    search: document.getElementById('orderSearch')?.value || ''
+                }));
+            } catch (error) {}
+        }
+
+        function restoreSenderUiState() {
+            let state = null;
+            try {
+                state = JSON.parse(localStorage.getItem(SENDER_UI_STATE_KEY) || 'null');
+            } catch (error) {
+                state = null;
+            }
+
+            if (!state) return;
+            const search = document.getElementById('orderSearch');
+            if (search) search.value = state.search || '';
+        }
 
         function isPendingStatus(status) {
             const normalizedStatus = String(status || '').trim();
@@ -118,6 +140,7 @@
             }
 
             myShipments = data;
+            restoreSenderUiState();
             renderTable();
             updateStats();
         }
@@ -133,6 +156,7 @@
 
             if (filtered.length === 0) {
                 list.innerHTML = '<tr><td colspan="6" class="p-10 text-center opacity-40 font-bold">لا توجد بيانات</td></tr>';
+                saveSenderUiState();
                 return;
             }
 
@@ -157,6 +181,7 @@
                     </td>
                 </tr>
             `).join('');
+            saveSenderUiState();
         }
 
         function updateStats() {
@@ -176,7 +201,10 @@
             }
         }
 
-        document.getElementById('orderSearch').addEventListener('input', renderTable);
+        document.getElementById('orderSearch').addEventListener('input', () => {
+            renderTable();
+            saveSenderUiState();
+        });
 
         function logout() {
             localStorage.removeItem('user');

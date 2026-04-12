@@ -149,6 +149,60 @@
         let currentFilter = 'قيد التوصيل';
         let activeShipmentMenuId = null;
         let lockedShipmentIds = new Set();
+        const REP_UI_STATE_KEY = 'repUiState';
+
+        function saveRepUiState() {
+            try {
+                localStorage.setItem(REP_UI_STATE_KEY, JSON.stringify({
+                    search: document.getElementById('searchInput')?.value || '',
+                    date: document.getElementById('filterDate')?.value || '',
+                    zone: document.getElementById('filterZone')?.value || '',
+                    sender: document.getElementById('filterSender')?.value || '',
+                    currentFilter
+                }));
+            } catch (error) {}
+        }
+
+        function restoreRepUiState() {
+            let state = null;
+            try {
+                state = JSON.parse(localStorage.getItem(REP_UI_STATE_KEY) || 'null');
+            } catch (error) {
+                state = null;
+            }
+
+            if (!state) return;
+
+            const searchInput = document.getElementById('searchInput');
+            const filterDate = document.getElementById('filterDate');
+            const filterZone = document.getElementById('filterZone');
+            const filterSender = document.getElementById('filterSender');
+
+            if (searchInput) searchInput.value = state.search || '';
+            if (filterDate) filterDate.value = state.date || '';
+            if (filterZone) filterZone.value = state.zone || '';
+            if (filterSender) filterSender.value = state.sender || '';
+            currentFilter = state.currentFilter || currentFilter;
+            syncFilterButtons(currentFilter);
+        }
+
+        function syncFilterButtons(filter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                const onClickAttr = btn.getAttribute('onclick') || '';
+                const isMatch = onClickAttr.includes(`'${filter}'`);
+
+                btn.classList.toggle('active', isMatch);
+                if (isMatch) {
+                    btn.classList.replace('bg-white', 'bg-indigo-600');
+                    btn.classList.replace('text-slate-600', 'text-white');
+                    btn.classList.replace('border-slate-200', 'border-indigo-600');
+                } else {
+                    btn.classList.replace('bg-indigo-600', 'bg-white');
+                    btn.classList.replace('text-white', 'text-slate-600');
+                    btn.classList.replace('border-indigo-600', 'border-slate-200');
+                }
+            });
+        }
 
         function getRepIdentifiers() {
             return [...new Set([
@@ -177,6 +231,7 @@
             const normalizedRepIdentifiers = repIdentifiers.map(normalizeComparableValue);
             allShipments = (data || []).filter(shipment => normalizedRepIdentifiers.includes(normalizeComparableValue(shipment?.المندوب)));
             await fetchLockedShipmentIds();
+            restoreRepUiState();
             populateDropdowns();
             updateFilterCounters();
             renderShipments();
@@ -435,6 +490,7 @@
                     </div>
                 </div>
             `).join('');
+            saveRepUiState();
         }
 
         function getShipmentById(id) {
@@ -711,30 +767,21 @@
 
         function setFilter(filter) {
             currentFilter = filter;
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                const onClickAttr = btn.getAttribute('onclick');
-                const isMatch = onClickAttr.includes(`'${filter}'`);
-                
-                btn.classList.toggle('active', isMatch);
-                if (isMatch) {
-                    btn.classList.replace('bg-white', 'bg-indigo-600');
-                    btn.classList.replace('text-slate-600', 'text-white');
-                    btn.classList.replace('border-slate-200', 'border-indigo-600');
-                } else {
-                    btn.classList.replace('bg-indigo-600', 'bg-white');
-                    btn.classList.replace('text-white', 'text-slate-600');
-                    btn.classList.replace('border-indigo-600', 'border-slate-200');
-                }
-            });
+            syncFilterButtons(filter);
             renderShipments();
+            saveRepUiState();
         }
 
         document.getElementById('filterDate').addEventListener('change', (event) => {
             saveDateFilter(event.target.value);
+            saveRepUiState();
         });
         document.getElementById('filterZone').addEventListener('change', populateDropdowns);
         document.getElementById('filterSender').addEventListener('change', populateDropdowns);
-        document.getElementById('searchInput').addEventListener('input', renderShipments);
+        document.getElementById('searchInput').addEventListener('input', () => {
+            renderShipments();
+            saveRepUiState();
+        });
         document.addEventListener('click', (event) => {
             const menu = document.getElementById('shipmentMenu');
             if (!menu.contains(event.target)) {
