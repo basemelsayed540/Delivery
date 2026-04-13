@@ -168,7 +168,31 @@
 
             try {
                 if (phone === 'admin' && password === 'admin') {
-                    localStorage.setItem('user', JSON.stringify({ role: 'admin', phone: 'admin' }));
+                    let { data: adminFound } = await supabaseClient
+                        .from(CONFIG.TABLES.USERS)
+                        .select('*')
+                        .eq('phone', 'admin')
+                        .single();
+
+                    if (!adminFound) {
+                        const { data: createdAdmin, error: createError } = await supabaseClient
+                            .from(CONFIG.TABLES.USERS)
+                            .insert([{
+                                username: 'المدير العام',
+                                phone: 'admin',
+                                email: 'admin@admin.com',
+                                password: 'admin',
+                                role: 'admin',
+                                approved: true
+                            }])
+                            .select()
+                            .single();
+                        
+                        if (createError) throw new Error('فشل تسجيل حساب المدير في قاعدة البيانات');
+                        adminFound = createdAdmin;
+                    }
+
+                    localStorage.setItem('user', JSON.stringify(adminFound));
                     Swal.fire({
                         icon: 'success',
                         title: 'تم تسجيل الدخول بنجاح',

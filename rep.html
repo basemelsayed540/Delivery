@@ -65,9 +65,13 @@
             </div>
 
             <div class="flex gap-1 w-full">
-                <select id="filterDate" onchange="renderShipments()" class="flex-1 glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center text-ellipsis">
-                    <option value="">الابيديت</option>
-                </select>
+                <div class="relative flex-1">
+                    <button id="filterDateBtn" onclick="document.getElementById('filterDateMenu').classList.toggle('hidden')" class="w-full glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between">
+                        <span id="filterDateLabel" class="truncate">الابيديت</span>
+                        <i class="fas fa-chevron-down text-[10px] opacity-60"></i>
+                    </button>
+                    <div id="filterDateMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
+                </div>
                 <select id="filterZone" onchange="renderShipments()" class="flex-1 glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center text-ellipsis">
                     <option value="">الزون</option>
                 </select>
@@ -150,12 +154,26 @@
         let activeShipmentMenuId = null;
         let lockedShipmentIds = new Set();
         const REP_UI_STATE_KEY = 'repUiState';
+        let dateFilterSelections = new Set();
+
+        function getSelectedDates() {
+            return Array.from(dateFilterSelections);
+        }
+
+        function toggleDateSelection(value) {
+            if (dateFilterSelections.has(value)) dateFilterSelections.delete(value);
+            else dateFilterSelections.add(value);
+            
+            saveDateFilter(getSelectedDates()[0] || '');
+            saveRepUiState();
+            renderShipments();
+        }
 
         function saveRepUiState() {
             try {
                 localStorage.setItem(REP_UI_STATE_KEY, JSON.stringify({
                     search: document.getElementById('searchInput')?.value || '',
-                    date: document.getElementById('filterDate')?.value || '',
+                    date: getSelectedDates(),
                     zone: document.getElementById('filterZone')?.value || '',
                     sender: document.getElementById('filterSender')?.value || '',
                     currentFilter
@@ -167,19 +185,23 @@
             let state = null;
             try {
                 state = JSON.parse(localStorage.getItem(REP_UI_STATE_KEY) || 'null');
-            } catch (error) {
-                state = null;
+            } catch (error) {}
+
+            if (state && state.date) {
+                const dates = Array.isArray(state.date) ? state.date : [state.date];
+                dates.forEach(d => dateFilterSelections.add(d));
+            } else {
+                const legacyDate = getSavedDateFilter();
+                if (legacyDate) dateFilterSelections.add(legacyDate);
             }
 
             if (!state) return;
 
             const searchInput = document.getElementById('searchInput');
-            const filterDate = document.getElementById('filterDate');
             const filterZone = document.getElementById('filterZone');
             const filterSender = document.getElementById('filterSender');
 
             if (searchInput) searchInput.value = state.search || '';
-            if (filterDate) filterDate.value = state.date || '';
             if (filterZone) filterZone.value = state.zone || '';
             if (filterSender) filterSender.value = state.sender || '';
             currentFilter = state.currentFilter || currentFilter;
@@ -266,7 +288,7 @@
         }
 
         function populateDropdowns() {
-            const currentDate = document.getElementById('filterDate')?.value || '';
+            const selectedDates = getSelectedDates();
             const currentZone = document.getElementById('filterZone')?.value || '';
             const currentSender = document.getElementById('filterSender')?.value || '';
 
@@ -276,18 +298,37 @@
                 .filter(Boolean))].sort().reverse();
 
             const zones = [...new Set(allShipments
-                .filter(s => (!currentDate || s.الابيديت === currentDate) && (!currentSender || s.الراسل === currentSender))
+                .filter(s => (selectedDates.length === 0 || selectedDates.includes(s.الابيديت)) && (!currentSender || s.الراسل === currentSender))
                 .map(s => s.الزون)
                 .filter(Boolean))].sort();
 
             const senders = [...new Set(allShipments
-                .filter(s => (!currentDate || s.الابيديت === currentDate) && (!currentZone || s.الزون === currentZone))
+                .filter(s => (selectedDates.length === 0 || selectedDates.includes(s.الابيديت)) && (!currentZone || s.الزون === currentZone))
                 .map(s => s.الراسل)
                 .filter(Boolean))].sort();
 
-            fillSelect('filterDate', dates, 'الابيديت', currentDate);
+            fillDateDropdown(dates);
             fillSelect('filterZone', zones, 'الزون', currentZone);
             fillSelect('filterSender', senders, 'الراسل', currentSender);
+        }
+
+        function fillDateDropdown(items) {
+            const menu = document.getElementById('filterDateMenu');
+            const label = document.getElementById('filterDateLabel');
+            if (!menu || !label) return;
+            
+            const selectedArr = getSelectedDates();
+            label.innerText = selectedArr.length > 0 ? `الابيديت (${selectedArr.length})` : 'الابيديت';
+
+            menu.innerHTML = items.map(item => {
+                const isSelected = dateFilterSelections.has(item);
+                return `
+                    <label class="flex items-center gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors" onclick="event.stopPropagation()">
+                        <input type="checkbox" value="${item}" ${isSelected ? 'checked' : ''} onchange="toggleDateSelection('${item}')" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
+                        <span class="text-slate-700 dark:text-slate-200 font-bold">${item}</span>
+                    </label>
+                `;
+            }).join('');
         }
 
         function fillSelect(id, items, defaultText, currentValue = '') {
@@ -300,13 +341,6 @@
                 opt.innerText = item;
                 select.appendChild(opt);
             });
-            if (id === 'filterDate') {
-                const savedDate = getSavedDateFilter();
-                if ((!currentValue || !items.includes(currentValue)) && savedDate && items.includes(savedDate)) {
-                    select.value = savedDate;
-                    return;
-                }
-            }
             select.value = items.includes(currentValue) ? currentValue : '';
         }
 
@@ -358,9 +392,9 @@
         }
 
         function getDateFilteredShipments() {
-            const dateF = document.getElementById('filterDate')?.value || '';
-            if (!dateF) return [];
-            return allShipments.filter(s => s.الابيديت === dateF);
+            const selectedDates = getSelectedDates();
+            if (selectedDates.length === 0) return [];
+            return allShipments.filter(s => selectedDates.includes(s.الابيديت));
         }
 
         function updateFilterCounters() {
@@ -393,11 +427,11 @@
 
             const list = document.getElementById('shipmentsList');
             const search = document.getElementById('searchInput').value.toLowerCase();
-            const dateF = document.getElementById('filterDate').value;
+            const selectedDates = getSelectedDates();
             const zoneF = document.getElementById('filterZone').value;
             const senderF = document.getElementById('filterSender').value;
 
-            if (!dateF) {
+            if (selectedDates.length === 0) {
                 list.innerHTML = `
                     <div class="text-center py-10 opacity-60">
                         <i class="fas fa-calendar-alt text-5xl mb-3"></i>
@@ -421,7 +455,7 @@
                 else if (currentFilter === 'رفض') matchFilter = isRejectedStatus(s.الحالة);
                 else matchFilter = s.الحالة === currentFilter;
 
-                const matchDate = !dateF || s.الابيديت === dateF;
+                const matchDate = selectedDates.includes(s.الابيديت);
                 const matchZone = !zoneF || s.الزون === zoneF;
                 const matchSender = !senderF || s.الراسل === senderF;
 
@@ -772,10 +806,6 @@
             saveRepUiState();
         }
 
-        document.getElementById('filterDate').addEventListener('change', (event) => {
-            saveDateFilter(event.target.value);
-            saveRepUiState();
-        });
         document.getElementById('filterZone').addEventListener('change', populateDropdowns);
         document.getElementById('filterSender').addEventListener('change', populateDropdowns);
         document.getElementById('searchInput').addEventListener('input', () => {
@@ -784,8 +814,13 @@
         });
         document.addEventListener('click', (event) => {
             const menu = document.getElementById('shipmentMenu');
-            if (!menu.contains(event.target)) {
+            if (menu && !menu.contains(event.target)) {
                 closeShipmentMenu();
+            }
+            const dateBtn = document.getElementById('filterDateBtn');
+            const dateMenu = document.getElementById('filterDateMenu');
+            if (dateBtn && dateMenu && !dateBtn.contains(event.target) && !dateMenu.contains(event.target)) {
+                dateMenu.classList.add('hidden');
             }
         });
         window.addEventListener('resize', closeShipmentMenu);
