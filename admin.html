@@ -901,18 +901,14 @@
                                     <i class="fas fa-file-excel me-1"></i> تصدير Excel
                                 </button>
                             </div>
-                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                             <div class="d-flex flex-wrap gap-2 align-items-center">
                                 <span class="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
                                     <i class="fas fa-box me-1"></i> إجمالي: <span id="housingTotalCount">0</span>
                                 </span>
-                                <span class="badge bg-danger-subtle text-danger fs-6 px-3 py-2 rounded-pill">
-                                    <i class="fas fa-user-slash me-1"></i> بدون مندوب: <span
-                                        id="housingUnassignedCount">0</span>
-                                </span>
                                 <button id="housingUnassignedBtn"
-                                    class="btn btn-outline-danger btn-sm rounded-pill fw-bold"
+                                    class="btn btn-outline-danger btn-sm rounded-pill fw-bold fs-6 px-3 py-2"
                                     onclick="toggleHousingUnassigned()">
-                                    <i class="fas fa-filter me-1"></i> بدون مندوب فقط
+                                    بدون مندوب (<span id="housingUnassignedCount">0</span>)
                                 </button>
                                 <button id="housingDuplicatesBtn"
                                     class="btn btn-outline-warning btn-sm rounded-pill fw-bold text-dark"
@@ -1061,6 +1057,7 @@
                                     <th>الراسل</th>
                                     <th class="text-center">الكود</th>
                                     <th>المندوب</th>
+                                    <th>المندوب الفرعي</th>
                                     <th>الحالة</th>
                                 </tr>
                                 <tr class="bg-white border-bottom">
@@ -1722,10 +1719,12 @@
             fillDatalist('dl-housingProduct', [...new Set([...getUnique('المنتج'), ...getUnique('الصنف')])]);
             fillDatalist('dl-housingSender', getUnique('الراسل'));
             fillDatalist('dl-housingRep', getUnique('المندوب'));
+            fillDatalist('dl-housingSubRep', getUnique('المندوب_الفرعي'));
             fillDatalist('dl-housingStatus', getUnique('الحالة'));
             populateHousingEditDateFilter();
             populateHousingStatusFilter();
             populateHousingRepFilter();
+            populateHousingSubRepFilter();
             populateHousingSenderFilter();
             restoreHousingUiState();
         }
@@ -1972,20 +1971,27 @@
         }
 
         function getHousingRepOptions(selectedValue = '') {
-            const reps = allUsers
-                .filter(u => u.role === 'rep' && u.approved)
-                .map(u => u.username || u.full_name || u.phone)
-                .filter(Boolean);
+            const users = allUsers
+                .filter(u => (u.role === 'rep' || u.role === 'sub-rep') && u.approved)
+                .map(u => ({
+                    name: String(u.username || u.full_name || u.phone || '').trim(),
+                    isSub: u.role === 'sub-rep'
+                }))
+                .filter(u => u.name);
 
-            const uniqueReps = [...new Set(reps)].sort();
+            let options = users.map(u => ({
+                value: u.name,
+                label: u.isSub ? `${u.name} (متقدم)` : u.name
+            }));
 
-            // If the currently assigned rep is not in allUsers (e.g. typed manually), still show it
+            options.sort((a, b) => a.label.localeCompare(b.label));
+
             const selected = (selectedValue || '').trim();
-            if (selected && !uniqueReps.includes(selected)) {
-                uniqueReps.unshift(selected);
+            if (selected && !options.some(o => o.value === selected)) {
+                options.unshift({ value: selected, label: selected });
             }
 
-            return uniqueReps.map(rep => `<option value="${escapeAttr(rep)}" ${rep === selected ? 'selected' : ''}>${escapeHtml(rep)}</option>`).join('');
+            return options.map(o => `<option value="${escapeAttr(o.value)}" ${o.value === selected ? 'selected' : ''}>${escapeHtml(o.label)}</option>`).join('');
         }
 
         function escapeHtml(value) {
@@ -2427,6 +2433,7 @@
                 editDates: getHousingEditDateFilters(),
                 statuses: getHousingStatusFilters(),
                 reps: getHousingRepFilters(),
+                subReps: getHousingSubRepFilters(),
                 senders: getHousingSenderFilters(),
                 unassignedOnly: housingUnassignedOnly
             };
@@ -2492,6 +2499,7 @@
             updateHousingEditDateFilterBadge();
             updateHousingStatusFilterBadge();
             updateHousingRepFilterBadge();
+            updateHousingSubRepFilterBadge();
             updateHousingSenderFilterBadge();
         }
 
@@ -2538,6 +2546,21 @@
             badge.innerText = selectedCount;
             badge.classList.toggle('bg-secondary', selectedCount === 0);
             badge.classList.toggle('bg-primary', selectedCount > 0);
+        }
+
+        function getHousingSubRepFilters() {
+            return Array.from(document.querySelectorAll('.housing-subrep-option:checked'))
+                .map(el => String(el.value || '').trim())
+                .filter(Boolean);
+        }
+
+        function updateHousingSubRepFilterBadge() {
+            const badge = document.getElementById('housingSubRepFilterBadge');
+            if (!badge) return;
+            const selectedCount = getHousingSubRepFilters().length;
+            badge.innerText = selectedCount;
+            badge.classList.toggle('bg-secondary', selectedCount === 0);
+            badge.classList.toggle('bg-info', selectedCount > 0);
         }
 
         function populateHousingEditDateFilter() {
@@ -2633,6 +2656,73 @@
             updateHousingRepFilterBadge();
         }
 
+        function populateHousingSubRepFilter() {
+            const list = document.getElementById('housingSubRepFilterList');
+            if (!list) return;
+
+            const selected = new Set(getHousingSubRepFilters());
+            
+            // Get names from sub-rep user accounts
+            const userNames = allUsers
+                .filter(u => u.role === 'sub-rep' && u.approved)
+                .map(u => u.username || u.full_name || u.phone)
+                .filter(Boolean);
+
+            // Get names/values from shipments (like 'مخزن')
+            const shipmentValues = allShipments
+                .map(s => String(s.المندوب_الفرعي || '').trim())
+                .filter(Boolean);
+
+            const subReps = [...new Set([...userNames, ...shipmentValues])]
+                .sort((a, b) => a.localeCompare(b));
+
+            if (!subReps.length) {
+                list.innerHTML = `<div class="text-center text-secondary small fw-bold py-2">لا توجد قيم</div>`;
+                updateHousingSubRepFilterBadge();
+                return;
+            }
+
+            list.innerHTML = subReps.map(rep => `
+                <label class="form-check housing-editdate-item d-flex align-items-center gap-2 px-2 py-1 rounded-3 mb-0">
+                    <input class="form-check-input housing-subrep-option m-0" type="checkbox" value="${escapeAttr(rep)}" ${selected.has(rep) ? 'checked' : ''}>
+                    <span class="small fw-bold">${escapeHtml(rep)}</span>
+                </label>
+            `).join('');
+
+            list.querySelectorAll('.housing-subrep-option').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    updateHousingSubRepFilterBadge();
+                    renderHousingSection();
+                });
+            });
+
+            updateHousingSubRepFilterBadge();
+        }
+
+        function clearHousingSubRepFilters() {
+            document.querySelectorAll('.housing-subrep-option').forEach(cb => cb.checked = false);
+            updateHousingSubRepFilterBadge();
+            renderHousingSection();
+        }
+
+        function selectAllHousingSubRepFilters() {
+            document.querySelectorAll('.housing-subrep-option').forEach(cb => cb.checked = true);
+            updateHousingSubRepFilterBadge();
+            renderHousingSection();
+        }
+
+        function clearHousingRepFilters() {
+            document.querySelectorAll('.housing-rep-option').forEach(cb => cb.checked = false);
+            updateHousingRepFilterBadge();
+            renderHousingSection();
+        }
+
+        function selectAllHousingRepFilters() {
+            document.querySelectorAll('.housing-rep-option').forEach(cb => cb.checked = true);
+            updateHousingRepFilterBadge();
+            renderHousingSection();
+        }
+
         function getHousingSenderFilters() {
             return Array.from(document.querySelectorAll('.housing-sender-option:checked'))
                 .map(el => String(el.value || '').trim())
@@ -2696,10 +2786,12 @@
                 code: (document.getElementById('housingFilterCode')?.value || '').trim().toLowerCase(),
                 amount: (document.getElementById('housingFilterAmount')?.value || '').trim().toLowerCase(),
                 rep: (document.getElementById('housingFilterRep')?.value || '').trim().toLowerCase(),
+                subRep: (document.getElementById('housingFilterSubRep')?.value || '').trim().toLowerCase(),
                 status: (document.getElementById('housingFilterStatus')?.value || '').trim().toLowerCase(),
                 editDates: getHousingEditDateFilters(),
                 statuses: getHousingStatusFilters(),
                 reps: getHousingRepFilters(),
+                subReps: getHousingSubRepFilters(),
                 senders: getHousingSenderFilters()
             };
         }
@@ -2754,6 +2846,7 @@
                     (!filters.editDates.length || filters.editDates.includes(String(currentData.الابيديت || '').trim())) &&
                     (!filters.statuses.length || filters.statuses.includes(String(currentData.الحالة || '').trim())) &&
                     (!filters.reps.length || filters.reps.includes(String(currentData.المندوب || '').trim())) &&
+                    (!filters.subReps.length || filters.subReps.includes(String(currentData.المندوب_الفرعي || '').trim())) &&
                     (!filters.senders.length || filters.senders.includes(String(currentData.الراسل || '').trim())) &&
                     (!filters.name || String(currentData.اسم_العميل || '').toLowerCase().includes(filters.name)) &&
                     (!filters.phone || String(currentData.الهاتف || '').toLowerCase().includes(filters.phone)) &&
@@ -2764,6 +2857,7 @@
                     (!filters.code || String(currentData.كود_الشحنة || currentData.order_id || '').toLowerCase().includes(filters.code)) &&
                     (!filters.amount || String(currentData.المبلغ || '').toLowerCase().includes(filters.amount)) &&
                     (!filters.rep || String(currentData.المندوب || '').toLowerCase().includes(filters.rep)) &&
+                    (!filters.subRep || String(currentData.المندوب_الفرعي || '').toLowerCase().includes(filters.subRep)) &&
                     (!filters.status || String(currentData.الحالة || '').toLowerCase().includes(filters.status));
 
                 return matchesColumns;
@@ -2796,12 +2890,13 @@
                 المبلغ: document.getElementById(`housing-amount-${id}`)?.value ?? '',
                 السعر_بعد_التعديل: document.getElementById(`housing-adjusted-${id}`)?.value || null,
                 المندوب: document.getElementById(`housing-rep-${id}`)?.value || null,
+                المندوب_الفرعي: document.getElementById(`housing-subrep-${id}`)?.value || null,
                 الحالة: document.getElementById(`housing-status-${id}`)?.value.trim() || ''
             };
         }
 
         function getHousingChangedFields(baseShipment, payload) {
-            const fields = ['اسم_العميل', 'الهاتف', 'هاتف_بديل', 'الزون', 'الراسل', 'المبلغ', 'السعر_بعد_التعديل', 'المندوب', 'الحالة'];
+            const fields = ['اسم_العميل', 'الهاتف', 'هاتف_بديل', 'الزون', 'الراسل', 'المبلغ', 'السعر_بعد_التعديل', 'المندوب', 'المندوب_الفرعي', 'الحالة'];
             return fields.filter(key => normalizeHousingComparableValue(key, payload[key]) !== normalizeHousingComparableValue(key, baseShipment?.[key]));
         }
 
@@ -3124,6 +3219,7 @@
             updateHousingEditDateFilterBadge();
             updateHousingStatusFilterBadge();
             updateHousingRepFilterBadge();
+            updateHousingSubRepFilterBadge();
             updateHousingSenderFilterBadge();
             const filtered = getHousingFilteredShipments();
             const unassignedCount = allShipments.filter(s => !s.المندوب).length;
@@ -3131,11 +3227,14 @@
             totalCountEl.innerText = filtered.length;
             unassignedCountEl.innerText = unassignedCount;
             const actualRepsOpts = allUsers
-                .filter(u => u.role === 'rep' && String(u.username || u.full_name || '').trim())
-                .sort((a, b) => String(a.username || a.full_name || '').localeCompare(String(b.username || b.full_name || '')))
+                .filter(u => (u.role === 'rep' || u.role === 'sub-rep') && String(u.username || u.full_name || '').trim())
+                .map(u => ({
+                    name: String(u.username || u.full_name || '').trim(),
+                    label: u.role === 'sub-rep' ? `${String(u.username || u.full_name || '').trim()} (متقدم)` : String(u.username || u.full_name || '').trim()
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label))
                 .map(u => {
-                    const name = String(u.username || u.full_name || '').trim();
-                    return `<option value="${escapeAttr(name)}" ${assignRepEl.value === name ? 'selected' : ''}>${escapeHtml(name)}</option>`;
+                    return `<option value="${escapeAttr(u.name)}" ${assignRepEl.value === u.name ? 'selected' : ''}>${escapeHtml(u.label)}</option>`;
                 }).join('');
             assignRepEl.innerHTML = `<option value="">اختر مندوباً للتعيين</option>${actualRepsOpts}`;
             unassignedBtn.classList.toggle('btn-danger', housingUnassignedOnly);
@@ -3215,8 +3314,14 @@
                         <td class="text-center small fw-bold text-secondary">${escapeHtml(currentData.كود_الشحنة || currentData.order_id || '---')}</td>
                         <td>
                             <select class="form-select form-select-sm rounded-3" id="housing-rep-${s.id}" onchange="syncHousingDraft('${s.id}')">
-                                <option value="">بدون مندوب</option>
+                                <option value=""></option>
                                 ${getHousingRepOptions(currentData.المندوب || '')}
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-select form-select-sm rounded-3" id="housing-subrep-${s.id}" onchange="syncHousingDraft('${s.id}')">
+                                <option value="">بدون فرعي</option>
+                                ${getHousingRepOptions(currentData.المندوب_الفرعي || '')}
                             </select>
                         </td>
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-status-${s.id}" value="${escapeAttr(currentData.الحالة || '')}" placeholder="قيد التنفيذ" oninput="syncHousingDraft('${s.id}')"></td>
@@ -3691,13 +3796,14 @@
             .forEach(id => document.getElementById(id)?.addEventListener('input', renderHousingSection));
 
         function clearHousingFilters() {
-            ['housingFilterName', 'housingFilterZone', 'housingFilterProduct', 'housingFilterPhone', 'housingFilterAltPhone', 'housingFilterAmount', 'housingFilterRep', 'housingFilterStatus', 'housingFilterSender', 'housingFilterCode'].forEach(id => {
+            ['housingFilterName', 'housingFilterZone', 'housingFilterProduct', 'housingFilterPhone', 'housingFilterAltPhone', 'housingFilterAmount', 'housingFilterRep', 'housingFilterSubRep', 'housingFilterStatus', 'housingFilterSender', 'housingFilterCode'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
             clearHousingEditDateFilters(true);
             clearHousingStatusFilters(true);
             clearHousingRepFilters(true);
+            clearHousingSubRepFilters(true);
             clearHousingSenderFilters(true);
             const search = document.getElementById('housingSearch');
             if (search) search.value = '';

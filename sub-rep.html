@@ -51,28 +51,7 @@
                 <h3 class="text-xs font-black text-indigo-500 uppercase tracking-wider mb-4 px-2">التعيين والفلترة المتعددة</h3>
                 <div class="space-y-4">
                     <!-- Filter by sub-rep (multi-checkbox dropdown) -->
-                    <div class="relative" id="subRepFilterDropdownWrapper">
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1 px-1">فلترة مناديب فرعيين</label>
-                        <button id="subRepFilterBtn" onclick="toggleSubRepFilterMenu()"
-                            class="w-full bg-indigo-50 dark:bg-slate-800/50 px-4 py-2.5 rounded-xl text-sm font-bold text-indigo-700 dark:text-indigo-300 outline-none border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-between gap-2 hover:border-indigo-400 transition-colors">
-                            <span class="flex items-center gap-2">
-                                <i class="fas fa-user-check text-indigo-500"></i>
-                                <span id="subRepFilterLabel">فلتر المندوب</span>
-                            </span>
-                            <span id="subRepFilterBadge"
-                                class="hidden bg-indigo-600 text-white text-[11px] font-black px-2 py-0.5 rounded-full">0</span>
-                        </button>
-                        <div id="subRepFilterMenu"
-                            class="hidden absolute bottom-full md:top-full left-0 md:right-0 mb-2 md:mt-1 w-full bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[60] p-2">
-                            <div class="flex gap-2 mb-2">
-                                <button onclick="clearSubRepFilters()"
-                                    class="flex-1 py-1 text-xs font-bold rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">مسح</button>
-                                <button onclick="selectAllSubRepFilters()"
-                                    class="flex-1 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white">الكل</button>
-                            </div>
-                            <div id="subRepFilterList" class="space-y-1 max-h-48 overflow-y-auto custom-scrollbar"></div>
-                        </div>
-                    </div>
+
                     <!-- Assign rep select -->
                     <div>
                         <label class="block text-[11px] font-bold text-slate-500 mb-1 px-1">تعيين كـ (جماعي)</label>
@@ -211,18 +190,46 @@
             <!-- Fast Assign & Search Bar -->
             <div class="flex flex-col md:flex-row gap-4 items-center">
                 <!-- Fast Assign Input -->
-                <div class="glass p-4 rounded-2xl md:w-80 w-full border border-slate-100 dark:border-slate-800 shadow-sm">
+                <div class="glass p-4 rounded-2xl md:w-72 w-full border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1 px-1">التعيين المتسلسل</label>
                     <div class="relative w-full">
                         <i class="fas fa-user-edit absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input id="subRepNewRepName" type="text" 
                             class="w-full bg-orange-50/50 dark:bg-orange-900/10 pr-12 pl-4 py-3 rounded-xl text-sm font-bold text-slate-700 dark:text-white outline-none border border-orange-200 dark:border-orange-800 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-900/30 transition-all"
-                            placeholder="اكتب اسم المندوب للتعيين..."
+                            placeholder="اكتب اسم المندوب..."
                             oninput="updateSubRepAssignButtons()">
+                    </div>
+                </div>
+
+                <!-- Sub-Rep Filter -->
+                <div class="glass p-4 rounded-2xl md:w-72 w-full border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div class="relative w-full" id="subRepFilterDropdownWrapper">
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1 px-1">فلترة مناديب فرعيين</label>
+                        <button id="subRepFilterBtn" onclick="toggleSubRepFilterMenu()"
+                            class="w-full bg-indigo-50 dark:bg-slate-800/50 px-4 py-2.5 rounded-xl text-sm font-bold text-indigo-700 dark:text-indigo-300 outline-none border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-between gap-2 hover:border-indigo-400 transition-colors">
+                            <span class="flex items-center gap-2">
+                                <i class="fas fa-user-check text-indigo-500"></i>
+                                <span id="subRepFilterLabel">فلتر المندوب</span>
+                            </span>
+                            <span id="subRepFilterBadge"
+                                class="hidden bg-indigo-600 text-white text-[11px] font-black px-2 py-0.5 rounded-full">0</span>
+                        </button>
+                        <div id="subRepFilterMenu"
+                            class="hidden absolute bottom-full md:top-full left-0 md:right-0 mb-2 md:mt-1 w-full bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[60] p-2">
+                            <div class="flex gap-2 mb-2">
+                                <button onclick="clearSubRepFilters()"
+                                    class="flex-1 py-1 text-xs font-bold rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">مسح</button>
+                                <button onclick="selectAllSubRepFilters()"
+                                    class="flex-1 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white">الكل</button>
+                            </div>
+                            <div id="subRepFilterList" class="space-y-1 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Search -->
                 <div class="glass p-4 rounded-2xl flex-1 w-full border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1 px-1">بحث في النتائج</label>
                     <div class="relative w-full">
                         <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input type="text" id="searchInput" onkeyup="filterData()"
@@ -447,23 +454,24 @@
             const currentStatus = document.getElementById('filterStatus')?.value || '';
 
             const repsData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate) && (!currentStatus || getShipmentDisplayStatus(s) === currentStatus));
-            const reps = [...new Set(repsData.map(s => s.المندوب).filter(Boolean))].sort();
+            const reps = [...new Set(repsData.map(s => s.المندوب_الفرعي).filter(Boolean))].sort();
 
-            const zonesData = allShipments.filter(s => (!currentRep || s.المندوب === currentRep) && (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate) && (!currentStatus || getShipmentDisplayStatus(s) === currentStatus));
+            const zonesData = allShipments.filter(s => (!currentRep || s.المندوب_الفرعي === currentRep) && (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate) && (!currentStatus || getShipmentDisplayStatus(s) === currentStatus));
             const zones = [...new Set(zonesData.map(s => s.الزون).filter(Boolean))].sort();
 
-            const sendersData = allShipments.filter(s => (!currentRep || s.المندوب === currentRep) && (!currentZone || s.الزون === currentZone) && (!currentUpdate || s.الابيديت === currentUpdate) && (!currentStatus || getShipmentDisplayStatus(s) === currentStatus));
+            const sendersData = allShipments.filter(s => (!currentRep || s.المندوب_الفرعي === currentRep) && (!currentZone || s.الزون === currentZone) && (!currentUpdate || s.الابيديت === currentUpdate) && (!currentStatus || getShipmentDisplayStatus(s) === currentStatus));
             const senders = [...new Set(sendersData.map(s => s.الراسل).filter(Boolean))].sort();
 
-            const updatesData = allShipments.filter(s => (!currentRep || s.المندوب === currentRep) && (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentStatus || getShipmentDisplayStatus(s) === currentStatus));
+            const updatesData = allShipments.filter(s => (!currentRep || s.المندوب_الفرعي === currentRep) && (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentStatus || getShipmentDisplayStatus(s) === currentStatus));
             const updates = [...new Set(updatesData.map(s => s.الابيديت).filter(Boolean))].sort().reverse();
 
-            const statusesData = allShipments.filter(s => (!currentRep || s.المندوب === currentRep) && (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate));
+            const statusesData = allShipments.filter(s => (!currentRep || s.المندوب_الفرعي === currentRep) && (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate));
             const statuses = [...new Set(statusesData.map(s => getShipmentDisplayStatus(s)).filter(Boolean))].sort();
 
-            const repOptions = subRepAccounts.map(u => u.username || u.full_name).filter(Boolean);
-            if (!repOptions.includes('مخزن')) repOptions.push('مخزن');
-
+            const uniqueVals = [...new Set(allShipments.map(s => String(s.المندوب_الفرعي || '').trim()))].sort();
+            const repOptions = uniqueVals.filter(v => v !== '').map(v => v);
+            if (uniqueVals.includes('')) repOptions.unshift('بدون مندوب فرعي');
+            
             fillSelect('filterRep', repOptions);
             fillSelect('filterStatus', statuses);
             fillSelect('filterZone', zones);
@@ -776,16 +784,15 @@
         }, true);
 
         function populateSubRepAssignTools() {
-            // Populate multi-filter list
             const list = document.getElementById('subRepFilterList');
             const assignSelect = document.getElementById('assignSubRep');
             if (!list || !assignSelect) return;
 
-            const names = subRepAccounts.map(u => u.username || u.full_name).filter(Boolean);
-            if (!names.includes('مخزن')) names.push('مخزن');
+            const uniqueVals = [...new Set(allShipments.map(s => String(s.المندوب_الفرعي || '').trim()))].sort();
+            const filterNames = uniqueVals.map(v => v === '' ? 'بدون مندوب فرعي' : v);
 
             // Build filter checkboxes
-            list.innerHTML = names.map(name => {
+            list.innerHTML = filterNames.map(name => {
                 const checked = subRepMultiFilter.has(name) ? 'checked' : '';
                 return `
                     <label class="flex items-center gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg cursor-pointer">
@@ -795,13 +802,16 @@
                 `;
             }).join('');
 
-            // Build assign select options
+            // Build assign select options (accounts only + warehouse)
+            const accountNames = subRepAccounts.map(u => u.username || u.full_name).filter(Boolean);
+            if (!accountNames.includes('مخزن')) accountNames.push('مخزن');
+
             const prevVal = assignSelect.value;
             assignSelect.innerHTML = '<option value="">اختر مندوباً للتعيين</option>';
-            names.forEach(name => {
+            accountNames.forEach(name => {
                 assignSelect.innerHTML += `<option value="${name}">${name}</option>`;
             });
-            if (names.includes(prevVal)) assignSelect.value = prevVal;
+            if (accountNames.includes(prevVal)) assignSelect.value = prevVal;
 
             updateSubRepFilterBadge();
         }
@@ -821,8 +831,9 @@
         }
 
         function selectAllSubRepFilters() {
-            const names = subRepAccounts.map(u => u.username || u.full_name).filter(Boolean);
-            names.forEach(n => subRepMultiFilter.add(n));
+            const uniqueVals = [...new Set(allShipments.map(s => String(s.المندوب_الفرعي || '').trim()))].sort();
+            const filterNames = uniqueVals.map(v => v === '' ? 'بدون مندوب فرعي' : v);
+            filterNames.forEach(n => subRepMultiFilter.add(n));
             updateSubRepFilterBadge();
             populateSubRepAssignTools();
             filterData();
@@ -882,10 +893,10 @@
             const subRepNamesFull = subRepAccounts.map(u => u.full_name).filter(Boolean);
             
             const noDelegate = shipments.filter(s => {
-                const rep = s.المندوب;
+                const rep = s.المندوب_الفرعي;
                 return !subRepNamesShort.includes(rep) && !subRepNamesFull.includes(rep) && rep !== 'مخزن';
             }).length;
-            const warehouseCount = shipments.filter(s => s.المندوب === 'مخزن').length;
+            const warehouseCount = shipments.filter(s => s.المندوب_الفرعي === 'مخزن').length;
             const doneCount = shipments.filter(s => getShipmentDisplayStatus(s) === 'تم التوصيل').length;
             const amendedCount = shipments.filter(s => getShipmentDisplayStatus(s) === 'تعديل سعر').length;
             const rejectedCount = shipments.filter(s => getShipmentDisplayStatus(s) === 'مرتجع' || getShipmentDisplayStatus(s) === 'مرفوض').length;
@@ -967,22 +978,28 @@
             const searchQ = document.getElementById('searchInput').value.trim().toLowerCase();
 
             return allShipments.filter(s => {
-                if (fRep && s.المندوب !== fRep) return false;
+                const sSubRep = String(s.المندوب_الفرعي || '').trim();
+                const subRepFilterKey = sSubRep === '' ? 'بدون مندوب فرعي' : sSubRep;
+
+                if (fRep) {
+                    if (subRepFilterKey !== fRep) return false;
+                }
                 if (fStatus && getShipmentDisplayStatus(s) !== fStatus) return false;
                 if (fZone && s.الزون !== fZone) return false;
                 if (fSender && s.الراسل !== fSender) return false;
                 if (fUpdate && s.الابيديت !== fUpdate) return false;
-                if (subRepMultiFilter.size > 0 && !subRepMultiFilter.has(s.المندوب)) return false;
+                
+                if (subRepMultiFilter.size > 0 && !subRepMultiFilter.has(subRepFilterKey)) return false;
                 
                 // Add global stat filter logic
                 if (globalStatFilter) {
                     if (globalStatFilter === 'بدون مندوب') {
                         const subRepNamesShort = subRepAccounts.map(u => u.username).filter(Boolean);
                         const subRepNamesFull = subRepAccounts.map(u => u.full_name).filter(Boolean);
-                        const rep = s.المندوب;
+                        const rep = s.المندوب_الفرعي;
                         if (subRepNamesShort.includes(rep) || subRepNamesFull.includes(rep) || rep === 'مخزن') return false;
                     } else if (globalStatFilter === 'مخزن') {
-                        if (s.المندوب !== 'مخزن') return false;
+                        if (s.المندوب_الفرعي !== 'مخزن') return false;
                     } else if (globalStatFilter === 'مرتجع') {
                         const status = getShipmentDisplayStatus(s);
                         if (status !== 'مرتجع' && status !== 'مرفوض') return false;
@@ -1041,7 +1058,7 @@
                         ${(() => {
                             const subRepNamesShort = subRepAccounts.map(u => u.username).filter(Boolean);
                             const subRepNamesFull = subRepAccounts.map(u => u.full_name).filter(Boolean);
-                            const rep = s.المندوب;
+                            const rep = s.المندوب_الفرعي;
                             if (subRepNamesShort.includes(rep) || subRepNamesFull.includes(rep)) {
                                 return `<span class="text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md border border-indigo-100">${rep}</span>`;
                             } else if (rep === 'مخزن') {
@@ -1108,7 +1125,7 @@
 
             const { error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
-                .update({ المندوب: newRepName })
+                .update({ المندوب_الفرعي: newRepName })
                 .eq('id', id);
             
             if (!error) {
@@ -1171,7 +1188,7 @@
 
             const { error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
-                .update({ المندوب: repName })
+                .update({ المندوب_الفرعي: repName })
                 .in('id', targetIds);
 
             if (error) {
@@ -1237,7 +1254,7 @@
             try {
                 const { error } = await supabaseClient
                     .from(CONFIG.TABLES.SHIPMENTS)
-                    .update({ المندوب: 'مخزن' })
+                    .update({ المندوب_الفرعي: 'مخزن' })
                     .in('id', targetIds);
 
                 if (error) throw error;

@@ -74,8 +74,8 @@
     </header>
 
     <main class="max-w-4xl mx-auto px-4 pb-24">
-        <div class="mb-6">
-            <div class="glass rounded-3xl p-5 shadow-sm border border-white/40">
+        <div class="sticky top-[72px] z-40 mb-6 -mx-4 px-4 bg-indigo-50/50 dark:bg-slate-950/50 backdrop-blur-md">
+            <div class="glass rounded-3xl p-5 shadow-md border border-white/40">
                 <div class="flex items-start justify-between gap-4 mb-3">
                     <div class="min-w-0">
                         <p class="text-xs font-black tracking-wide text-indigo-600">نسبة الإنجاز</p>
@@ -101,49 +101,35 @@
                 <input type="text" id="searchInput" placeholder="بحث برقم الشحنة أو الموبايل..." class="input-field pr-12 text-sm font-semibold shadow-sm">
             </div>
 
-            <div class="flex gap-1 w-full">
-                <div class="relative flex-1">
+            <div class="flex gap-1 w-full flex-wrap">
+                <div class="relative flex-1 min-w-[100px]">
                     <button id="filterDateBtn" onclick="document.getElementById('filterDateMenu').classList.toggle('hidden'); stopDateFilterGlow();" class="rep-date-filter-glow w-full glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all duration-300">
                         <span id="filterDateLabel" class="truncate">تاريخ التحديث</span>
                         <i class="fas fa-chevron-down text-[10px] opacity-60"></i>
                     </button>
                     <div id="filterDateMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
                 </div>
-                <div class="relative flex-1">
+                <div class="relative flex-1 min-w-[100px]">
+                    <button id="filterStatusBtn" onclick="document.getElementById('filterStatusMenu').classList.toggle('hidden');" class="w-full glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all duration-300">
+                        <span id="filterStatusLabel" class="truncate">الحالة</span>
+                        <i class="fas fa-chevron-down text-[10px] opacity-60"></i>
+                    </button>
+                    <div id="filterStatusMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
+                </div>
+                <div class="relative flex-1 min-w-[100px]">
                     <button id="filterZoneBtn" onclick="document.getElementById('filterZoneMenu').classList.toggle('hidden');" class="w-full glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all duration-300">
                         <span id="filterZoneLabel" class="truncate">الزون</span>
                         <i class="fas fa-chevron-down text-[10px] opacity-60"></i>
                     </button>
                     <div id="filterZoneMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
                 </div>
-                <div class="relative flex-1">
+                <div class="relative flex-1 min-w-[100px]">
                     <button id="filterSenderBtn" onclick="document.getElementById('filterSenderMenu').classList.toggle('hidden');" class="w-full glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all duration-300">
                         <span id="filterSenderLabel" class="truncate">الراسل</span>
                         <i class="fas fa-chevron-down text-[10px] opacity-60"></i>
                     </button>
                     <div id="filterSenderMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
                 </div>
-            </div>
-
-            <div id="statusFilters" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <button onclick="setFilter('قيد التوصيل')" class="filter-btn active whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-indigo-600 text-white border border-indigo-600">
-                    قيد التوصيل (<span id="count-pending">0</span>)
-                </button>
-                <button onclick="setFilter('تم التسليم')" class="filter-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200">
-                    تم (<span id="count-delivered">0</span>)
-                </button>
-                <button onclick="setFilter('تأجيل')" class="filter-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200">
-                    مؤجل (<span id="count-delayed">0</span>)
-                </button>
-                <button onclick="setFilter('رفض')" class="filter-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200">
-                    رفض (<span id="count-rejected">0</span>)
-                </button>
-                <button onclick="setFilter('تعديل سعر')" class="filter-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200">
-                    تعديل سعر (<span id="count-price">0</span>)
-                </button>
-                <button onclick="setFilter('all')" class="filter-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200">
-                    الكل (<span id="count-all">0</span>)
-                </button>
             </div>
         </div>
 
@@ -199,9 +185,14 @@
         const REP_UNREAD_SESSION_KEY = 'repUnreadShipments:';
         let notificationAudioContext = null;
         let dateFilterSelections = new Set();
+        let statusFilterSelections = new Set(['قيد التوصيل']); // Default
         let zoneFilterSelections = new Set();
         let senderFilterSelections = new Set();
         let dateFilterGlowTimeout = null;
+
+        function getSelectedStatuses() {
+            return Array.from(statusFilterSelections);
+        }
 
         function getSelectedDates() {
             return Array.from(dateFilterSelections);
@@ -234,6 +225,17 @@
 
             if (zoneFilterSelections.has(normalizedValue)) zoneFilterSelections.delete(normalizedValue);
             else zoneFilterSelections.add(normalizedValue);
+            
+            saveRepUiState();
+            renderShipments();
+        }
+
+        function toggleStatusSelection(value) {
+            const normalizedValue = String(value || '').trim();
+            if (!normalizedValue) return;
+
+            if (statusFilterSelections.has(normalizedValue)) statusFilterSelections.delete(normalizedValue);
+            else statusFilterSelections.add(normalizedValue);
             
             saveRepUiState();
             renderShipments();
@@ -274,9 +276,9 @@
                 localStorage.setItem(REP_UI_STATE_KEY, JSON.stringify({
                     search: document.getElementById('searchInput')?.value || '',
                     date: getSelectedDates(),
+                    status: getSelectedStatuses(),
                     zone: getSelectedZones(),
-                    sender: getSelectedSenders(),
-                    currentFilter
+                    sender: getSelectedSenders()
                 }));
             } catch (error) {}
         }
@@ -296,7 +298,11 @@
                 if (normalizedLegacyDate) dateFilterSelections.add(normalizedLegacyDate);
             }
 
-            if (!state) return;
+            if (state && state.status) {
+                const statuses = Array.isArray(state.status) ? state.status : [state.status];
+                statusFilterSelections.clear();
+                statuses.map(s => String(s || '').trim()).filter(Boolean).forEach(s => statusFilterSelections.add(s));
+            }
 
             if (state && state.zone) {
                 const zones = Array.isArray(state.zone) ? state.zone : [state.zone];
@@ -315,8 +321,6 @@
             const searchInput = document.getElementById('searchInput');
 
             if (searchInput) searchInput.value = state.search || '';
-            currentFilter = state.currentFilter || currentFilter;
-            syncFilterButtons(currentFilter);
         }
 
         function syncFilterButtons(filter) {
@@ -626,8 +630,42 @@
                 .filter(Boolean))].sort();
 
             fillDateDropdown(dates);
+            fillStatusDropdown();
             fillZoneDropdown(zones);
             fillSenderDropdown(senders);
+        }
+
+        function fillStatusDropdown() {
+            const menu = document.getElementById('filterStatusMenu');
+            const label = document.getElementById('filterStatusLabel');
+            if (!menu || !label) return;
+
+            const statusOptions = ['قيد التوصيل', 'تم التسليم', 'تأجيل', 'رفض', 'تعديل سعر'];
+            const selectedArr = getSelectedStatuses();
+            label.innerText = selectedArr.length > 0 ? `الحالة (${selectedArr.length})` : 'الحالة';
+
+            const scopedShipments = getDateFilteredShipments();
+            const counts = {
+                'قيد التوصيل': scopedShipments.filter(s => isPendingStatus(s.الحالة)).length,
+                'تم التسليم': scopedShipments.filter(s => isDeliveredStatus(s.الحالة, s)).length,
+                'تأجيل': scopedShipments.filter(s => isDelayedStatus(s.الحالة)).length,
+                'رفض': scopedShipments.filter(s => isRejectedStatus(s.الحالة)).length,
+                'تعديل سعر': scopedShipments.filter(s => isPriceEditShipment(s)).length
+            };
+
+            menu.innerHTML = statusOptions.map(opt => {
+                const isSelected = statusFilterSelections.has(opt);
+                const count = counts[opt] || 0;
+                return `
+                    <label class="flex items-center justify-between gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors" onclick="event.stopPropagation()">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange='toggleStatusSelection(${JSON.stringify(opt)})' class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
+                            <span class="text-slate-700 dark:text-slate-200 font-bold text-[11px]">${opt}</span>
+                        </div>
+                        <span class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full font-black">${count}</span>
+                    </label>
+                `;
+            }).join('');
         }
 
         function fillDateDropdown(items) {
@@ -826,15 +864,7 @@
             const scopedShipments = getDateFilteredShipments();
             const total = scopedShipments.length;
             const delivered = scopedShipments.filter(s => isDeliveredStatus(s.الحالة, s)).length;
-            const pending = scopedShipments.filter(s => isPendingStatus(s.الحالة)).length;
             const progress = total ? Math.round((delivered / total) * 100) : 0;
-
-            document.getElementById('count-all').innerText = total;
-            document.getElementById('count-pending').innerText = pending;
-            document.getElementById('count-delivered').innerText = delivered;
-            document.getElementById('count-delayed').innerText = scopedShipments.filter(s => isDelayedStatus(s.الحالة)).length;
-            document.getElementById('count-rejected').innerText = scopedShipments.filter(s => isRejectedStatus(s.الحالة)).length;
-            document.getElementById('count-price').innerText = scopedShipments.filter(s => isPriceEditShipment(s)).length;
 
             document.getElementById('progressPercent').innerText = progress;
             document.getElementById('progressDelivered').innerText = delivered;
@@ -871,20 +901,22 @@
                                    String(s.الهاتف).toLowerCase().includes(search) || 
                                    String(s.اسم_العميل).toLowerCase().includes(search);
                 
-                let matchFilter = false;
-                if (currentFilter === 'all') matchFilter = true;
-                else if (currentFilter === 'قيد التوصيل' || currentFilter === 'قيد التنفيذ') matchFilter = isPendingStatus(s.الحالة);
-                else if (currentFilter === 'تم التسليم') matchFilter = isDeliveredStatus(s.الحالة, s);
-                else if (currentFilter === 'تعديل سعر') matchFilter = isPriceEditShipment(s);
-                else if (currentFilter === 'تأجيل') matchFilter = isDelayedStatus(s.الحالة);
-                else if (currentFilter === 'رفض') matchFilter = isRejectedStatus(s.الحالة);
-                else matchFilter = s.الحالة === currentFilter;
+                const selectedStatuses = getSelectedStatuses();
+                let matchStatus = false;
+                if (selectedStatuses.length === 0) matchStatus = true;
+                else {
+                    if (selectedStatuses.includes('قيد التوصيل') && isPendingStatus(s.الحالة)) matchStatus = true;
+                    if (selectedStatuses.includes('تم التسليم') && isDeliveredStatus(s.الحالة, s)) matchStatus = true;
+                    if (selectedStatuses.includes('تعديل سعر') && isPriceEditShipment(s)) matchStatus = true;
+                    if (selectedStatuses.includes('تأجيل') && isDelayedStatus(s.الحالة)) matchStatus = true;
+                    if (selectedStatuses.includes('رفض') && isRejectedStatus(s.الحالة)) matchStatus = true;
+                }
 
                 const matchDate = selectedDates.includes(getShipmentUpdateValue(s));
                 const matchZone = selectedZones.length === 0 || selectedZones.includes(s.الزون);
                 const matchSender = selectedSenders.length === 0 || selectedSenders.includes(s.الراسل);
 
-                return matchSearch && matchFilter && matchDate && matchZone && matchSender;
+                return matchSearch && matchStatus && matchDate && matchZone && matchSender;
             });
 
             if (filtered.length === 0) {
@@ -915,9 +947,9 @@
                     </div>
 
                     <div class="space-y-2 mb-4">
-                        <div class="flex items-center gap-2 text-slate-500">
-                            <i class="fas fa-map-marker-alt text-[10px] opacity-40"></i>
-                            <span class="text-xs font-bold line-clamp-1">${s.العنوان || 'بدون عنوان'}</span>
+                        <div class="flex items-start gap-2 text-slate-800 dark:text-slate-100">
+                            <i class="fas fa-map-marker-alt text-sm mt-0.5 text-indigo-600"></i>
+                            <span class="text-sm font-black break-words leading-relaxed">${s.العنوان || 'بدون عنوان'}</span>
                         </div>
                         <div class="flex items-center gap-2 text-slate-500">
                             <i class="fas fa-box-open text-[10px] opacity-40"></i>
@@ -925,7 +957,6 @@
                         </div>
                         <div class="flex justify-between items-center text-[10px] font-bold text-slate-400">
                              <span><i class="fas fa-store me-1"></i>${s.الراسل || '---'}</span>
-                             <span><i class="fas fa-calendar-alt me-1"></i>${getShipmentUpdateValue(s) || '---'}</span>
                         </div>
                         <div class="flex items-center gap-2 text-indigo-600">
                             <i class="fas fa-money-bill-wave text-xs opacity-40"></i>
@@ -1160,33 +1191,47 @@
                 return;
             }
 
-            const { value: newPrice } = await Swal.fire({
+            const { value: formValues } = await Swal.fire({
                 title: 'تعديل سعر الشحنة',
-                input: 'number',
-                inputLabel: 'أدخل السعر الجديد',
-                inputValue: shipment.السعر_بعد_التعديل || shipment.المبلغ || '',
-                inputAttributes: {
-                    min: '0',
-                    step: '0.01'
+                html: `
+                    <div class="space-y-4 text-right" dir="rtl">
+                        <div>
+                            <label class="block text-sm font-bold mb-1">نوع التعديل</label>
+                            <select id="swal-edit-type" class="swal2-input !m-0 !w-full border border-slate-200 rounded-lg">
+                                <option value="تعديل سعر" ${shipment.سبب_الحالة === 'تعديل سعر' ? 'selected' : ''}>تعديل سعر</option>
+                                <option value="شحن" ${shipment.سبب_الحالة === 'شحن' ? 'selected' : ''}>شحن</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-1">السعر الجديد</label>
+                            <input id="swal-edit-price" type="number" class="swal2-input !m-0 !w-full border border-slate-200 rounded-lg" value="${shipment.السعر_بعد_التعديل || shipment.المبلغ || ''}" step="0.01">
+                        </div>
+                    </div>
+                `,
+                focusConfirm: false,
+                preConfirm: () => {
+                    const type = document.getElementById('swal-edit-type').value;
+                    const price = document.getElementById('swal-edit-price').value;
+                    if (price === '' || price === null || Number(price) < 0) {
+                        Swal.showValidationMessage('يرجى إدخال سعر صحيح');
+                        return false;
+                    }
+                    return { type, price: Number(price) };
                 },
                 showCancelButton: true,
                 confirmButtonText: 'حفظ',
-                cancelButtonText: 'إلغاء',
-                inputValidator: (value) => {
-                    if (value === '' || value === null) return 'يرجى إدخال السعر الجديد';
-                    if (Number(value) < 0) return 'السعر يجب أن يكون أكبر من أو يساوي صفر';
-                    return null;
-                }
+                cancelButtonText: 'إلغاء'
             });
 
-            if (newPrice === undefined) return;
+            if (!formValues) return;
 
-            const normalizedPrice = Number(newPrice);
+            const { type, price } = formValues;
             const { error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
                 .update({
                     الحالة: 'تعديل سعر',
-                    السعر_بعد_التعديل: normalizedPrice
+                    سبب_الحالة: type,
+                    السعر_بعد_التعديل: price
                 })
                 .eq('id', Number(id) || id);
 
@@ -1199,19 +1244,18 @@
             const index = allShipments.findIndex(s => s.id == id);
             if (index !== -1) {
                 allShipments[index].الحالة = 'تعديل سعر';
-                allShipments[index].السعر_بعد_التعديل = normalizedPrice;
+                allShipments[index].سبب_الحالة = type;
+                allShipments[index].السعر_بعد_التعديل = price;
             }
 
             Swal.fire({
                 icon: 'success',
-                title: 'تم تعديل السعر',
+                title: 'تم التعديل',
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,
                 timer: 2000
             });
-
-            updateFilterCounters();
             renderShipments();
         }
 
