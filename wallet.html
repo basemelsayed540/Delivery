@@ -10,6 +10,25 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes repDateFilterGlow {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.08), 0 0 10px rgba(99, 102, 241, 0.16);
+                border-color: rgba(99, 102, 241, 0.45);
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.16), 0 0 24px rgba(99, 102, 241, 0.48);
+                border-color: rgba(99, 102, 241, 1);
+                transform: translateY(-1px) scale(1.01);
+            }
+        }
+
+        .rep-date-filter-glow {
+            animation: repDateFilterGlow 1.1s ease-in-out infinite;
+            will-change: box-shadow, border-color, transform;
+        }
+    </style>
 </head>
 <body class="bg-indigo-50/50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
 
@@ -37,10 +56,10 @@
         
         <div class="glass p-6 rounded-3xl space-y-6">
             <div>
-                <label class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">تصفية حسب التاريخ (الابيديت)</label>
+                <label class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">تصفية حسب تاريخ التحديث</label>
                 <div class="relative">
-                    <select id="walletDateFilter" onchange="updateWalletStats()" class="w-full glass px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-white outline-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 appearance-none focus:border-indigo-500">
-                        <option value="">اختر الابيديت</option>
+                    <select id="walletDateFilter" onchange="updateWalletStats()" class="rep-date-filter-glow w-full glass px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-white outline-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 appearance-none focus:border-indigo-500">
+                        <option value="">اختر تاريخ التحديث</option>
                     </select>
                     <i class="fas fa-chevron-down absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                 </div>
@@ -167,7 +186,7 @@
             const select = document.getElementById('walletDateFilter');
             
             const currentValue = select.value;
-            select.innerHTML = '<option value="">اختر الابيديت</option>';
+            select.innerHTML = '<option value="">اختر تاريخ التحديث</option>';
             
             dates.forEach(d => {
                 select.innerHTML += `<option value="${d}">${d}</option>`;
@@ -298,7 +317,7 @@
             if (currentWalletBalance <= 0 || pendingOrderIds.length === 0) return;
 
             if (!currentSettlementDate) {
-                Swal.fire('تنبيه', 'يرجى اختيار الابيديت أولاً قبل طلب التسوية.', 'warning');
+                Swal.fire('تنبيه', 'يرجى اختيار تاريخ التحديث أولاً قبل طلب التسوية.', 'warning');
                 return;
             }
 
@@ -306,7 +325,7 @@
                 title: 'تأكيد طلب تسوية / حساب',
                 html: `
                     <div class="text-right space-y-3">
-                        <p>سيتم إنشاء طلب تسوية للشحنات المرتبطة بالابيديت: <b>${currentSettlementDate}</b></p>
+                        <p>سيتم إنشاء طلب تسوية للشحنات المرتبطة بتاريخ التحديث: <b>${currentSettlementDate}</b></p>
                         <p>عدد الشحنات التي سيتم منع تعديلها مرة أخرى: <b>${pendingOrderIds.length}</b></p>
                         <p>المبلغ المطلوب للمندوبية: <b>${currentWalletBalance} ج.م</b></p>
                         <p class="text-rose-600 font-bold">تحذير: بعد إرسال الطلب لن تتمكن من تعديل هذه الشحنات مرة أخرى.</p>

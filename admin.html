@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --primary: #3b82f6;
@@ -110,6 +111,24 @@
             padding: 10px 15px;
             font-weight: 600;
             color: var(--text-color);
+        }
+
+        @keyframes repDateFilterGlow {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.08), 0 0 10px rgba(59, 130, 246, 0.16);
+                border-color: rgba(59, 130, 246, 0.45);
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.16), 0 0 24px rgba(59, 130, 246, 0.48);
+                border-color: rgba(59, 130, 246, 1);
+                transform: translateY(-1px) scale(1.01);
+            }
+        }
+
+        .rep-date-filter-glow {
+            animation: repDateFilterGlow 1.1s ease-in-out infinite;
+            will-change: box-shadow, border-color, transform;
         }
 
         .badge-status {
@@ -462,8 +481,8 @@
                     الحسابات</button>
                 <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
                     onclick="showAdminSection('recent', this)"><i class="fas fa-history me-2"></i> أحدث الشحنات</button>
-                <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only" 
-                    onclick="showAdminSection('deleteUpdate', this)"><i class="fas fa-trash-alt me-2"></i> حذف الابيديت</button>
+                    <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
+                        onclick="showAdminSection('deleteUpdate', this)"><i class="fas fa-trash-alt me-2"></i> حذف تاريخ التحديث</button>
                 <button class="btn text-start text-secondary fw-bold" onclick="openHousingChangesStatsModal()">
                     <i class="fas fa-chart-pie me-2"></i> عرض احصائية التغيرات
                 </button>
@@ -494,7 +513,7 @@
                         onclick="showAdminSection('recent', this, true)"><i class="fas fa-history me-2"></i> أحدث
                         الشحنات</button>
                     <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only" 
-                        onclick="showAdminSection('deleteUpdate', this, true)"><i class="fas fa-trash-alt me-2"></i> حذف الابيديت</button>
+                        onclick="showAdminSection('deleteUpdate', this, true)"><i class="fas fa-trash-alt me-2"></i> حذف تاريخ التحديث</button>
                     <button class="btn text-start text-secondary fw-bold" onclick="openHousingChangesStatsModal()">
                         <i class="fas fa-chart-pie me-2"></i> عرض احصائية التغيرات
                     </button>
@@ -513,8 +532,8 @@
                 <div class="order-card p-4 mb-4">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-2">
-                            <label class="form-label small fw-bold">📅 التاريخ</label>
-                            <select id="filterDate" class="form-select filter-select" onchange="refreshDashboard()">
+                            <label class="form-label small fw-bold">📅 تاريخ التحديث</label>
+                            <select id="filterDate" class="form-select filter-select rep-date-filter-glow" onchange="refreshDashboard()">
                                 <option value="">كل التواريخ</option>
                             </select>
                         </div>
@@ -772,12 +791,12 @@
             <div id="section-deleteUpdate" style="display: none;" class="admin-only">
                 <div class="col-12">
                     <div class="order-card p-4 shadow-sm border-0">
-                        <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-trash-alt me-2"></i>حذف الابيديت</h5>
+                        <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-trash-alt me-2"></i>حذف تاريخ التحديث</h5>
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
-                                <label class="form-label small fw-bold">اختر الابيديت (التاريخ/الدفعة)</label>
-                                <select id="deleteUpdateFilterSelect" class="form-select filter-select">
-                                    <option value="">اختر قيمة الابيديت</option>
+                                <label class="form-label small fw-bold">اختر تاريخ التحديث</label>
+                                <select id="deleteUpdateFilterSelect" class="form-select filter-select rep-date-filter-glow">
+                                    <option value="">اختر تاريخ التحديث</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -787,7 +806,7 @@
                             </div>
                         </div>
                         <div class="alert alert-warning mt-4 small fw-bold">
-                            <i class="fas fa-exclamation-triangle me-2"></i> تنبيه: ستحتاج إلى إدخال كلمة مرور المدير لتأكيد حذف جميع الشحنات المرتبطة بالابيديت المختار. هذا الإجراء لا يمكن التراجع عنه.
+                            <i class="fas fa-exclamation-triangle me-2"></i> تنبيه: ستحتاج إلى إدخال كلمة مرور المدير لتأكيد حذف جميع الشحنات المرتبطة بتاريخ التحديث المختار. هذا الإجراء لا يمكن التراجع عنه.
                         </div>
                     </div>
                 </div>
@@ -804,9 +823,9 @@
                                 </h5>
                                 <div class="dropdown">
                                     <button id="housingEditDateFilterBtn"
-                                        class="btn btn-outline-secondary rounded-pill fw-bold dropdown-toggle"
+                                        class="btn btn-outline-secondary rounded-pill fw-bold dropdown-toggle rep-date-filter-glow"
                                         type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                                        <i class="fas fa-calendar-days me-1"></i> الابيديت
+                                        <i class="fas fa-calendar-days me-1"></i> تاريخ التحديث
                                         <span class="badge bg-secondary ms-1"
                                             id="housingEditDateFilterBadge">0</span>
                                     </button>
@@ -824,6 +843,9 @@
                                 </div>
                                 <button id="housingOpenQrBtn" class="btn btn-outline-primary rounded-pill fw-bold" onclick="openHousingQrScanner()">
                                     <i class="fas fa-qrcode me-1"></i> QR Scanner
+                                </button>
+                                <button id="exportHousingExcelBtn" class="btn btn-outline-success rounded-pill fw-bold" onclick="exportHousingToExcel()">
+                                    <i class="fas fa-file-excel me-1"></i> تصدير Excel
                                 </button>
                             </div>
                             <div class="d-flex flex-wrap gap-2 align-items-center">
@@ -1414,7 +1436,7 @@
             const select = document.getElementById('deleteUpdateFilterSelect');
             if (!select) return;
             const currentVal = select.value;
-            select.innerHTML = '<option value="">اختر قيمة الابيديت</option>';
+            select.innerHTML = '<option value="">اختر قيمة تاريخ التحديث</option>';
             updates.forEach(u => {
                 const opt = document.createElement('option');
                 opt.value = u;
@@ -1427,7 +1449,7 @@
         async function confirmAndDeleteUpdate() {
             const updateVal = document.getElementById('deleteUpdateFilterSelect').value;
             if (!updateVal) {
-                Swal.fire('تنبيه', 'يرجى اختيار قيمة الابيديت أولاً.', 'warning');
+                Swal.fire('تنبيه', 'يرجى اختيار قيمة تاريخ التحديث أولاً.', 'warning');
                 return;
             }
 
@@ -1565,12 +1587,6 @@
 
         function renderRepsStats(data) {
             const repsData = {};
-            const activeReps = new Set(allUsers.filter(u => u.role === 'rep' && u.approved).map(u => u.username));
-
-            // إضافة كل المناديب الموجودين في السيستم حتى لو معندهمش شغل حالياً
-            activeReps.forEach(name => {
-                repsData[name] = { total: 0, delivered: 0, postponed: 0, rejected: 0, pending: 0, collected: 0 };
-            });
 
             data.forEach(s => {
                 const name = s.المندوب;
@@ -1990,6 +2006,34 @@
                     updateHousingScannerStatus('تعذر تشغيل الجلسة اللحظية');
                 }
             });
+        }
+
+        function exportHousingToExcel() {
+            const data = getHousingFilteredShipments();
+            if (!data || data.length === 0) {
+                Swal.fire('تنبيه', 'لا توجد بيانات لتصديرها', 'warning');
+                return;
+            }
+
+            const exportData = data.map(s => ({
+                'اسم العميل': s.اسم_العميل || '',
+                'الزون': s.الزون || '',
+                'المنتج': s.المنتج || '',
+                'الهاتف': s.الهاتف || '',
+                'هاتف بديل': s.هاتف_بديل || '',
+                'المبلغ': s.المبلغ || '',
+                'الراسل': s.الراسل || '',
+                'كود الشحنة': s.كود_الشحنة || '',
+                'المندوب': s.المندوب || '',
+                'الحالة': s.الحالة || '',
+                'تاريخ التحديث': s.الابيديت || '',
+                'ملاحظات': s.ملاحظات || ''
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "الشحنات");
+            XLSX.writeFile(wb, `شحنات_تسكين_${new Date().toLocaleDateString('ar-EG').replace(/\//g, '-')}.xlsx`);
         }
 
         async function openHousingQrScanner() {
@@ -2869,7 +2913,7 @@
             if (!filtered.length) {
                 const editDateFilters = getHousingEditDateFilters();
                 if (editDateFilters.length === 0) {
-                    tableEl.innerHTML = `<tr><td colspan="12" class="text-center py-4 text-warning fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>يرجى تحديد فلتر "الابيديت" أولاً لعرض الشحنات.</td></tr>`;
+                    tableEl.innerHTML = `<tr><td colspan="12" class="text-center py-4 text-warning fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>يرجى تحديد فلتر "تاريخ التحديث" أولاً لعرض الشحنات.</td></tr>`;
                 } else {
                     tableEl.innerHTML = `<tr><td colspan="12" class="text-center py-4 text-secondary fw-bold">لا توجد شحنات مطابقة.</td></tr>`;
                 }
