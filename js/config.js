@@ -1,6 +1,6 @@
 const CONFIG = {
     SUPABASE_URL: "https://gmrytacdqydzdwhwcgqo.supabase.co",
-    SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdtcnl0YWNkcXlkemR3aHdjZ3FvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTEwNTAzNSwiZXhwIjoyMDkwNjgxMDM1fQ._LkZWnz5tC8ldDoLw6f3gqWTiIC8vOUQQO24SQAHf7E",
+    SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdtcnl0YWNkcXlkemR3aHdjZ3FvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMDUwMzUsImV4cCI6MjA5MDY4MTAzNX0.ZRBBWAKYQeOJDxapaeffu7CWMbFxVUSP7fAGbCVn4B4",
     TABLES: {
         SHIPMENTS: 'shipments1',
         USERS: 'users',
