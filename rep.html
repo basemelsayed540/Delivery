@@ -11,66 +11,71 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Radical High-Visibility Light Mode */
         body {
-            background-color: #f1f5f9; /* Flat, clean Slate-100 */
-            background-image: none;
-            background-attachment: fixed;
-            color: #0f172a; /* Slate-900 */
+            background-color: #ffffff; /* Pure White */
+            color: #000000; /* Pure Black */
+            font-family: 'Cairo', sans-serif;
         }
 
-        /* Standard Card Style in Light Mode */
         .glass {
-            background: #ffffff;
-            border: 1px solid #e2e8f0; /* Slate-200 */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-            backdrop-filter: none;
-            -webkit-backdrop-filter: none;
+            background: #f8fafc; /* Very Light Gray */
+            border: 2px solid #e2e8f0; /* Thick Visible Border */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border-radius: 1.5rem;
         }
 
         .dark .glass {
-            background: rgba(15, 23, 42, 0.95);
+            background: #0f172a;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+        }
+
+        /* High Visibility Status Badges */
+        .badge-solid {
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            font-weight: 800;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         @keyframes repDateFilterGlow {
-            0%, 100% { border-color: #e2e8f0; box-shadow: none; }
-            50% { border-color: #6366f1; box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+            0%, 100% { border-color: #cbd5e1; }
+            50% { border-color: #4f46e5; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
         }
 
         .rep-date-filter-glow {
             animation: repDateFilterGlow 2s ease-in-out infinite;
-        }
-
-        @keyframes repUnreadPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-
-        .rep-unread-badge {
-            animation: repUnreadPulse 1.5s ease-in-out infinite;
-            background: #be123c !important; /* Rose-700 for better contrast */
+            border-width: 2px !important;
         }
 
         .card-shadow {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
         }
+
+        /* Typography improvements */
+        .text-main { color: #000000; font-weight: 900; }
+        .text-sub { color: #475569; font-weight: 700; }
     </style>
 </head>
 <body class="min-h-screen transition-colors duration-300">
 
     <!-- Header -->
-    <header class="bg-white dark:bg-slate-900 sticky top-0 z-50 px-4 py-4 mb-6 border-b border-slate-200 dark:border-slate-800 shadow-sm">
+    <header class="bg-white dark:bg-slate-900 sticky top-0 z-50 px-4 py-5 mb-6 border-b-4 border-slate-100 dark:border-slate-800 shadow-md">
         <div class="max-w-4xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md">
-                    <i class="fas fa-shipping-fast"></i>
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-black dark:bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                    <i class="fas fa-truck text-xl"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 id="repName" class="text-lg font-bold text-slate-800 dark:text-white">جاري التحميل...</h1>
-                        <span id="repUnreadBadge" class="hidden rep-unread-badge min-w-6 h-6 px-2 rounded-full bg-rose-500 text-white text-[11px] font-black leading-6 text-center shadow-md">0</span>
+                        <h1 id="repName" class="text-xl font-black text-black dark:text-white">جاري التحميل...</h1>
+                        <span id="repUnreadBadge" class="hidden rep-unread-badge min-w-7 h-7 px-2 rounded-full bg-red-600 text-white text-xs font-black leading-7 text-center shadow-lg">0</span>
                     </div>
                     <p class="text-xs font-bold text-indigo-600">مندوب توصيل</p>
                 </div>
@@ -87,13 +92,13 @@
     </header>
 
     <main class="max-w-4xl mx-auto px-4 pb-24">
-        <div class="sticky top-[72px] z-40 mb-6 -mx-4 px-4 py-2 bg-[#f1f5f9]/80 dark:bg-slate-950/80 backdrop-blur-md">
-            <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-lg border border-slate-200 dark:border-slate-800">
-                <div class="flex items-start justify-between gap-4 mb-3">
+        <div class="sticky top-[86px] z-40 mb-8 -mx-4 px-4 py-3 bg-white/95 dark:bg-slate-950/95 border-b-2 border-slate-100 dark:border-slate-800">
+            <div class="bg-slate-50 dark:bg-slate-900 rounded-3xl p-6 shadow-xl border-2 border-slate-200 dark:border-slate-800">
+                <div class="flex items-start justify-between gap-6 mb-4">
                     <div class="min-w-0">
-                        <p class="text-xs font-black tracking-wide text-indigo-600">نسبة الإنجاز</p>
-                        <h2 class="text-2xl font-black text-slate-800 dark:text-white"><span id="progressPercent">0</span>%</h2>
-                        <p class="text-sm font-black text-slate-700 dark:text-slate-200"><span id="progressDelivered">0</span> / <span id="progressTotal">0</span></p>
+                        <p class="text-xs font-black uppercase tracking-widest text-indigo-700 dark:text-indigo-400 mb-1">نسبة الإنجاز</p>
+                        <h2 class="text-4xl font-black text-black dark:text-white leading-none mb-1"><span id="progressPercent">0</span>%</h2>
+                        <p class="text-[15px] font-black text-slate-900 dark:text-slate-100">تم تسليم <span id="progressDelivered" class="text-emerald-600">0</span> من <span id="progressTotal">0</span></p>
                     </div>
                     <div class="min-w-0 text-left">
                         <p class="text-xs font-black tracking-wide text-emerald-600 mb-1">عمولة المندوب</p>
@@ -115,33 +120,33 @@
             </div>
 
             <div class="flex gap-1 w-full flex-wrap">
-                <div class="relative flex-1 min-w-[100px]">
-                    <button id="filterDateBtn" onclick="document.getElementById('filterDateMenu').classList.toggle('hidden'); stopDateFilterGlow();" class="rep-date-filter-glow w-full glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all duration-300">
+                <div class="relative flex-1 min-w-[120px]">
+                    <button id="filterDateBtn" onclick="document.getElementById('filterDateMenu').classList.toggle('hidden'); stopDateFilterGlow();" class="rep-date-filter-glow w-full bg-white px-3 py-3 rounded-2xl text-[13px] font-black text-black dark:text-white dark:bg-slate-800 outline-none border-2 border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all">
                         <span id="filterDateLabel" class="truncate">تاريخ التحديث</span>
-                        <i class="fas fa-chevron-down text-[10px] opacity-60"></i>
+                        <i class="fas fa-chevron-down text-xs"></i>
                     </button>
-                    <div id="filterDateMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
+                    <div id="filterDateMenu" class="hidden absolute top-full right-0 mt-2 min-w-[220px] w-full bg-white rounded-2xl shadow-2xl border-2 border-slate-200 dark:bg-slate-900 dark:border-slate-700 max-h-64 overflow-y-auto z-[60] p-3 flex flex-col gap-2 text-right"></div>
                 </div>
-                <div class="relative flex-1 min-w-[100px]">
-                    <button id="filterStatusBtn" onclick="document.getElementById('filterStatusMenu').classList.toggle('hidden');" class="w-full glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all duration-300">
+                <div class="relative flex-1 min-w-[120px]">
+                    <button id="filterStatusBtn" onclick="document.getElementById('filterStatusMenu').classList.toggle('hidden');" class="w-full bg-white px-3 py-3 rounded-2xl text-[13px] font-black text-black dark:text-white dark:bg-slate-800 outline-none border-2 border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all">
                         <span id="filterStatusLabel" class="truncate">الحالة</span>
-                        <i class="fas fa-chevron-down text-[10px] opacity-60"></i>
+                        <i class="fas fa-chevron-down text-xs"></i>
                     </button>
-                    <div id="filterStatusMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
+                    <div id="filterStatusMenu" class="hidden absolute top-full right-0 mt-2 min-w-[220px] w-full bg-white rounded-2xl shadow-2xl border-2 border-slate-200 dark:bg-slate-900 dark:border-slate-700 max-h-64 overflow-y-auto z-[60] p-3 flex flex-col gap-2 text-right"></div>
                 </div>
-                <div class="relative flex-1 min-w-[100px]">
-                    <button id="filterZoneBtn" onclick="document.getElementById('filterZoneMenu').classList.toggle('hidden');" class="w-full glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all duration-300">
+                <div class="relative flex-1 min-w-[120px]">
+                    <button id="filterZoneBtn" onclick="document.getElementById('filterZoneMenu').classList.toggle('hidden');" class="w-full bg-white px-3 py-3 rounded-2xl text-[13px] font-black text-black dark:text-white dark:bg-slate-800 outline-none border-2 border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all">
                         <span id="filterZoneLabel" class="truncate">الزون</span>
-                        <i class="fas fa-chevron-down text-[10px] opacity-60"></i>
+                        <i class="fas fa-chevron-down text-xs"></i>
                     </button>
-                    <div id="filterZoneMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
+                    <div id="filterZoneMenu" class="hidden absolute top-full right-0 mt-2 min-w-[220px] w-full bg-white rounded-2xl shadow-2xl border-2 border-slate-200 dark:bg-slate-900 dark:border-slate-700 max-h-64 overflow-y-auto z-[60] p-3 flex flex-col gap-2 text-right"></div>
                 </div>
-                <div class="relative flex-1 min-w-[100px]">
-                    <button id="filterSenderBtn" onclick="document.getElementById('filterSenderMenu').classList.toggle('hidden');" class="w-full glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all duration-300">
+                <div class="relative flex-1 min-w-[120px]">
+                    <button id="filterSenderBtn" onclick="document.getElementById('filterSenderMenu').classList.toggle('hidden');" class="w-full bg-white px-3 py-3 rounded-2xl text-[13px] font-black text-black dark:text-white dark:bg-slate-800 outline-none border-2 border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all">
                         <span id="filterSenderLabel" class="truncate">الراسل</span>
-                        <i class="fas fa-chevron-down text-[10px] opacity-60"></i>
+                        <i class="fas fa-chevron-down text-xs"></i>
                     </button>
-                    <div id="filterSenderMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
+                    <div id="filterSenderMenu" class="hidden absolute top-full right-0 mt-2 min-w-[220px] w-full bg-white rounded-2xl shadow-2xl border-2 border-slate-200 dark:bg-slate-900 dark:border-slate-700 max-h-64 overflow-y-auto z-[60] p-3 flex flex-col gap-2 text-right"></div>
                 </div>
             </div>
         </div>
@@ -943,45 +948,54 @@
             }
 
             list.innerHTML = filtered.map(s => `
-                <div class="glass p-5 rounded-3xl relative overflow-hidden group transition-all duration-300 card-shadow border border-white/60 dark:border-slate-800">
-                    <div class="absolute top-0 right-0 w-2.5 h-full ${getStatusColor(s)} opacity-80"></div>
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-[2rem] relative overflow-hidden group transition-all duration-300 border-[3px] border-slate-100 dark:border-slate-800 shadow-xl mb-6">
+                    <div class="absolute top-0 right-0 w-3 h-full ${getStatusColor(s).replace('bg-', 'bg-')}"></div>
                     
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <button onclick="toggleShipmentMenu(event, '${s.id}')" class="mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-500 shadow-sm transition-colors hover:text-indigo-600" title="خيارات الشحنة" aria-label="خيارات الشحنة">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-500">#${s.order_id}</span>
-                            <h3 class="text-lg font-black text-slate-900 dark:text-white leading-tight">${s.اسم_العميل || 'غير مسجل'}</h3>
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <button onclick="toggleShipmentMenu(event, '${s.id}')" class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-black shadow-inner transition-all hover:bg-black hover:text-white" title="خيارات" aria-label="خيارات">
+                                    <i class="fas fa-bars"></i>
+                                </button>
+                                <span class="bg-slate-800 text-white px-3 py-1 rounded-lg text-[13px] font-black tracking-widest">#${s.order_id}</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-black dark:text-white leading-tight uppercase">${s.اسم_العميل || 'غير مسجل'}</h3>
                         </div>
-                        <span class="px-3 py-1.5 rounded-lg text-[11px] font-black shadow-sm ${getStatusBadgeClass(s)}">
+                        <span class="px-4 py-2 rounded-xl text-[13px] font-black shadow-lg border-2 border-white dark:border-slate-800 ${getStatusBadgeClass(s)}">
                             ${isPendingStatus(s.الحالة) ? 'قيد التوصيل' : (isPriceEditShipment(s) ? 'تعديل سعر' : (isDelayedStatus(s.الحالة) ? 'مؤجل' : (isRejectedStatus(s.الحالة) ? 'رفض' : (isDeliveredStatus(s.الحالة, s) ? 'تم' : (s.الحالة || 'قيد التوصيل')))))}
                         </span>
                     </div>
 
-                    <div class="space-y-3 mb-5">
-                        <div class="flex items-start gap-3 text-slate-800 dark:text-slate-100">
-                            <i class="fas fa-map-marker-alt text-lg mt-1 text-indigo-600"></i>
-                            <span class="text-[15px] font-extrabold break-words leading-relaxed">${s.العنوان || 'بدون عنوان'}</span>
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
+                                <i class="fas fa-map-marker-alt text-xl text-indigo-600"></i>
+                            </div>
+                            <span class="text-lg font-black text-black dark:text-slate-100 leading-snug pt-1">${s.العنوان || 'بدون عنوان'}</span>
                         </div>
-                        <div class="flex items-center gap-3 text-slate-600 dark:text-slate-300">
-                            <i class="fas fa-box text-sm opacity-60"></i>
-                            <span class="text-sm font-bold">${s.المنتج || s.المنتجات || 'بدون منتج'}</span>
+                        <div class="flex items-center gap-4 text-slate-600 dark:text-slate-400">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                                <i class="fas fa-box text-xl"></i>
+                            </div>
+                            <span class="text-md font-black">${s.المنتج || s.المنتجات || 'بدون منتج'}</span>
                         </div>
-                        <div class="flex justify-between items-center text-[11px] font-black text-slate-500 border-t border-slate-100 pt-2 mt-2">
-                             <span><i class="fas fa-store me-1.5"></i>${s.الراسل || '---'}</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-2 rounded-xl w-fit">
-                            <i class="fas fa-money-bill-wave text-sm opacity-60"></i>
-                            <span class="text-xl font-black">${s.السعر_بعد_التعديل || s.المبلغ || 0} ج.م</span>
+                        
+                        <div class="flex items-center gap-3 mt-6 pt-6 border-t-4 border-slate-50 dark:border-slate-800">
+                            <div class="flex-1 flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 px-5 py-4 rounded-2xl border-2 border-emerald-100 dark:border-emerald-800">
+                                <i class="fas fa-money-bill-wave text-2xl text-emerald-600"></i>
+                                <div class="flex flex-col">
+                                    <span class="text-[11px] font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-tighter">المبلغ المستحق</span>
+                                    <span class="text-3xl font-black text-black dark:text-white">${s.السعر_بعد_التعديل || s.المبلغ || 0} <small class="text-lg font-black opacity-50">ج.م</small></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flex gap-2 mt-4">
-                        <button onclick="updateStatus('${s.id}', 'تم التسليم')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="flex-1 bg-emerald-500 text-white py-3 rounded-xl font-bold text-[11px] shadow-lg shadow-emerald-200 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">تم التسليم</button>
-                        <button onclick="editPrice('${s.id}')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="flex-1 bg-cyan-500 text-white py-3 rounded-xl font-bold text-[11px] shadow-lg shadow-cyan-200 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">تعديل سعر</button>
-                        <button onclick="updateStatus('${s.id}', 'تأجيل')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="flex-1 bg-amber-500 text-white py-3 rounded-xl font-bold text-[11px] shadow-lg shadow-amber-200 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">تأجيل</button>
-                        <button onclick="updateStatus('${s.id}', 'رفض')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="flex-1 bg-rose-500 text-white py-3 rounded-xl font-bold text-[11px] shadow-lg shadow-rose-200 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">رفض</button>
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <button onclick="updateStatus('${s.id}', 'تم التسليم')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-emerald-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl hover:bg-emerald-700 active:scale-95 transition-all">تم التسليم</button>
+                        <button onclick="editPrice('${s.id}')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-black text-white py-4 rounded-2xl font-black text-sm shadow-xl hover:bg-slate-800 active:scale-95 transition-all">تعديل سعر</button>
+                        <button onclick="updateStatus('${s.id}', 'تأجيل')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-amber-500 text-white py-4 rounded-2xl font-black text-sm shadow-xl hover:bg-amber-600 active:scale-95 transition-all">تأجيل</button>
+                        <button onclick="updateStatus('${s.id}', 'رفض')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-rose-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl hover:bg-rose-700 active:scale-95 transition-all">رفض</button>
                     </div>
                     ${isShipmentLocked(s.id) ? `
                         <div class="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-center text-[11px] font-bold text-amber-700">
