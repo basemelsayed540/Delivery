@@ -114,11 +114,14 @@
         }
 
         @keyframes repDateFilterGlow {
-            0%, 100% {
+
+            0%,
+            100% {
                 box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.08), 0 0 10px rgba(59, 130, 246, 0.16);
                 border-color: rgba(59, 130, 246, 0.45);
                 transform: translateY(0) scale(1);
             }
+
             50% {
                 box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.16), 0 0 24px rgba(59, 130, 246, 0.48);
                 border-color: rgba(59, 130, 246, 1);
@@ -481,8 +484,9 @@
                     الحسابات</button>
                 <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
                     onclick="showAdminSection('recent', this)"><i class="fas fa-history me-2"></i> أحدث الشحنات</button>
-                    <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
-                        onclick="showAdminSection('deleteUpdate', this)"><i class="fas fa-trash-alt me-2"></i> حذف تاريخ التحديث</button>
+                <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
+                    onclick="showAdminSection('deleteUpdate', this)"><i class="fas fa-trash-alt me-2"></i> حذف تاريخ
+                    التحديث</button>
                 <button class="btn text-start text-secondary fw-bold" onclick="openHousingChangesStatsModal()">
                     <i class="fas fa-chart-pie me-2"></i> عرض احصائية التغيرات
                 </button>
@@ -512,8 +516,9 @@
                     <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
                         onclick="showAdminSection('recent', this, true)"><i class="fas fa-history me-2"></i> أحدث
                         الشحنات</button>
-                    <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only" 
-                        onclick="showAdminSection('deleteUpdate', this, true)"><i class="fas fa-trash-alt me-2"></i> حذف تاريخ التحديث</button>
+                    <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
+                        onclick="showAdminSection('deleteUpdate', this, true)"><i class="fas fa-trash-alt me-2"></i> حذف
+                        تاريخ التحديث</button>
                     <button class="btn text-start text-secondary fw-bold" onclick="openHousingChangesStatsModal()">
                         <i class="fas fa-chart-pie me-2"></i> عرض احصائية التغيرات
                     </button>
@@ -533,37 +538,54 @@
                     <div class="row g-3 align-items-end">
                         <div class="col-md-2">
                             <label class="form-label small fw-bold">📅 تاريخ التحديث</label>
-                            <select id="filterDate" class="form-select filter-select rep-date-filter-glow" onchange="refreshDashboard()">
+                            <select id="filterDate" class="form-select filter-select rep-date-filter-glow"
+                                onchange="refreshDashboard()">
                                 <option value="">كل التواريخ</option>
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label small fw-bold">📍 المنطقة</label>
-                            <select id="filterZone" class="form-select filter-select" onchange="refreshDashboard()">
-                                <option value="">كل المناطق</option>
-                            </select>
+                            <div class="dropdown w-100">
+                                <button id="filterZoneBtn" class="form-select filter-select text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                    <span id="filterZoneLabel" class="text-truncate">كل المناطق</span>
+                                </button>
+                                <div id="filterZoneMenu" class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 300px; overflow-y: auto;">
+                                    <!-- Zones checkboxes will be injected here -->
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label small fw-bold">🤝 المندوب</label>
-                            <select id="filterRep" class="form-select filter-select" onchange="refreshDashboard()">
-                                <option value="">كل المناديب</option>
-                            </select>
+                            <div class="dropdown w-100">
+                                <button id="filterRepBtn" class="form-select filter-select text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                    <span id="filterRepLabel" class="text-truncate">كل المناديب</span>
+                                </button>
+                                <div id="filterRepMenu" class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 300px; overflow-y: auto;">
+                                    <!-- Reps checkboxes will be injected here -->
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label small fw-bold">🏢 الراسل</label>
-                            <select id="filterOffice" class="form-select filter-select" onchange="refreshDashboard()">
-                                <option value="">كل المكاتب</option>
-                            </select>
+                            <div class="dropdown w-100">
+                                <button id="filterOfficeBtn" class="form-select filter-select text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                    <span id="filterOfficeLabel" class="text-truncate">كل المكاتب</span>
+                                </button>
+                                <div id="filterOfficeMenu" class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 300px; overflow-y: auto;">
+                                    <!-- Offices checkboxes will be injected here -->
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label small fw-bold">🔴 الحالة</label>
-                            <select id="filterStatus" class="form-select filter-select" onchange="refreshDashboard()">
-                                <option value="">كل الحالات</option>
-                                <option value="تم التسليم">تم التسليم</option>
-                                <option value="تأجيل">مؤجل</option>
-                                <option value="رفض">مرفوض</option>
-                                <option value="pending">قيد التوصيل</option>
-                            </select>
+                            <div class="dropdown w-100">
+                                <button id="filterStatusBtn" class="form-select filter-select text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                    <span id="filterStatusLabel" class="text-truncate">كل الحالات</span>
+                                </button>
+                                <div id="filterStatusMenu" class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 300px; overflow-y: auto;">
+                                    <!-- Status checkboxes will be injected here -->
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-2">
                             <button onclick="resetFilters()"
@@ -791,22 +813,26 @@
             <div id="section-deleteUpdate" style="display: none;" class="admin-only">
                 <div class="col-12">
                     <div class="order-card p-4 shadow-sm border-0">
-                        <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-trash-alt me-2"></i>حذف تاريخ التحديث</h5>
+                        <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-trash-alt me-2"></i>حذف تاريخ التحديث
+                        </h5>
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
                                 <label class="form-label small fw-bold">اختر تاريخ التحديث</label>
-                                <select id="deleteUpdateFilterSelect" class="form-select filter-select rep-date-filter-glow">
+                                <select id="deleteUpdateFilterSelect"
+                                    class="form-select filter-select rep-date-filter-glow">
                                     <option value="">اختر تاريخ التحديث</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <button onclick="confirmAndDeleteUpdate()" class="btn btn-danger w-100 rounded-pill py-2 fw-bold">
+                                <button onclick="confirmAndDeleteUpdate()"
+                                    class="btn btn-danger w-100 rounded-pill py-2 fw-bold">
                                     <i class="fas fa-trash me-2"></i>حذف نهائياً
                                 </button>
                             </div>
                         </div>
                         <div class="alert alert-warning mt-4 small fw-bold">
-                            <i class="fas fa-exclamation-triangle me-2"></i> تنبيه: ستحتاج إلى إدخال كلمة مرور المدير لتأكيد حذف جميع الشحنات المرتبطة بتاريخ التحديث المختار. هذا الإجراء لا يمكن التراجع عنه.
+                            <i class="fas fa-exclamation-triangle me-2"></i> تنبيه: ستحتاج إلى إدخال كلمة مرور المدير
+                            لتأكيد حذف جميع الشحنات المرتبطة بتاريخ التحديث المختار. هذا الإجراء لا يمكن التراجع عنه.
                         </div>
                     </div>
                 </div>
@@ -818,22 +844,22 @@
                     <div class="housing-toolbar mb-4">
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
                             <div class="d-flex align-items-center gap-3 flex-wrap">
-                                <h5 class="fw-bold m-0 text-primary"><i class="fas fa-boxes-stacked me-2"></i>تسكين الشحنات
+                                <h5 class="fw-bold m-0 text-primary"><i class="fas fa-boxes-stacked me-2"></i>تسكين
+                                    الشحنات
                                     <span id="housingSectionUserName" class="text-secondary fs-6 ms-2"></span>
                                 </h5>
                                 <div class="dropdown">
                                     <button id="housingEditDateFilterBtn"
                                         class="btn btn-outline-secondary rounded-pill fw-bold dropdown-toggle rep-date-filter-glow"
-                                        type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                        aria-expanded="false">
                                         <i class="fas fa-calendar-days me-1"></i> تاريخ التحديث
-                                        <span class="badge bg-secondary ms-1"
-                                            id="housingEditDateFilterBadge">0</span>
+                                        <span class="badge bg-secondary ms-1" id="housingEditDateFilterBadge">0</span>
                                     </button>
                                     <div class="dropdown-menu p-2 shadow-lg housing-editdate-menu"
                                         style="min-width: 260px;">
                                         <div class="d-flex gap-2 mb-2">
-                                            <button type="button"
-                                                class="btn btn-sm btn-outline-secondary flex-fill"
+                                            <button type="button" class="btn btn-sm btn-outline-secondary flex-fill"
                                                 onclick="clearHousingEditDateFilters()">مسح</button>
                                             <button type="button" class="btn btn-sm btn-primary flex-fill"
                                                 onclick="selectAllHousingEditDateFilters()">الكل</button>
@@ -841,10 +867,12 @@
                                         <div id="housingEditDateFilterList" class="d-grid gap-1"></div>
                                     </div>
                                 </div>
-                                <button id="housingOpenQrBtn" class="btn btn-outline-primary rounded-pill fw-bold" onclick="openHousingQrScanner()">
+                                <button id="housingOpenQrBtn" class="btn btn-outline-primary rounded-pill fw-bold"
+                                    onclick="openHousingQrScanner()">
                                     <i class="fas fa-qrcode me-1"></i> QR Scanner
                                 </button>
-                                <button id="exportHousingExcelBtn" class="btn btn-outline-success rounded-pill fw-bold" onclick="exportHousingToExcel()">
+                                <button id="exportHousingExcelBtn" class="btn btn-outline-success rounded-pill fw-bold"
+                                    onclick="exportHousingToExcel()">
                                     <i class="fas fa-file-excel me-1"></i> تصدير Excel
                                 </button>
                             </div>
@@ -873,20 +901,23 @@
                                 class="btn btn-outline-warning rounded-pill fw-bold housing-undo-btn"
                                 onclick="undoHousingAction()" disabled title="تراجع (Ctrl+Z)">
                                 <i class="fas fa-undo"></i> تراجع
-                                <span class="badge bg-white text-warning housing-undo-count ms-1" id="housingUndoBadge">0</span>
+                                <span class="badge bg-white text-warning housing-undo-count ms-1"
+                                    id="housingUndoBadge">0</span>
                             </button>
                         </div>
 
                         <!-- Separate Assignment Block -->
-                        <div class="row g-3 align-items-center bg-light border p-3 rounded-4 mb-3 mx-0 shadow-sm border-primary" style="border-left: 4px solid #0d6efd !important;">
+                        <div class="row g-3 align-items-center bg-light border p-3 rounded-4 mb-3 mx-0 shadow-sm border-primary"
+                            style="border-left: 4px solid #0d6efd !important;">
                             <div class="col-12 mb-1">
-                                <h6 class="fw-bold text-primary mb-0"><i class="fas fa-bolt me-1"></i> التعيين والفلترة المتعددة للمناديب</h6>
+                                <h6 class="fw-bold text-primary mb-0"><i class="fas fa-bolt me-1"></i> التعيين والفلترة
+                                    المتعددة للمناديب</h6>
                             </div>
                             <div class="col-md-4">
                                 <div class="dropdown w-100">
                                     <button id="housingRepFilterBtn"
-                                        class="btn btn-outline-primary w-100 fw-bold dropdown-toggle"
-                                        type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        class="btn btn-outline-primary w-100 fw-bold dropdown-toggle" type="button"
+                                        data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                                         <i class="fas fa-user-check me-1"></i> فلتر المندوب
                                         <span class="badge bg-primary text-white ms-1"
                                             id="housingRepFilterBadge">0</span>
@@ -894,8 +925,7 @@
                                     <div class="dropdown-menu p-2 shadow-lg housing-editdate-menu"
                                         style="min-width: 260px;">
                                         <div class="d-flex gap-2 mb-2">
-                                            <button type="button"
-                                                class="btn btn-sm btn-outline-secondary flex-fill"
+                                            <button type="button" class="btn btn-sm btn-outline-secondary flex-fill"
                                                 onclick="clearHousingRepFilters()">مسح</button>
                                             <button type="button" class="btn btn-sm btn-primary flex-fill"
                                                 onclick="selectAllHousingRepFilters()">الكل</button>
@@ -925,16 +955,15 @@
                                     <div class="dropdown flex-grow-1" style="min-width: 180px;">
                                         <button id="housingStatusFilterBtn"
                                             class="btn btn-outline-secondary w-100 rounded-pill fw-bold dropdown-toggle"
-                                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                            aria-expanded="false">
                                             <i class="fas fa-circle-check me-1"></i> الحالة
-                                            <span class="badge bg-secondary ms-1"
-                                                id="housingStatusFilterBadge">0</span>
+                                            <span class="badge bg-secondary ms-1" id="housingStatusFilterBadge">0</span>
                                         </button>
                                         <div class="dropdown-menu p-2 shadow-lg housing-editdate-menu"
                                             style="min-width: 260px;">
                                             <div class="d-flex gap-2 mb-2">
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-secondary flex-fill"
+                                                <button type="button" class="btn btn-sm btn-outline-secondary flex-fill"
                                                     onclick="clearHousingStatusFilters()">مسح</button>
                                                 <button type="button" class="btn btn-sm btn-primary flex-fill"
                                                     onclick="selectAllHousingStatusFilters()">الكل</button>
@@ -945,16 +974,15 @@
                                     <div class="dropdown flex-grow-1" style="min-width: 180px;">
                                         <button id="housingSenderFilterBtn"
                                             class="btn btn-outline-secondary w-100 rounded-pill fw-bold dropdown-toggle"
-                                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                            type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                            aria-expanded="false">
                                             <i class="fas fa-building me-1"></i> الراسل
-                                            <span class="badge bg-secondary ms-1"
-                                                id="housingSenderFilterBadge">0</span>
+                                            <span class="badge bg-secondary ms-1" id="housingSenderFilterBadge">0</span>
                                         </button>
                                         <div class="dropdown-menu p-2 shadow-lg housing-editdate-menu"
                                             style="min-width: 260px;">
                                             <div class="d-flex gap-2 mb-2">
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-secondary flex-fill"
+                                                <button type="button" class="btn btn-sm btn-outline-secondary flex-fill"
                                                     onclick="clearHousingSenderFilters()">مسح</button>
                                                 <button type="button" class="btn btn-sm btn-primary flex-fill"
                                                     onclick="selectAllHousingSenderFilters()">الكل</button>
@@ -988,12 +1016,15 @@
                     </div>
 
                     <!-- Shipments Table -->
-                    <div class="table-responsive shadow-sm border rounded-3" style="max-height: 65vh; overflow-y: auto;">
+                    <div class="table-responsive shadow-sm border rounded-3"
+                        style="max-height: 65vh; overflow-y: auto;">
                         <table class="table table-hover align-middle mb-0 housing-table" style="position: relative;">
-                            <thead class="table-light" style="position: sticky; top: 0; z-index: 5; background-color: #f8f9fa; box-shadow: 0 2px 5px rgba(0,0,0,0.08);">
+                            <thead class="table-light"
+                                style="position: sticky; top: 0; z-index: 5; background-color: #f8f9fa; box-shadow: 0 2px 5px rgba(0,0,0,0.08);">
                                 <tr>
                                     <th style="width: 40px;" class="text-center">
-                                        <input class="form-check-input" type="checkbox" id="housingSelectAll" onclick="toggleAllHousingRows(this)">
+                                        <input class="form-check-input" type="checkbox" id="housingSelectAll"
+                                            onclick="toggleAllHousingRows(this)">
                                     </th>
                                     <th class="text-center">تعيين مندوب</th>
                                     <th>اسم العميل</th>
@@ -1048,7 +1079,8 @@
                                     </th>
                                     <th class="py-1 px-2">
                                         <input id="housingFilterCode" type="text"
-                                            class="form-control form-control-sm rounded-3 text-center" placeholder="🔍 الكود">
+                                            class="form-control form-control-sm rounded-3 text-center"
+                                            placeholder="🔍 الكود">
                                     </th>
                                     <th class="py-1 px-2">
                                         <input id="housingFilterRep" list="dl-housingRep" type="text"
@@ -1064,7 +1096,8 @@
                             </thead>
                             <tbody id="housingShipmentsTable">
                                 <tr>
-                                    <td colspan="10" class="text-center py-4 text-secondary fw-bold">جاري التحميل...</td>
+                                    <td colspan="10" class="text-center py-4 text-secondary fw-bold">جاري التحميل...
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1160,14 +1193,17 @@
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
                         <div>
                             <h6 class="fw-bold text-primary mb-1">QR Scanner</h6>
-                            <p class="text-secondary mb-0">امسح QR بالموبايل ثم ابدأ قراءة أكواد الشحنات لتظهر فورًا داخل الجدول.</p>
+                            <p class="text-secondary mb-0">امسح QR بالموبايل ثم ابدأ قراءة أكواد الشحنات لتظهر فورًا
+                                داخل الجدول.</p>
                         </div>
                         <div class="d-flex flex-wrap gap-2 align-items-center">
-                            <span id="housingScannerConnectionBadge" class="badge bg-warning-subtle text-warning fs-6 px-3 py-2 rounded-pill">
+                            <span id="housingScannerConnectionBadge"
+                                class="badge bg-warning-subtle text-warning fs-6 px-3 py-2 rounded-pill">
                                 <span id="housingScannerStatusDot" class="scanner-status-dot is-waiting ms-2"></span>
                                 <span id="housingScannerConnectionText">بانتظار فتح الجلسة</span>
                             </span>
-                            <button id="housingStopQrBtn" class="btn btn-outline-danger rounded-pill fw-bold px-4" onclick="stopHousingQrScannerSession()" disabled>
+                            <button id="housingStopQrBtn" class="btn btn-outline-danger rounded-pill fw-bold px-4"
+                                onclick="stopHousingQrScannerSession()" disabled>
                                 <i class="fas fa-stop me-1"></i> إيقاف الجلسة
                             </button>
                         </div>
@@ -1175,28 +1211,34 @@
 
                     <div class="row g-4 align-items-center mb-4">
                         <div class="col-lg-5 text-center">
-                            <div id="housingQrCodeBox" class="d-inline-flex justify-content-center align-items-center bg-white rounded-4 p-3 shadow-sm border" style="min-width: 240px; min-height: 240px;"></div>
+                            <div id="housingQrCodeBox"
+                                class="d-inline-flex justify-content-center align-items-center bg-white rounded-4 p-3 shadow-sm border"
+                                style="min-width: 240px; min-height: 240px;"></div>
                         </div>
                         <div class="col-lg-7">
                             <div class="scanner-empty-state rounded-4 p-3 mb-3">
                                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                                     <div class="fw-bold text-dark">رابط الربط الحالي</div>
-                                    <span id="housingScannerSessionLabel" class="badge bg-light text-dark border rounded-pill">لا توجد جلسة</span>
+                                    <span id="housingScannerSessionLabel"
+                                        class="badge bg-light text-dark border rounded-pill">لا توجد جلسة</span>
                                 </div>
                                 <label class="form-label fw-bold small text-secondary mb-2">رابط الشبكة الداخلية</label>
-                                <input id="housingScannerBaseUrl" type="text" class="form-control rounded-4 mb-2" dir="ltr"
-                                    placeholder="http://192.168.1.5:5500">
+                                <input id="housingScannerBaseUrl" type="text" class="form-control rounded-4 mb-2"
+                                    dir="ltr" placeholder="http://192.168.1.5:5500">
                                 <div class="small text-secondary mb-3">
-                                    استخدم عنوان الكمبيوتر داخل نفس شبكة الـ Wi-Fi. إذا كانت الصفحة مفتوحة على `localhost` أو `file://` فلن يفتحها الموبايل.
+                                    استخدم عنوان الكمبيوتر داخل نفس شبكة الـ Wi-Fi. إذا كانت الصفحة مفتوحة على
+                                    `localhost` أو `file://` فلن يفتحها الموبايل.
                                 </div>
                                 <div id="housingScannerLinkBox" class="scanner-link-box rounded-4 p-3 text-muted mb-3">
                                     اضغط على زر QR Scanner لإنشاء QR جديد ورابط مباشر للموبايل.
                                 </div>
                                 <div class="d-flex flex-wrap gap-2">
-                                    <button class="btn btn-outline-primary rounded-pill fw-bold" onclick="copyHousingScannerLink()">
+                                    <button class="btn btn-outline-primary rounded-pill fw-bold"
+                                        onclick="copyHousingScannerLink()">
                                         <i class="fas fa-copy me-1"></i> نسخ الرابط
                                     </button>
-                                    <button class="btn btn-outline-secondary rounded-pill fw-bold" onclick="regenerateHousingQrSession()">
+                                    <button class="btn btn-outline-secondary rounded-pill fw-bold"
+                                        onclick="regenerateHousingQrSession()">
                                         <i class="fas fa-rotate me-1"></i> إنشاء QR جديد
                                     </button>
                                 </div>
@@ -1205,10 +1247,12 @@
                                 <div class="fw-bold text-dark mb-2">إحصائيات سريعة</div>
                                 <div class="d-flex flex-wrap gap-2">
                                     <span class="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
-                                        <i class="fas fa-barcode me-1"></i> الممسوح: <span id="housingScannerCount">0</span>
+                                        <i class="fas fa-barcode me-1"></i> الممسوح: <span
+                                            id="housingScannerCount">0</span>
                                     </span>
                                     <span class="badge bg-success-subtle text-success fs-6 px-3 py-2 rounded-pill">
-                                        <i class="fas fa-circle-check me-1"></i> آخر تحديث: <span id="housingScannerLastUpdate">---</span>
+                                        <i class="fas fa-circle-check me-1"></i> آخر تحديث: <span
+                                            id="housingScannerLastUpdate">---</span>
                                     </span>
                                 </div>
                             </div>
@@ -1217,7 +1261,9 @@
 
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                         <div class="fw-bold text-secondary">النتائج الواردة من الموبايل</div>
-                        <button id="housingScannerClearBtn" class="btn btn-outline-secondary btn-sm rounded-pill fw-bold" onclick="clearHousingScannerResults()" disabled>
+                        <button id="housingScannerClearBtn"
+                            class="btn btn-outline-secondary btn-sm rounded-pill fw-bold"
+                            onclick="clearHousingScannerResults()" disabled>
                             <i class="fas fa-trash-can me-1"></i> مسح الجدول
                         </button>
                     </div>
@@ -1388,10 +1434,10 @@
         function updateFilterDropdowns(filteredData = allShipments) {
             const filters = {
                 date: document.getElementById('filterDate').value,
-                zone: document.getElementById('filterZone').value,
-                rep: document.getElementById('filterRep').value,
-                office: document.getElementById('filterOffice').value,
-                status: document.getElementById('filterStatus').value
+                zone: getAdminSelectedZones(),
+                rep: getAdminSelectedReps(),
+                office: getAdminSelectedOffices(),
+                status: getAdminSelectedStatuses()
             };
 
             const getCounts = (col, currentFilters) => {
@@ -1401,15 +1447,19 @@
                     let match = true;
 
                     if (currentFilters.date && col !== 'الابيديت' && s.الابيديت !== currentFilters.date) match = false;
-                    if (currentFilters.zone && col !== 'الزون' && s.الزون !== currentFilters.zone) match = false;
-                    if (currentFilters.rep && col !== 'المندوب' && s.المندوب !== currentFilters.rep) match = false;
-                    if (currentFilters.office && col !== 'الراسل' && s.الراسل !== currentFilters.office) match = false;
-                    if (currentFilters.status && col !== 'الحالة') {
-                        if (currentFilters.status === 'pending') {
-                            if (!isAdminPendingStatus(s.الحالة)) match = false;
-                        } else if (s.الحالة !== currentFilters.status) {
-                            match = false;
+                    if (currentFilters.zone && currentFilters.zone.length > 0 && col !== 'الزون' && !currentFilters.zone.includes(s.الزون)) match = false;
+                    if (currentFilters.rep && currentFilters.rep.length > 0 && col !== 'المندوب' && !currentFilters.rep.includes(s.المندوب)) match = false;
+                    if (currentFilters.office && currentFilters.office.length > 0 && col !== 'الراسل' && !currentFilters.office.includes(s.الراسل)) match = false;
+                    if (currentFilters.status && currentFilters.status.length > 0 && col !== 'الحالة') {
+                        let finalMatch = false;
+                        for (const st of currentFilters.status) {
+                            if (st === 'pending') {
+                                if (isAdminPendingStatus(s.الحالة)) { finalMatch = true; break; }
+                            } else if (s.الحالة === st) {
+                                finalMatch = true; break;
+                            }
                         }
+                        if (!finalMatch) match = false;
                     }
 
                     if (match && s[col]) counts[s[col]] = (counts[s[col]] || 0) + 1;
@@ -1419,9 +1469,10 @@
             };
 
             fillSelect('filterDate', getCounts('الابيديت', filters), filters.date, true);
-            fillSelect('filterZone', getCounts('الزون', filters), filters.zone);
-            fillSelect('filterRep', getCounts('المندوب', filters), filters.rep);
-            fillSelect('filterOffice', getCounts('الراسل', filters), filters.office);
+            fillMultiSelectZone(getCounts('الزون', filters), filters.zone);
+            fillMultiSelectRep(getCounts('المندوب', filters), filters.rep);
+            fillMultiSelectOffice(getCounts('الراسل', filters), filters.office);
+            fillMultiSelectStatus(getCounts('الحالة', filters), filters.status);
         }
 
         function populateFilters() {
@@ -1478,15 +1529,15 @@
                     .from(CONFIG.TABLES.SHIPMENTS)
                     .delete()
                     .eq('الابيديت', updateVal);
-                
+
                 if (delError) throw delError;
 
                 Swal.fire('نجاح', `تم حذف جميع سجلات (${updateVal}) بنجاح.`, 'success');
-                
+
                 await fetchShipments();
                 populateFilters();
                 refreshDashboard();
-                
+
             } catch (err) {
                 console.error("Delete Error:", err);
                 Swal.fire('خطأ', 'حدث خطأ أثناء محاولة الحذف.', 'error');
@@ -1494,9 +1545,148 @@
             showLoading(false);
         }
 
+        let adminZoneSelections = new Set();
+        function getAdminSelectedZones() { return Array.from(adminZoneSelections); }
+
+        function toggleAdminZoneSelection(val) {
+            val = String(val || '').trim();
+            if (!val) return;
+            if (adminZoneSelections.has(val)) adminZoneSelections.delete(val);
+            else adminZoneSelections.add(val);
+            refreshDashboard();
+        }
+
+        function fillMultiSelectZone(countsMap, selectedArr) {
+            const menu = document.getElementById('filterZoneMenu');
+            const label = document.getElementById('filterZoneLabel');
+            if (!menu || !label) return;
+
+            const keys = Object.keys(countsMap).sort();
+            label.innerText = selectedArr.length > 0 ? `المنطقة (${selectedArr.length})` : 'كل المناطق';
+
+            menu.innerHTML = keys.map(key => {
+                const isSelected = adminZoneSelections.has(key);
+                return `
+                    <div class="dropdown-item p-0">
+                        <label class="d-flex align-items-center gap-2 p-2 w-100 cursor-pointer hover-bg-light">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleAdminZoneSelection('${key.replace(/'/g, "\\'")}')" class="form-check-input">
+                            <span class="flex-grow-1 small fw-bold">${key}</span>
+                            <span class="badge bg-light text-dark border small">${countsMap[key]}</span>
+                        </label>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        let adminRepSelections = new Set();
+        function getAdminSelectedReps() { return Array.from(adminRepSelections); }
+
+        function toggleAdminRepSelection(val) {
+            val = String(val || '').trim();
+            if (!val) return;
+            if (adminRepSelections.has(val)) adminRepSelections.delete(val);
+            else adminRepSelections.add(val);
+            refreshDashboard();
+        }
+
+        function fillMultiSelectRep(countsMap, selectedArr) {
+            const menu = document.getElementById('filterRepMenu');
+            const label = document.getElementById('filterRepLabel');
+            if (!menu || !label) return;
+
+            const keys = Object.keys(countsMap).sort();
+            label.innerText = selectedArr.length > 0 ? `المندوب (${selectedArr.length})` : 'كل المناديب';
+
+            menu.innerHTML = keys.map(key => {
+                const isSelected = adminRepSelections.has(key);
+                return `
+                    <div class="dropdown-item p-0">
+                        <label class="d-flex align-items-center gap-2 p-2 w-100 cursor-pointer hover-bg-light">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleAdminRepSelection('${key.replace(/'/g, "\\'")}')" class="form-check-input">
+                            <span class="flex-grow-1 small fw-bold">${key}</span>
+                            <span class="badge bg-light text-dark border small">${countsMap[key]}</span>
+                        </label>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        let adminOfficeSelections = new Set();
+        function getAdminSelectedOffices() { return Array.from(adminOfficeSelections); }
+
+        function toggleAdminOfficeSelection(val) {
+            val = String(val || '').trim();
+            if (!val) return;
+            if (adminOfficeSelections.has(val)) adminOfficeSelections.delete(val);
+            else adminOfficeSelections.add(val);
+            refreshDashboard();
+        }
+
+        function fillMultiSelectOffice(countsMap, selectedArr) {
+            const menu = document.getElementById('filterOfficeMenu');
+            const label = document.getElementById('filterOfficeLabel');
+            if (!menu || !label) return;
+
+            const keys = Object.keys(countsMap).sort();
+            label.innerText = selectedArr.length > 0 ? `الراسل (${selectedArr.length})` : 'كل المكاتب';
+
+            menu.innerHTML = keys.map(key => {
+                const isSelected = adminOfficeSelections.has(key);
+                return `
+                    <div class="dropdown-item p-0">
+                        <label class="d-flex align-items-center gap-2 p-2 w-100 cursor-pointer hover-bg-light">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleAdminOfficeSelection('${key.replace(/'/g, "\\'")}')" class="form-check-input">
+                            <span class="flex-grow-1 small fw-bold">${key}</span>
+                            <span class="badge bg-light text-dark border small">${countsMap[key]}</span>
+                        </label>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        let adminStatusSelections = new Set();
+        function getAdminSelectedStatuses() { return Array.from(adminStatusSelections); }
+        function toggleAdminStatusSelection(val) {
+            val = String(val || '').trim();
+            if (!val) return;
+            if (adminStatusSelections.has(val)) adminStatusSelections.delete(val);
+            else adminStatusSelections.add(val);
+            refreshDashboard();
+        }
+        function fillMultiSelectStatus(countsMap, selectedArr) {
+            const menu = document.getElementById('filterStatusMenu');
+            const label = document.getElementById('filterStatusLabel');
+            if (!menu || !label) return;
+            const hardcoded = [
+                { val: 'تم التسليم', label: 'تم التسليم' },
+                { val: 'تأجيل', label: 'مؤجل' },
+                { val: 'رفض', label: 'مرفوض' },
+                { val: 'pending', label: 'قيد التوصيل' }
+            ];
+            label.innerText = selectedArr.length > 0 ? `الحالة (${selectedArr.length})` : 'كل الحالات';
+            menu.innerHTML = hardcoded.map(h => {
+                const isSelected = adminStatusSelections.has(h.val);
+                let count = 0;
+                if (h.val === 'pending') {
+                    Object.keys(countsMap).forEach(k => { if (isAdminPendingStatus(k)) count += countsMap[k]; });
+                } else {
+                    count = countsMap[h.val] || 0;
+                }
+                return `
+                    <div class="dropdown-item p-0">
+                        <label class="d-flex align-items-center gap-2 p-2 w-100 cursor-pointer hover-bg-light">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleAdminStatusSelection('${h.val}')" class="form-check-input">
+                            <span class="flex-grow-1 small fw-bold">${h.label}</span>
+                            <span class="badge bg-light text-dark border small">${count}</span>
+                        </label>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function populateHousingFilters() {
             const getUnique = (key) => [...new Set(allShipments.map(s => s[key]).filter(Boolean))].sort();
-            
+
             const fillDatalist = (id, values) => {
                 const dl = document.getElementById(id);
                 if (dl) dl.innerHTML = values.map(v => `<option value="${escapeAttr(v)}"></option>`).join('');
@@ -1543,21 +1733,27 @@
         function refreshDashboard() {
             const filters = {
                 date: document.getElementById('filterDate').value,
-                zone: document.getElementById('filterZone').value,
-                rep: document.getElementById('filterRep').value,
-                office: document.getElementById('filterOffice').value,
-                status: document.getElementById('filterStatus').value
+                zone: getAdminSelectedZones(),
+                rep: getAdminSelectedReps(),
+                office: getAdminSelectedOffices(),
+                status: getAdminSelectedStatuses()
             };
 
             const filtered = allShipments.filter(s => {
                 if (filters.date && s.الابيديت !== filters.date) return false;
-                if (filters.zone && s.الزون !== filters.zone) return false;
-                if (filters.rep && s.المندوب !== filters.rep) return false;
-                if (filters.office && s.الراسل !== filters.office) return false;
-                if (filters.status) {
-                    if (filters.status === 'pending') {
-                        if (!isAdminPendingStatus(s.الحالة)) return false;
-                    } else if (s.الحالة !== filters.status) return false;
+                if (filters.zone && filters.zone.length > 0 && !filters.zone.includes(s.الزون)) return false;
+                if (filters.rep && filters.rep.length > 0 && !filters.rep.includes(s.المندوب)) return false;
+                if (filters.office && filters.office.length > 0 && !filters.office.includes(s.الراسل)) return false;
+                if (filters.status && filters.status.length > 0) {
+                    let finalMatch = false;
+                    for (const st of filters.status) {
+                        if (st === 'pending') {
+                            if (isAdminPendingStatus(s.الحالة)) { finalMatch = true; break; }
+                        } else if (s.الحالة === st) {
+                            finalMatch = true; break;
+                        }
+                    }
+                    if (!finalMatch) return false;
                 }
                 return true;
             });
@@ -2017,6 +2213,7 @@
 
             const exportData = data.map(s => ({
                 'اسم العميل': s.اسم_العميل || '',
+                'العنوان': s.العنوان || '',
                 'الزون': s.الزون || '',
                 'المنتج': s.المنتج || '',
                 'الهاتف': s.الهاتف || '',
@@ -2026,8 +2223,8 @@
                 'كود الشحنة': s.كود_الشحنة || '',
                 'المندوب': s.المندوب || '',
                 'الحالة': s.الحالة || '',
-                'تاريخ التحديث': s.الابيديت || '',
-                'ملاحظات': s.ملاحظات || ''
+                'سبب الحالة': s.سبب_الحالة || '',
+                'السعر بعد التعديل': s.السعر_بعد_التعديل || ''
             }));
 
             const ws = XLSX.utils.json_to_sheet(exportData);
@@ -2165,7 +2362,7 @@
             gain.connect(audioContext.destination);
             oscillator.start();
             oscillator.stop(audioContext.currentTime + 0.22);
-            oscillator.onended = () => audioContext.close().catch(() => {});
+            oscillator.onended = () => audioContext.close().catch(() => { });
         }
 
         function getHousingDisplayShipmentData(shipment) {
@@ -2493,7 +2690,7 @@
                 const currentData = getHousingDisplayShipmentData(s);
                 const matchUnassigned = !housingUnassignedOnly || !currentData.المندوب;
                 if (!matchUnassigned) return false;
-                
+
                 if (housingDuplicatesOnly) {
                     const phoneValue = String(currentData.الهاتف || '').trim();
                     const altPhoneValue = String(currentData.هاتف_بديل || '').trim();
@@ -2930,7 +3127,7 @@
                 const uniquePhones = new Set();
                 if (p1) uniquePhones.add(p1);
                 if (p2) uniquePhones.add(p2);
-                
+
                 uniquePhones.forEach(phone => {
                     phoneCounts.set(phone, (phoneCounts.get(phone) || 0) + 1);
                 });
@@ -2950,7 +3147,7 @@
                 const phoneHighlight = phoneMatch || phoneCustomerMatch;
                 const altPhoneHighlight = phoneMatch || altPhoneCustomerMatch;
                 const customerName = String(currentData.اسم_العميل || '').trim();
-                
+
                 let hasAnotherShipment = false;
                 if (phoneValue && (phoneCounts.get(phoneValue) || 0) > 1) hasAnotherShipment = true;
                 if (altPhoneValue && (phoneCounts.get(altPhoneValue) || 0) > 1) hasAnotherShipment = true;
@@ -2963,9 +3160,9 @@
                         </td>
                         <td><input type="hidden" id="housing-adjusted-${s.id}" value="${escapeAttr(currentData.السعر_بعد_التعديل || '')}">
                             ${newRepName
-                                ? `<button class="btn btn-sm btn-warning rounded-pill px-2 fw-bold housing-assign-btn" style="font-size:0.78rem;max-width:110px;" title="تعيين: ${escapeAttr(newRepName)}" onclick="assignNewRepToShipment('${s.id}', this)">${escapeHtml(newRepName)}</button>`
-                                : `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 fw-bold" style="font-size:0.78rem;" disabled title="اكتب اسم المندوب أولاً"><i class='fas fa-user-plus'></i></button>`
-                            }
+                        ? `<button class="btn btn-sm btn-warning rounded-pill px-2 fw-bold housing-assign-btn" style="font-size:0.78rem;max-width:110px;" title="تعيين: ${escapeAttr(newRepName)}" onclick="assignNewRepToShipment('${s.id}', this)">${escapeHtml(newRepName)}</button>`
+                        : `<button class="btn btn-sm btn-outline-secondary rounded-pill px-2 fw-bold" style="font-size:0.78rem;" disabled title="اكتب اسم المندوب أولاً"><i class='fas fa-user-plus'></i></button>`
+                    }
                             ${hasAnotherShipment ? `<div class="housing-duplicate-badge">له شحنة أخرى</div>` : ''}
                         </td>
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-name-${s.id}" value="${escapeAttr(currentData.اسم_العميل || '')}" oninput="syncHousingDraft('${s.id}')"></td>

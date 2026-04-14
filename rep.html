@@ -109,12 +109,20 @@
                     </button>
                     <div id="filterDateMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
                 </div>
-                <select id="filterZone" onchange="renderShipments()" class="flex-1 glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center text-ellipsis">
-                    <option value="">الزون</option>
-                </select>
-                <select id="filterSender" onchange="renderShipments()" class="flex-1 glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center text-ellipsis">
-                    <option value="">الراسل</option>
-                </select>
+                <div class="relative flex-1">
+                    <button id="filterZoneBtn" onclick="document.getElementById('filterZoneMenu').classList.toggle('hidden');" class="w-full glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all duration-300">
+                        <span id="filterZoneLabel" class="truncate">الزون</span>
+                        <i class="fas fa-chevron-down text-[10px] opacity-60"></i>
+                    </button>
+                    <div id="filterZoneMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
+                </div>
+                <div class="relative flex-1">
+                    <button id="filterSenderBtn" onclick="document.getElementById('filterSenderMenu').classList.toggle('hidden');" class="w-full glass px-2 py-2 rounded-xl text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all duration-300">
+                        <span id="filterSenderLabel" class="truncate">الراسل</span>
+                        <i class="fas fa-chevron-down text-[10px] opacity-60"></i>
+                    </button>
+                    <div id="filterSenderMenu" class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
+                </div>
             </div>
 
             <div id="statusFilters" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
@@ -160,10 +168,6 @@
             <i class="fas fa-box text-xl"></i>
             <span class="text-[10px] font-bold">شحناتي</span>
         </button>
-        <a href="map.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors">
-            <i class="fas fa-map-marked-alt text-xl"></i>
-            <span class="text-[10px] font-bold">الخريطة</span>
-        </a>
         <a href="wallet.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors">
             <i class="fas fa-wallet text-xl"></i>
             <span class="text-[10px] font-bold">المحفظة</span>
@@ -195,10 +199,20 @@
         const REP_UNREAD_SESSION_KEY = 'repUnreadShipments:';
         let notificationAudioContext = null;
         let dateFilterSelections = new Set();
+        let zoneFilterSelections = new Set();
+        let senderFilterSelections = new Set();
         let dateFilterGlowTimeout = null;
 
         function getSelectedDates() {
             return Array.from(dateFilterSelections);
+        }
+
+        function getSelectedZones() {
+            return Array.from(zoneFilterSelections);
+        }
+
+        function getSelectedSenders() {
+            return Array.from(senderFilterSelections);
         }
 
         function toggleDateSelection(value) {
@@ -211,6 +225,28 @@
             saveDateFilter(getSelectedDates()[0] || '');
             saveRepUiState();
             stopDateFilterGlow();
+            renderShipments();
+        }
+
+        function toggleZoneSelection(value) {
+            const normalizedValue = String(value || '').trim();
+            if (!normalizedValue) return;
+
+            if (zoneFilterSelections.has(normalizedValue)) zoneFilterSelections.delete(normalizedValue);
+            else zoneFilterSelections.add(normalizedValue);
+            
+            saveRepUiState();
+            renderShipments();
+        }
+
+        function toggleSenderSelection(value) {
+            const normalizedValue = String(value || '').trim();
+            if (!normalizedValue) return;
+
+            if (senderFilterSelections.has(normalizedValue)) senderFilterSelections.delete(normalizedValue);
+            else senderFilterSelections.add(normalizedValue);
+            
+            saveRepUiState();
             renderShipments();
         }
 
@@ -238,8 +274,8 @@
                 localStorage.setItem(REP_UI_STATE_KEY, JSON.stringify({
                     search: document.getElementById('searchInput')?.value || '',
                     date: getSelectedDates(),
-                    zone: document.getElementById('filterZone')?.value || '',
-                    sender: document.getElementById('filterSender')?.value || '',
+                    zone: getSelectedZones(),
+                    sender: getSelectedSenders(),
                     currentFilter
                 }));
             } catch (error) {}
@@ -262,13 +298,23 @@
 
             if (!state) return;
 
+            if (state && state.zone) {
+                const zones = Array.isArray(state.zone) ? state.zone : [state.zone];
+                zones.map(z => String(z || '').trim()).filter(Boolean).forEach(z => zoneFilterSelections.add(z));
+            }
+
+            if (!state) return;
+
+            if (state && state.sender) {
+                const senders = Array.isArray(state.sender) ? state.sender : [state.sender];
+                senders.map(s => String(s || '').trim()).filter(Boolean).forEach(s => senderFilterSelections.add(s));
+            }
+
+            if (!state) return;
+
             const searchInput = document.getElementById('searchInput');
-            const filterZone = document.getElementById('filterZone');
-            const filterSender = document.getElementById('filterSender');
 
             if (searchInput) searchInput.value = state.search || '';
-            if (filterZone) filterZone.value = state.zone || '';
-            if (filterSender) filterSender.value = state.sender || '';
             currentFilter = state.currentFilter || currentFilter;
             syncFilterButtons(currentFilter);
         }
@@ -580,8 +626,8 @@
                 .filter(Boolean))].sort();
 
             fillDateDropdown(dates);
-            fillSelect('filterZone', zones, 'الزون', currentZone);
-            fillSelect('filterSender', senders, 'الراسل', currentSender);
+            fillZoneDropdown(zones);
+            fillSenderDropdown(senders);
         }
 
         function fillDateDropdown(items) {
@@ -601,12 +647,110 @@
                 return;
             }
 
+            // Calculate counts for each date
+            const dateCounts = {};
+            allShipments.forEach(s => {
+                const d = getShipmentUpdateValue(s);
+                if (d) dateCounts[d] = (dateCounts[d] || 0) + 1;
+            });
+
             menu.innerHTML = items.map(item => {
                 const isSelected = dateFilterSelections.has(item);
+                const count = dateCounts[item] || 0;
                 return `
-                    <label class="flex items-center gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors" onclick="event.stopPropagation()">
-                        <input type="checkbox" ${isSelected ? 'checked' : ''} onchange='toggleDateSelection(${JSON.stringify(item)})' class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
-                        <span class="text-slate-700 dark:text-slate-200 font-bold">${item}</span>
+                    <label class="flex items-center justify-between gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors" onclick="event.stopPropagation()">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange='toggleDateSelection(${JSON.stringify(item)})' class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
+                            <span class="text-slate-700 dark:text-slate-200 font-bold">${item}</span>
+                        </div>
+                        <span class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full font-black">${count}</span>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function fillZoneDropdown(items) {
+            const menu = document.getElementById('filterZoneMenu');
+            const label = document.getElementById('filterZoneLabel');
+            if (!menu || !label) return;
+            
+            const selectedArr = getSelectedZones();
+            label.innerText = selectedArr.length > 0 ? `الزون (${selectedArr.length})` : 'الزون';
+
+            if (!items || items.length === 0) {
+                menu.innerHTML = `
+                    <div class="px-2 py-3 text-center text-[11px] font-bold text-slate-500 dark:text-slate-300">
+                        لا يوجد مناطق متاحة
+                    </div>
+                `;
+                return;
+            }
+
+            // Calculate counts for each zone based on narrowed data
+            const selectedDates = getSelectedDates();
+            const narrowedData = allShipments.filter(s => selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s)));
+            const zoneCounts = {};
+            narrowedData.forEach(s => {
+                const z = s.الزون;
+                if (z) zoneCounts[z] = (zoneCounts[z] || 0) + 1;
+            });
+
+            menu.innerHTML = items.map(item => {
+                const isSelected = zoneFilterSelections.has(item);
+                const count = zoneCounts[item] || 0;
+                return `
+                    <label class="flex items-center justify-between gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors" onclick="event.stopPropagation()">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange='toggleZoneSelection(${JSON.stringify(item)})' class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
+                            <span class="text-slate-700 dark:text-slate-200 font-bold">${item}</span>
+                        </div>
+                        <span class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full font-black">${count}</span>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function fillSenderDropdown(items) {
+            const menu = document.getElementById('filterSenderMenu');
+            const label = document.getElementById('filterSenderLabel');
+            if (!menu || !label) return;
+            
+            const selectedArr = getSelectedSenders();
+            label.innerText = selectedArr.length > 0 ? `الراسل (${selectedArr.length})` : 'الراسل';
+
+            if (!items || items.length === 0) {
+                menu.innerHTML = `
+                    <div class="px-2 py-3 text-center text-[11px] font-bold text-slate-500 dark:text-slate-300">
+                        لا يوجد رواسل متاحة
+                    </div>
+                `;
+                return;
+            }
+
+            // Calculate counts for each sender based on narrowed data
+            const selectedDates = getSelectedDates();
+            const selectedZones = getSelectedZones();
+            const narrowedData = allShipments.filter(s => {
+                const matchDate = selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s));
+                const matchZone = selectedZones.length === 0 || selectedZones.includes(s.الزون);
+                return matchDate && matchZone;
+            });
+            const senderCounts = {};
+            narrowedData.forEach(s => {
+                const sn = s.الراسل;
+                if (sn) senderCounts[sn] = (senderCounts[sn] || 0) + 1;
+            });
+
+            menu.innerHTML = items.map(item => {
+                const isSelected = senderFilterSelections.has(item);
+                const count = senderCounts[item] || 0;
+                return `
+                    <label class="flex items-center justify-between gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors" onclick="event.stopPropagation()">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange='toggleSenderSelection(${JSON.stringify(item)})' class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
+                            <span class="text-slate-700 dark:text-slate-200 font-bold">${item}</span>
+                        </div>
+                        <span class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full font-black">${count}</span>
                     </label>
                 `;
             }).join('');
@@ -709,8 +853,8 @@
             const list = document.getElementById('shipmentsList');
             const search = document.getElementById('searchInput').value.toLowerCase();
             const selectedDates = getSelectedDates();
-            const zoneF = document.getElementById('filterZone').value;
-            const senderF = document.getElementById('filterSender').value;
+            const selectedZones = getSelectedZones();
+            const selectedSenders = getSelectedSenders();
 
             if (selectedDates.length === 0) {
                 list.innerHTML = `
@@ -737,8 +881,8 @@
                 else matchFilter = s.الحالة === currentFilter;
 
                 const matchDate = selectedDates.includes(getShipmentUpdateValue(s));
-                const matchZone = !zoneF || s.الزون === zoneF;
-                const matchSender = !senderF || s.الراسل === senderF;
+                const matchZone = selectedZones.length === 0 || selectedZones.includes(s.الزون);
+                const matchSender = selectedSenders.length === 0 || selectedSenders.includes(s.الراسل);
 
                 return matchSearch && matchFilter && matchDate && matchZone && matchSender;
             });
@@ -821,25 +965,43 @@
         }
 
         function renderShipmentContactActions(shipment) {
-            const primary = hasShipmentPhone(shipment, 'الهاتف') ? `
-                <button onclick="sendWhatsApp('${shipment.id}', 'الهاتف')" class="w-11 h-11 rounded-full bg-[#25D366] text-white shadow-sm active:scale-95 transition-all flex items-center justify-center" title="واتساب الهاتف" aria-label="واتساب الهاتف">
-                    <i class="fab fa-whatsapp text-lg"></i>
-                </button>
-                <a href="tel:${getShipmentPhone(shipment, 'الهاتف')}" class="w-11 h-11 rounded-full bg-white border border-slate-200 text-indigo-600 shadow-sm active:scale-95 transition-all flex items-center justify-center" title="اتصال الهاتف" aria-label="اتصال الهاتف">
-                    <i class="fas fa-phone-alt"></i>
-                </a>
-            ` : '';
+            const renderField = (key, label) => {
+                const val = getShipmentPhone(shipment, key);
+                if (!val) return '';
+                
+                // Clean for WhatsApp (digits/plus only)
+                const cleaned = val.split('//')[0].replace(/[^\d+]/g, '').trim();
+                const isNumeric = /^\+?\d+$/.test(cleaned) && cleaned.length >= 7;
 
-            const secondary = hasShipmentPhone(shipment, 'هاتف_بديل') ? `
-                <button onclick="sendWhatsApp('${shipment.id}', 'هاتف_بديل')" class="w-11 h-11 rounded-full bg-[#25D366] text-white shadow-sm active:scale-95 transition-all flex items-center justify-center" title="واتساب الهاتف البديل" aria-label="واتساب الهاتف البديل">
-                    <i class="fab fa-whatsapp text-lg"></i>
-                </button>
-                <a href="tel:${getShipmentPhone(shipment, 'هاتف_بديل')}" class="w-11 h-11 rounded-full bg-white border border-slate-200 text-indigo-600 shadow-sm active:scale-95 transition-all flex items-center justify-center" title="اتصال الهاتف البديل" aria-label="اتصال الهاتف البديل">
-                    <i class="fas fa-phone-alt"></i>
-                </a>
-            ` : '';
+                if (!isNumeric) {
+                    return `
+                        <div class="flex-1 flex items-center justify-center p-2 bg-slate-100 rounded-xl border border-slate-200">
+                            <span class="text-[10px] font-black text-slate-600 text-center leading-tight">${val}</span>
+                        </div>
+                    `;
+                }
 
-            return `${primary}${secondary}`;
+                return `
+                    <div class="flex gap-2">
+                        <button onclick="sendWhatsApp('${shipment.id}', '${key}')" class="w-11 h-11 rounded-full bg-[#25D366] text-white shadow-sm active:scale-95 transition-all flex items-center justify-center" title="واتساب ${label}">
+                            <i class="fab fa-whatsapp text-lg"></i>
+                        </button>
+                        <a href="tel:${cleaned}" class="w-11 h-11 rounded-full bg-white border border-slate-200 text-indigo-600 shadow-sm active:scale-95 transition-all flex items-center justify-center" title="اتصال ${label}">
+                            <i class="fas fa-phone-alt"></i>
+                        </a>
+                    </div>
+                `;
+            };
+
+            const primary = renderField('الهاتف', 'الهاتف');
+            const secondary = renderField('هاتف_بديل', 'الهاتف البديل');
+
+            return `
+                <div class="flex flex-wrap items-center justify-center gap-3 w-full">
+                    ${primary}
+                    ${secondary}
+                </div>
+            `;
         }
 
         function formatShipmentCopyText(shipment) {
@@ -1087,8 +1249,6 @@
             saveRepUiState();
         }
 
-        document.getElementById('filterZone').addEventListener('change', populateDropdowns);
-        document.getElementById('filterSender').addEventListener('change', populateDropdowns);
         document.getElementById('searchInput').addEventListener('input', () => {
             renderShipments();
             saveRepUiState();
@@ -1100,8 +1260,19 @@
             }
             const dateBtn = document.getElementById('filterDateBtn');
             const dateMenu = document.getElementById('filterDateMenu');
+            const zoneBtn = document.getElementById('filterZoneBtn');
+            const zoneMenu = document.getElementById('filterZoneMenu');
+            const senderBtn = document.getElementById('filterSenderBtn');
+            const senderMenu = document.getElementById('filterSenderMenu');
+
             if (dateBtn && dateMenu && !dateBtn.contains(event.target) && !dateMenu.contains(event.target)) {
                 dateMenu.classList.add('hidden');
+            }
+            if (zoneBtn && zoneMenu && !zoneBtn.contains(event.target) && !zoneMenu.contains(event.target)) {
+                zoneMenu.classList.add('hidden');
+            }
+            if (senderBtn && senderMenu && !senderBtn.contains(event.target) && !senderMenu.contains(event.target)) {
+                senderMenu.classList.add('hidden');
             }
         });
         window.addEventListener('resize', closeShipmentMenu);

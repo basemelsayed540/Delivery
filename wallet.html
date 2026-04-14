@@ -58,14 +58,19 @@
             <div>
                 <label class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">تصفية حسب تاريخ التحديث</label>
                 <div class="relative">
-                    <select id="walletDateFilter" onchange="updateWalletStats()" class="rep-date-filter-glow w-full glass px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-white outline-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 appearance-none focus:border-indigo-500">
-                        <option value="">اختر تاريخ التحديث</option>
-                    </select>
-                    <i class="fas fa-chevron-down absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    <button id="filterDateBtn" onclick="document.getElementById('filterDateMenu').classList.toggle('hidden');" class="rep-date-filter-glow w-full glass px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-white outline-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center flex items-center justify-between transition-all duration-300">
+                        <span id="filterDateLabel" class="truncate">اختر تاريخ التحديث</span>
+                        <i class="fas fa-chevron-down text-xs opacity-60"></i>
+                    </button>
+                    <div id="filterDateMenu" class="hidden absolute top-full right-0 mt-1 w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
                 </div>
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 text-center">
+                    <p class="text-xs font-black text-indigo-600 dark:text-indigo-400 mb-2">إجمالي الشحنات</p>
+                    <h4 id="walletTotalCount" class="text-3xl font-black text-slate-800 dark:text-white">0</h4>
+                </div>
                 <div class="bg-emerald-50 dark:bg-emerald-900/30 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 text-center">
                     <p class="text-xs font-black text-emerald-600 dark:text-emerald-400 mb-2">تم</p>
                     <h4 id="walletDeliveredCount" class="text-3xl font-black text-slate-800 dark:text-white">0</h4>
@@ -91,7 +96,7 @@
                     <p class="text-xs font-black text-emerald-600 dark:text-emerald-400 mb-2">إجمالي التحصيل</p>
                     <h4 id="walletTotalMoney" class="text-2xl font-black text-slate-800 dark:text-white truncate">0 <span class="text-xs">ج.م</span></h4>
                 </div>
-                <div class="bg-teal-50 dark:bg-teal-900/30 p-4 rounded-2xl border border-teal-100 dark:border-teal-800/50 text-center">
+                <div class="bg-teal-50 dark:bg-teal-900/30 p-4 rounded-2xl border border-teal-100 dark:border-teal-800/50 text-center col-span-2 md:col-span-1">
                     <p class="text-xs font-black text-teal-600 dark:text-teal-400 mb-2">عمولة المندوب</p>
                     <h4 id="walletCommissionTotal" class="text-2xl font-black text-slate-800 dark:text-white truncate">0 <span class="text-xs">ج.م</span></h4>
                 </div>
@@ -140,26 +145,52 @@
 
         let allShipments = [];
         const WALLET_UI_STATE_KEY = 'walletUiState';
+        let dateFilterSelections = new Set();
+
+        function getSelectedDates() {
+            return Array.from(dateFilterSelections);
+        }
+
+        function toggleDateSelection(value) {
+            const normalizedValue = String(value || '').trim();
+            if (!normalizedValue) return;
+
+            if (dateFilterSelections.has(normalizedValue)) dateFilterSelections.delete(normalizedValue);
+            else dateFilterSelections.add(normalizedValue);
+            
+            saveDateFilter(getSelectedDates()[0] || '');
+            saveWalletUiState();
+            updateWalletStats();
+        }
 
         function saveWalletUiState() {
-            try {
-                localStorage.setItem(WALLET_UI_STATE_KEY, JSON.stringify({
-                    date: document.getElementById('walletDateFilter')?.value || ''
-                }));
-            } catch (error) {}
+            localStorage.setItem(WALLET_UI_STATE_KEY, JSON.stringify({
+                date: getSelectedDates()
+            }));
+        }
+
+        function saveDateFilter(date) {
+            localStorage.setItem('global-selected-abydet', date);
+        }
+
+        function getSavedDateFilter() {
+            return localStorage.getItem('global-selected-abydet') || '';
         }
 
         function restoreWalletUiState() {
             let state = null;
             try {
-                state = JSON.parse(localStorage.getItem(WALLET_UI_STATE_KEY) || 'null');
-            } catch (error) {
-                state = null;
-            }
+                const raw = localStorage.getItem(WALLET_UI_STATE_KEY);
+                state = JSON.parse(raw || 'null');
+            } catch (error) {}
 
-            const select = document.getElementById('walletDateFilter');
-            if (select && state?.date) {
-                select.value = state.date;
+            if (state && state.date) {
+                const dates = Array.isArray(state.date) ? state.date : [state.date];
+                dates.map(d => String(d || '').trim()).filter(Boolean).forEach(d => dateFilterSelections.add(d));
+            } else {
+                const legacyDate = getSavedDateFilter();
+                const normalizedLegacyDate = String(legacyDate || '').trim();
+                if (normalizedLegacyDate) dateFilterSelections.add(normalizedLegacyDate);
             }
         }
 
@@ -183,16 +214,55 @@
 
         function populateDates() {
             const dates = [...new Set(allShipments.map(s => s.الابيديت).filter(Boolean))].sort().reverse();
-            const select = document.getElementById('walletDateFilter');
             
-            const currentValue = select.value;
-            select.innerHTML = '<option value="">اختر تاريخ التحديث</option>';
+            const datesSet = new Set(dates);
+            const normalizedSelectedDates = getSelectedDates().filter(date => datesSet.has(date));
             
-            dates.forEach(d => {
-                select.innerHTML += `<option value="${d}">${d}</option>`;
+            if (normalizedSelectedDates.length !== dateFilterSelections.size) {
+                dateFilterSelections = new Set(normalizedSelectedDates);
+                saveDateFilter(normalizedSelectedDates[0] || '');
+                saveWalletUiState();
+            }
+
+            fillDateDropdown(dates);
+        }
+
+        function fillDateDropdown(items) {
+            const menu = document.getElementById('filterDateMenu');
+            const label = document.getElementById('filterDateLabel');
+            if (!menu || !label) return;
+            
+            const selectedArr = getSelectedDates();
+            label.innerText = selectedArr.length > 0 ? `تاريخ التحديث (${selectedArr.length})` : 'اختر تاريخ التحديث';
+
+            if (!items || items.length === 0) {
+                menu.innerHTML = `
+                    <div class="px-2 py-3 text-center text-[11px] font-bold text-slate-500 dark:text-slate-300">
+                        لا يوجد ابيديت متاح
+                    </div>
+                `;
+                return;
+            }
+
+            const dateCounts = {};
+            allShipments.forEach(s => {
+                const d = s.الابيديت;
+                if (d) dateCounts[d] = (dateCounts[d] || 0) + 1;
             });
-            const savedDate = getSavedDateFilter();
-            select.value = currentValue || (savedDate && dates.includes(savedDate) ? savedDate : '');
+
+            menu.innerHTML = items.map(item => {
+                const isSelected = dateFilterSelections.has(item);
+                const count = dateCounts[item] || 0;
+                return `
+                    <label class="flex items-center justify-between gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors" onclick="event.stopPropagation()">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange='toggleDateSelection(${JSON.stringify(item)})' class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
+                            <span class="text-slate-700 dark:text-slate-200 font-bold">${item}</span>
+                        </div>
+                        <span class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full font-black">${count}</span>
+                    </label>
+                `;
+            }).join('');
         }
 
         let currentWalletBalance = 0;
@@ -264,11 +334,12 @@
         }
 
         async function updateWalletStats() {
-            const selectedDate = document.getElementById('walletDateFilter').value;
-            currentSettlementDate = selectedDate;
-            if (!selectedDate) {
+            const selectedDates = getSelectedDates();
+            currentSettlementDate = selectedDates.join(', ');
+            if (selectedDates.length === 0) {
                 pendingOrderIds = [];
                 currentWalletBalance = 0;
+                document.getElementById('walletTotalCount').innerText = 0;
                 document.getElementById('walletDeliveredCount').innerText = 0;
                 document.getElementById('walletPriceEditedCount').innerText = 0;
                 document.getElementById('walletRejectedCount').innerText = 0;
@@ -278,11 +349,12 @@
                 document.getElementById('walletTotalMoney').innerHTML = `0 <span class="text-xs">ج.م</span>`;
                 document.getElementById('walletCommissionTotal').innerHTML = `0 <span class="text-xs text-slate-800 dark:text-white">ج.م</span>`;
                 document.getElementById('requestSettlementBtn').disabled = true;
+                populateDates();
                 saveWalletUiState();
                 return;
             }
 
-            let filteredByDate = allShipments.filter(s => s.الابيديت === selectedDate);
+            let filteredByDate = allShipments.filter(s => selectedDates.includes(s.الابيديت));
 
             const deliveredCount = filteredByDate.filter(s => isDeliveredShipment(s)).length;
             const priceEditedCount = filteredByDate.filter(s => isPriceEditShipment(s)).length;
@@ -301,6 +373,7 @@
                 .reduce((acc, shipment) => acc + getShipmentCommission(shipment), 0);
             const shippingAmount = shippingShipments.reduce((acc, shipment) => acc + getShipmentAmount(shipment), 0);
 
+            document.getElementById('walletTotalCount').innerText = filteredByDate.length;
             document.getElementById('walletDeliveredCount').innerText = deliveredCount;
             document.getElementById('walletPriceEditedCount').innerText = priceEditedCount;
             document.getElementById('walletRejectedCount').innerText = rejectedCount;
@@ -310,6 +383,7 @@
             document.getElementById('walletTotalMoney').innerHTML = `${currentWalletBalance} <span class="text-xs">ج.م</span>`;
             document.getElementById('walletCommissionTotal').innerHTML = `${currentCommissionTotal} <span class="text-xs text-slate-800 dark:text-white">ج.م</span>`;
             document.getElementById('requestSettlementBtn').disabled = (currentWalletBalance <= 0 || pendingOrderIds.length === 0);
+            populateDates();
             saveWalletUiState();
         }
 
@@ -373,9 +447,12 @@
             }
         }
 
-        document.getElementById('walletDateFilter').addEventListener('change', (event) => {
-            saveDateFilter(event.target.value);
-            saveWalletUiState();
+        document.addEventListener('click', (event) => {
+            const dateBtn = document.getElementById('filterDateBtn');
+            const dateMenu = document.getElementById('filterDateMenu');
+            if (dateBtn && dateMenu && !dateBtn.contains(event.target) && !dateMenu.contains(event.target)) {
+                dateMenu.classList.add('hidden');
+            }
         });
 
         function toggleTheme() {
