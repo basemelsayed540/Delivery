@@ -844,6 +844,32 @@
                             </div>
                         </div>
                     </div>
+                    <!-- أداء المناديب المتقدمين -->
+                    <div class="col-12 admin-only">
+                        <div class="order-card p-4 shadow-sm">
+                            <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-user-check me-2"></i>تحليلات أداء
+                                المندوب المتقدم</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle m-0">
+                                    <thead>
+                                        <tr>
+                                            <th>المندوب المتقدم</th>
+                                            <th class="text-center">إجمالي</th>
+                                            <th>تم</th>
+                                            <th>مؤجل</th>
+                                            <th>مرفوض</th>
+                                            <th>قيد</th>
+                                            <th>تحصيل</th>
+                                            <th>نسبة النجاح</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="subRepsStatsTable">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1955,6 +1981,7 @@
             updateFilterDropdowns(allShipments);
             updateStats(filtered);
             renderRepsStats(filtered);
+            renderSubRepsStats(filtered);
             renderUsers();
             renderRecentShipments(filtered.slice(0, 50));
             renderHousingSection();
@@ -2005,6 +2032,76 @@
                 if (pct >= 75) progressColor = 'bg-success';
                 else if (pct >= 40) progressColor = 'bg-warning';
                 else progressColor = 'bg-danger';
+
+                return `
+                    <tr>
+                        <td class="fw-bold">${name}</td>
+                        <td class="text-center"><span class="badge bg-light text-dark border">${stats.total}</span></td>
+                        <td class="text-success fw-bold">${stats.delivered}</td>
+                        <td class="text-warning fw-bold">${stats.postponed}</td>
+                        <td class="text-danger fw-bold">${stats.rejected}</td>
+                        <td class="text-info fw-bold">${stats.pending}</td>
+                        <td class="fw-bold">${Math.round(stats.collected)} ج</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height:8px; background-color: #e9ecef;">
+                                    <div class="progress-bar ${progressColor}" style="width:${pct}%"></div>
+                                </div>
+                                <small class="fw-bold">${pct}%</small>
+                            </div>
+                        </td>
+                    </tr>
+                    `;
+            }).join('');
+        }
+
+        function renderSubRepsStats(data) {
+            const subRepsData = {};
+            const zeroStats = () => ({ total: 0, delivered: 0, postponed: 0, rejected: 0, pending: 0, collected: 0 });
+
+            // تضمين حسابات المندوب المتقدم حتى لو لا توجد لها شحنات ضمن الفلاتر الحالية.
+            allUsers
+                .filter(u => u.role === 'sub-rep' && u.approved)
+                .map(u => String(u.username || u.full_name || u.phone || '').trim())
+                .filter(Boolean)
+                .forEach(name => {
+                    if (!subRepsData[name]) subRepsData[name] = zeroStats();
+                });
+
+            data.forEach(s => {
+                const name = String(s.المندوب_الفرعي || '').trim();
+                // "مخزن" ليست حساب مندوب متقدم، لذلك نستبعدها من تحليلات الأداء.
+                if (!name || name === 'مخزن') return;
+                if (!subRepsData[name]) subRepsData[name] = zeroStats();
+
+                subRepsData[name].total++;
+                const st = getAdminDisplayStatus(s);
+                if (isAdminDeliveredShipment(s)) {
+                    subRepsData[name].delivered++;
+                    subRepsData[name].collected += parseFloat(s.السعر_بعد_التعديل || s.المبلغ || 0);
+                } else if (st === 'مؤجل') subRepsData[name].postponed++;
+                else if (st === 'رفض') subRepsData[name].rejected++;
+                else subRepsData[name].pending++;
+            });
+
+            const tableBody = document.getElementById('subRepsStatsTable');
+            if (!tableBody) return;
+
+            const sorted = Object.entries(subRepsData).sort((a, b) => {
+                const totalDiff = b[1].total - a[1].total;
+                if (totalDiff !== 0) return totalDiff;
+                return a[0].localeCompare(b[0], 'ar');
+            });
+            if (!sorted.length) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-3 text-secondary fw-bold">لا توجد بيانات للمندوب المتقدم ضمن الفلاتر الحالية.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = sorted.map(([name, stats]) => {
+                const pct = stats.total > 0 ? (stats.delivered / stats.total * 100).toFixed(1) : 0;
+                let progressColor = 'bg-danger';
+                if (pct >= 75) progressColor = 'bg-success';
+                else if (pct >= 40) progressColor = 'bg-warning';
 
                 return `
                     <tr>
