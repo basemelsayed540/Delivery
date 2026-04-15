@@ -476,7 +476,7 @@
 
             function isPriceEditShipment(shipment) {
                 const normalizedStatus = String(shipment?.الحالة || '').trim();
-                const normalizedReason = String(shipment?.سبب_الحالة || '').trim();
+                const normalizedReason = String(shipment?.['سبب الحالة'] || shipment?.سبب_الحالة || '').trim();
                 return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر';
             }
 
@@ -502,7 +502,7 @@
 
             function getShipmentDisplayReason(shipment) {
                 if (isPriceEditShipment(shipment)) return 'تعديل سعر';
-                return shipment.سبب_الحالة || '---';
+                return shipment['سبب الحالة'] || shipment.سبب_الحالة || '---';
             }
 
 
@@ -735,8 +735,10 @@
             // Real-time updates
             supabaseClient
                 .channel('follower_shipments')
-                .on('postgres_changes', { event: '*', schema: 'public', table: CONFIG.TABLES.SHIPMENTS }, payload => {
-                    fetchShipments(); // Refresh all on any change
+                .on('postgres_changes', { event: '*', schema: 'public', table: CONFIG.TABLES.SHIPMENTS }, async (payload) => {
+                    await fetchShipments();
+                    renderTable();
+                    console.log('تم مزامنة الجدول الفرعي');
                 })
                 .subscribe();
 
