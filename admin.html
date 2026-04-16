@@ -134,6 +134,19 @@
             will-change: box-shadow, border-color, transform;
         }
 
+        @keyframes pulse-highlight {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .pulse-highlight {
+            animation: pulse-highlight 1.5s infinite;
+            background-color: rgba(239, 68, 68, 0.1) !important;
+            border-color: rgba(239, 68, 68, 0.5) !important;
+            color: #ef4444 !important;
+        }
+
         .badge-status {
             padding: 6px 12px;
             border-radius: 8px;
@@ -711,7 +724,7 @@
                 <button class="btn text-start sidebar-tab active-tab text-primary shadow-sm fw-bold"
                     onclick="showAdminSection('stats', this)"><i class="fas fa-chart-line me-2"></i> احصائية
                     المندوب</button>
-                <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
+                <button id="usersSidebarBtn" class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
                     onclick="showAdminSection('users', this)"><i class="fas fa-users-cog me-2"></i> إدارة
                     الحسابات</button>
                 <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
@@ -750,7 +763,7 @@
                     <button class="btn text-start sidebar-tab active-tab text-primary shadow-sm fw-bold"
                         onclick="showAdminSection('stats', this, true)"><i class="fas fa-chart-line me-2"></i> احصائية
                         المندوب</button>
-                    <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
+                    <button id="usersMobileBtn" class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
                         onclick="showAdminSection('users', this, true)"><i class="fas fa-users-cog me-2"></i> إدارة
                         الحسابات</button>
                     <button class="btn text-start sidebar-tab text-secondary fw-bold admin-only"
@@ -999,6 +1012,7 @@
                                                     <th>الاسم</th>
                                                     <th>الرقم</th>
                                                     <th>النوع</th>
+                                                    <th>الحالة</th>
                                                     <th class="text-center">الإجراءات</th>
                                                 </tr>
                                             </thead>
@@ -1377,7 +1391,6 @@
                                             class="form-control form-control-sm rounded-3" placeholder="🔍 المندوب">
                                         <datalist id="dl-housingRep"></datalist>
                                     </th>
-
                                     <th class="py-1 px-2">
                                         <input id="housingFilterStatus" list="dl-housingStatus" type="text"
                                             class="form-control form-control-sm rounded-3" placeholder="🔍 الحالة">
@@ -2361,20 +2374,50 @@
         }
 
         function getUsersTableRow(user) {
+            const approvalBadge = user.approved 
+                ? '<span class="badge bg-success-subtle text-success pointer-cursor" title="حساب مفعل"><i class="fas fa-check-circle me-1"></i>مفعل</span>' 
+                : '<span class="badge bg-danger-subtle text-danger pointer-cursor" title="حساب معلق"><i class="fas fa-clock me-1"></i>معلق</span>';
+            const approvalAction = user.approved
+                ? `<button onclick="toggleUserApproval('${user.id}', false)" class="btn-action bg-danger-subtle text-danger" title="تعطيل الحساب"><i class="fas fa-user-slash"></i></button>`
+                : `<button onclick="toggleUserApproval('${user.id}', true)" class="btn-action bg-success-subtle text-success" title="تفعيل الحساب"><i class="fas fa-user-check"></i></button>`;
+
             return `
                 <tr>
                     <td><strong>${user.username || user.full_name || '---'}</strong></td>
                     <td>${user.phone || '---'}</td>
                     <td><span class="badge bg-light text-dark">${getUserRoleLabel(user.role)}</span></td>
+                    <td>${approvalBadge}</td>
                     <td class="text-center">
                         <div class="d-flex justify-content-center gap-2">
+                            ${approvalAction}
                             <button onclick="changeUserRole('${user.id}', '${user.username || user.full_name || ''}', '${user.role}')" class="btn-action bg-warning-subtle text-warning" title="تغيير الصلاحية"><i class="fas fa-shield-halved"></i></button>
-                            <button onclick="editUser(${JSON.stringify(user).replace(/"/g, '&quot;')})" class="btn-action bg-primary-subtle text-primary"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteUser('${user.id}', '${user.username}')" class="btn-action bg-danger-subtle text-danger"><i class="fas fa-trash"></i></button>
+                            <button onclick="editUser(${JSON.stringify(user).replace(/"/g, '&quot;')})" class="btn-action bg-primary-subtle text-primary" title="تعديل"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteUser('${user.id}', '${user.username}')" class="btn-action bg-danger-subtle text-danger" title="حذف"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>
             `;
+        }
+
+        async function toggleUserApproval(userId, newStatus) {
+            showLoading(true);
+            const { error } = await supabaseClient
+                .from(CONFIG.TABLES.USERS)
+                .update({ approved: newStatus })
+                .eq('id', userId);
+            
+            if (error) {
+                Swal.fire('خطأ', 'فشل في تحديث حالة الحساب: ' + error.message, 'error');
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    title: newStatus ? 'تم تفعيل الحساب' : 'تم تعطيل الحساب',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                await init();
+            }
+            showLoading(false);
         }
 
         function renderUsersSection(tableId, countId, users, emptyMessage) {
@@ -2400,6 +2443,16 @@
             renderUsersSection('followerUsersTable', 'followerUsersCount', followerUsers, 'لا توجد حسابات داخل قسم المتابعة.');
             renderUsersSection('housingUsersTable', 'housingUsersCount', housingUsers, 'لا توجد حسابات داخل قسم تسكين الشحنات.');
             renderUsersSection('otherUsersTable', 'otherUsersCount', otherUsers, 'لا توجد حسابات أخرى حالياً.');
+
+            // Pulse effect for pending approvals (only for users without a parent_id, as sub-reps manage their own)
+            const hasPending = allUsers.some(u => !u.approved && !u.parent_id);
+            const usersBtns = [document.getElementById('usersSidebarBtn'), document.getElementById('usersMobileBtn')];
+            usersBtns.forEach(btn => {
+                if (btn) {
+                    if (hasPending) btn.classList.add('pulse-highlight');
+                    else btn.classList.remove('pulse-highlight');
+                }
+            });
         }
 
         function renderRecentShipments(data) {
@@ -3612,6 +3665,7 @@
                 المبلغ: document.getElementById(`housing-amount-${id}`)?.value ?? '',
                 السعر_بعد_التعديل: document.getElementById(`housing-adjusted-${id}`)?.value || null,
                 المندوب: document.getElementById(`housing-rep-${id}`)?.value || null,
+                الفرع: document.getElementById(`housing-branch-${id}`)?.value.trim() || '',
                 المندوب_الفرعي: document.getElementById(`housing-subrep-${id}`)?.value || null,
                 الحالة: document.getElementById(`housing-status-${id}`)?.value.trim() || '',
                 ['سبب الحالة']: document.getElementById(`housing-reason-${id}`)?.value.trim() || ''
@@ -3619,13 +3673,24 @@
         }
 
         function getHousingChangedFields(baseShipment, payload) {
-            const fields = ['اسم_العميل', 'الهاتف', 'هاتف_بديل', 'الزون', 'الراسل', 'المبلغ', 'السعر_بعد_التعديل', 'المندوب', 'المندوب_الفرعي', 'الحالة', 'سبب الحالة'];
+            const fields = ['اسم_العميل', 'الهاتف', 'هاتف_بديل', 'الزون', 'الراسل', 'المبلغ', 'السعر_بعد_التعديل', 'المندوب', 'الفرع', 'المندوب_الفرعي', 'الحالة', 'سبب الحالة'];
             return fields.filter(key => normalizeHousingComparableValue(key, payload[key]) !== normalizeHousingComparableValue(key, baseShipment?.[key]));
         }
 
         function syncHousingDraft(id) {
             const shipment = allShipments.find(s => String(s.id) === String(id));
             if (!shipment) return;
+
+            const repVal = document.getElementById(`housing-rep-${id}`)?.value;
+            if (repVal) {
+                const selUser = allUsers.find(u => (u.username === repVal || u.full_name === repVal));
+                if (selUser && (selUser.role === 'sub-rep' || selUser.role === 'subrep')) {
+                    const branchInp = document.getElementById(`housing-branch-${id}`);
+                    if (branchInp && !branchInp.value.trim()) {
+                        branchInp.value = 'السيد';
+                    }
+                }
+            }
 
             const payload = getHousingRowPayload(id);
             const changedFields = getHousingChangedFields(shipment, payload);
@@ -4183,8 +4248,8 @@
                     }
                             ${hasAnotherShipment ? `<div class="housing-duplicate-badge">له شحنة أخرى</div>` : ''}
                         </td>
-                        <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-name-${s.id}" value="${escapeAttr(currentData.اسم_العميل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
-                        <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-zone-${s.id}" value="${escapeAttr(currentData.الزون || '')}" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td><input type="text" class="form-control form-control-sm rounded-3 bg-light" id="housing-name-${s.id}" value="${escapeAttr(currentData.اسم_العميل || '')}" readonly></td>
+                        <td><input type="text" class="form-control form-control-sm rounded-3 bg-light" id="housing-zone-${s.id}" value="${escapeAttr(currentData.الزون || '')}" readonly></td>
                         <td class="text-center small fw-bold text-secondary">${escapeHtml(currentData.المنتج || currentData.الصنف || '---')}</td>
                         <td><input type="text" class="form-control form-control-sm rounded-3 ${phoneChanged ? 'changed-cell' : ''} ${phoneHighlight ? 'phone-match-text' : ''}" id="housing-phone-${s.id}" value="${escapeAttr(currentData.الهاتف || '')}" oninput="syncHousingDraft('${s.id}')"></td>
                         <td><input type="text" class="form-control form-control-sm rounded-3 ${altPhoneHighlight ? 'phone-match-text' : ''}" id="housing-alt-${s.id}" value="${escapeAttr(currentData.هاتف_بديل || '')}" oninput="syncHousingDraft('${s.id}')"></td>
@@ -4343,9 +4408,17 @@
                 didOpen: () => { Swal.showLoading(); }
             });
 
+            const selectedUser = allUsers.find(u => (u.username === rep || u.full_name === rep));
+            const isSubRep = selectedUser && (selectedUser.role === 'sub-rep' || selectedUser.role === 'subrep');
+            
+            const updatePayload = { المندوب: rep };
+            if (isSubRep) {
+                updatePayload.الفرع = 'السيد';
+            }
+
             const { error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
-                .update({ المندوب: rep })
+                .update(updatePayload)
                 .in('id', targetIds);
 
             if (error) {
@@ -4355,7 +4428,14 @@
                 return;
             }
 
-            allShipments = allShipments.map(s => targetIds.includes(s.id) ? { ...s, المندوب: rep } : s);
+            allShipments = allShipments.map(s => {
+                if (targetIds.includes(s.id)) {
+                    const up = { ...s, المندوب: rep };
+                    if (isSubRep) up.الفرع = 'السيد';
+                    return up;
+                }
+                return s;
+            });
 
             await Swal.fire({
                 icon: 'success',

@@ -33,6 +33,19 @@
             animation: repDateFilterGlow 1.1s ease-in-out infinite;
             will-change: box-shadow, border-color, transform;
         }
+
+        @keyframes pulse-highlight-red {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(225, 29, 72, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+        }
+
+        .pulse-highlight-red {
+            animation: pulse-highlight-red 1.5s infinite;
+            background-color: rgba(225, 29, 72, 0.1) !important;
+            border-color: rgba(225, 29, 72, 0.3) !important;
+            color: #e11d48 !important;
+        }
     </style>
 </head>
 
@@ -67,7 +80,7 @@
                     <div>
                         <label class="block text-[11px] font-bold text-slate-500 mb-1 px-1">تعيين كـ (جماعي)</label>
                         <div class="relative">
-                            <select id="assignSubRep"
+                            <select id="assignSubRep" onchange="toggleAssignPulse(this.value)"
                                 class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl text-sm font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
                                 <option value="">اختر مندوباً</option>
                             </select>
@@ -77,10 +90,10 @@
                     </div>
                     <!-- Assign button -->
                     <div class="flex flex-col gap-2">
-                        <button onclick="assignSubRepToVisible()"
-                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-xl text-sm font-bold shadow-md flex items-center justify-center gap-2 transition-all active:scale-95">
+                        <button onclick="assignSubRepToVisible()" id="btnAssignSubRep"
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-xl text-sm font-bold shadow-md flex items-center justify-center gap-2 transition-all duration-300 active:scale-95">
                             <i class="fas fa-bolt"></i>
-                            <span>تطبيق التعيين</span>
+                            <span id="btnAssignBtnText">تطبيق التعيين (0)</span>
                         </button>
                         <button onclick="transferToWarehouse()"
                             class="w-full bg-slate-700 hover:bg-slate-800 text-white py-3 px-4 rounded-xl text-sm font-bold shadow-md flex items-center justify-center gap-2 transition-all active:scale-95 border border-slate-600">
@@ -99,6 +112,19 @@
                             <span>رفع شحنات (إكسل)</span>
                         </button>
                         <input type="file" id="excelFileInput" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(this)">
+                        
+                        <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                            <button onclick="toggleAllSubRepRowsGlobal()"
+                                class="w-full bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white py-3 px-2 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1 transition-all active:scale-95 border border-slate-300 dark:border-slate-600">
+                                <i class="fas fa-check-square"></i>
+                                <span id="globalSelectAllText">تحديد الكل</span>
+                            </button>
+                            <button onclick="deleteSelectedShipmentsSubRep()"
+                                class="w-full bg-rose-50 dark:bg-rose-900/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 py-3 px-2 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1 transition-all active:scale-95 border border-rose-200 dark:border-rose-900/50">
+                                <i class="fas fa-trash-alt text-rose-500"></i>
+                                <span id="globalDeleteBtnText">مسح المحدد (0)</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -115,6 +141,11 @@
                         class="w-full flex items-center gap-3 px-5 py-4 text-slate-600 dark:text-slate-400 rounded-[1.25rem] font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all active:scale-95">
                         <i class="fas fa-users-cog w-5 text-slate-400"></i>
                         <span>إدارة المناديب</span>
+                    </button>
+                    <button onclick="switchView('auditLogs')" id="nav-auditLogs"
+                        class="w-full flex items-center gap-3 px-5 py-4 text-slate-600 dark:text-slate-400 rounded-[1.25rem] font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all active:scale-95">
+                        <i class="fas fa-history w-5 text-slate-400"></i>
+                        <span>مراجعة التعديلات</span>
                     </button>
                 </nav>
             </div>
@@ -164,49 +195,67 @@
             </div>
 
             <!-- Filters Row (moved below statistics) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-                <div class="glass p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                    <label class="block text-[11px] font-bold text-slate-500 mb-1 px-1">تاريخ التحديث</label>
-                    <div class="relative">
-                        <select id="filterUpdate" onchange="filterData()"
-                            class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl text-sm font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
-                            <option value="">كل التواريخ</option>
-                        </select>
-                        <i
-                            class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm"></i>
+            <div class="glass p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm mb-4">
+                <div class="grid grid-cols-2 md:flex md:flex-row gap-3">
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">تاريخ التحديث</label>
+                        <div class="relative w-full">
+                            <select id="filterUpdate" onchange="filterData()"
+                                class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-[11px] font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
+                                <option value="">كل التواريخ</option>
+                            </select>
+                            <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                        </div>
                     </div>
-                </div>
-                <div class="glass p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                    <label class="block text-[11px] font-bold text-slate-500 mb-1 px-1">الحالة</label>
-                    <div class="relative">
-                        <select id="filterStatus" onchange="filterData()"
-                            class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl text-sm font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
-                            <option value="">كافة الحالات</option>
-                        </select>
-                        <i
-                            class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">الحالة</label>
+                        <div class="relative w-full">
+                            <select id="filterStatus" onchange="filterData()"
+                                class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-[11px] font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
+                                <option value="">كافة الحالات</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                        </div>
                     </div>
-                </div>
-                <div class="glass p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                    <label class="block text-[11px] font-bold text-slate-500 mb-1 px-1">الزون (المنطقة)</label>
-                    <div class="relative">
-                        <select id="filterZone" onchange="filterData()"
-                            class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl text-sm font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
-                            <option value="">كافة المناطق</option>
-                        </select>
-                        <i
-                            class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">المندوب الفرعي</label>
+                        <div class="relative w-full">
+                            <select id="filterSubRepName" onchange="filterData()"
+                                class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-[11px] font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
+                                <option value="">كافة المناديب</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                        </div>
                     </div>
-                </div>
-                <div class="glass p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                    <label class="block text-[11px] font-bold text-slate-500 mb-1 px-1">الراسل (المكتب)</label>
-                    <div class="relative">
-                        <select id="filterSender" onchange="filterData()"
-                            class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl text-sm font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
-                            <option value="">كافة المكاتب</option>
-                        </select>
-                        <i
-                            class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">المندوب (الرئيسي)</label>
+                        <div class="relative w-full">
+                            <select id="filterRep" onchange="filterData()"
+                                class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-[11px] font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
+                                <option value="">كافة المناديب</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">الزون (المنطقة)</label>
+                        <div class="relative w-full">
+                            <select id="filterZone" onchange="filterData()"
+                                class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-[11px] font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
+                                <option value="">كافة المناطق</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 col-span-2 md:col-span-1">
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">الراسل (المكتب)</label>
+                        <div class="relative w-full">
+                            <select id="filterSender" onchange="filterData()"
+                                class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-[11px] font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
+                                <option value="">كافة المكاتب</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -256,6 +305,7 @@
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap">الزون</th>
                                 <th class="p-2 text-[11px] font-black max-w-[80px] truncate">المنتج</th>
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap">الراسل</th>
+                                <th class="p-2 text-[11px] font-black whitespace-nowrap">الفرع</th>
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap">المندوب الفرعي</th>
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap text-center">الحالة</th>
                                 <th class="p-2 text-[11px] font-black min-w-[100px]">السبب</th>
@@ -337,6 +387,46 @@
             </div>
         </main>
 
+        <main id="auditLogsView" class="max-w-7xl mx-auto px-4 pb-12 hidden">
+            <div class="glass p-6 rounded-[2rem]">
+                <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                    <h2 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-3">
+                        <i class="fas fa-history text-indigo-600 text-2xl"></i> مسودة مراجعة التعديلات
+                    </h2>
+                    <div class="w-full sm:w-auto">
+                        <label class="text-xs font-bold text-slate-500 block mb-1">فلتر تاريخ التحديث</label>
+                        <select id="auditLogDateFilter" onchange="renderAuditLogs()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white px-2 py-2 rounded-xl outline-none font-bold text-sm shadow-sm focus:border-indigo-500 pr-8">
+                            <option value="">كل التواريخ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-[1.5rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-right" dir="rtl">
+                            <thead>
+                                <tr class="bg-indigo-50 dark:bg-slate-800/60 text-indigo-800 dark:text-indigo-300 border-b border-indigo-100 dark:border-indigo-900/30">
+                                    <th class="p-3 font-bold text-slate-600 dark:text-slate-400 text-xs text-center border-l dark:border-slate-800/50">تاريخ التحديث</th>
+                                    <th class="p-3 font-bold text-slate-600 dark:text-slate-400 text-xs text-center border-l dark:border-slate-800/50">العملية</th>
+                                    <th class="p-3 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap">كود الشحنة</th>
+                                    <th class="p-3 font-bold text-[11px] uppercase tracking-wider min-w-[120px]">اسم العميل</th>
+                                    <th class="p-3 font-bold text-[11px] uppercase tracking-wider">الزون</th>
+                                    <th class="p-3 font-bold text-[11px] uppercase tracking-wider">الهاتف</th>
+                                    <th class="p-3 font-bold text-[11px] uppercase tracking-wider">هاتف بديل</th>
+                                    <th class="p-3 font-bold text-[11px] uppercase tracking-wider">المبلغ</th>
+                                    <th class="p-3 font-bold text-[11px] uppercase tracking-wider">الحالة</th>
+                                    <th class="p-3 font-bold text-[11px] uppercase tracking-wider">المندوب الفرعي</th>
+                                    <th class="p-3 font-bold text-[11px] uppercase tracking-wider">الفرع</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditLogsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/50">
+                                <tr><td colspan="10" class="text-center p-8 text-slate-500 font-bold">لا يوجد بيانات للعرض</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
         <div id="shipmentMenu"
             class="hidden fixed z-50 min-w-[220px] rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
             <button onclick="copyShipmentDataFromMenu()"
@@ -371,9 +461,11 @@
                     localStorage.setItem(FOLLOWER_UI_STATE_KEY, JSON.stringify({
                         search: document.getElementById('searchInput')?.value || '',
                         status: document.getElementById('filterStatus')?.value || '',
+                        subrep: document.getElementById('filterSubRepName')?.value || '',
                         zone: document.getElementById('filterZone')?.value || '',
                         sender: document.getElementById('filterSender')?.value || '',
                         update: document.getElementById('filterUpdate')?.value || '',
+                        rep: document.getElementById('filterRep')?.value || '',
                         currentPage
                     }));
                 } catch (error) { }
@@ -391,12 +483,14 @@
 
                 const searchInput = document.getElementById('searchInput');
                 const filterStatus = document.getElementById('filterStatus');
+                const filterSubRepName = document.getElementById('filterSubRepName');
                 const filterZone = document.getElementById('filterZone');
                 const filterSender = document.getElementById('filterSender');
                 const filterUpdate = document.getElementById('filterUpdate');
 
                 if (searchInput) searchInput.value = state.search || '';
                 if (filterStatus) filterStatus.value = state.status || '';
+                if (filterSubRepName) filterSubRepName.value = state.subrep || '';
                 if (filterZone) filterZone.value = state.zone || '';
                 if (filterSender) filterSender.value = state.sender || '';
                 if (filterUpdate) filterUpdate.value = state.update || '';
@@ -461,22 +555,53 @@
                 const currentSender = document.getElementById('filterSender').value;
                 const currentUpdate = document.getElementById('filterUpdate').value;
                 const currentStatus = document.getElementById('filterStatus')?.value || '';
+                const currentSubRep = document.getElementById('filterSubRepName')?.value || '';
+                const currentRep = document.getElementById('filterRep')?.value || '';
 
-                const zonesData = allShipments.filter(s => (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate) && (!currentStatus || getShipmentDisplayStatus(s) === currentStatus));
+                const commonCondition = s => (!currentStatus || getShipmentDisplayStatus(s) === currentStatus) && 
+                                             (!currentSubRep || (String(s.المندوب_الفرعي || '').trim() || 'بدون مندوب') === currentSubRep) &&
+                                             (!currentRep || String(s.المندوب || '').trim() === currentRep);
+
+                const zonesData = allShipments.filter(s => (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate) && commonCondition(s));
                 const zones = [...new Set(zonesData.map(s => s.الزون).filter(Boolean))].sort();
 
-                const sendersData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentUpdate || s.الابيديت === currentUpdate) && (!currentStatus || getShipmentDisplayStatus(s) === currentStatus));
+                const sendersData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentUpdate || s.الابيديت === currentUpdate) && commonCondition(s));
                 const senders = [...new Set(sendersData.map(s => s.الراسل).filter(Boolean))].sort();
 
-                const updatesData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentStatus || getShipmentDisplayStatus(s) === currentStatus));
+                const updatesData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && commonCondition(s));
                 const updates = [...new Set(updatesData.map(s => s.الابيديت).filter(Boolean))].sort().reverse();
 
-                const statusesData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate));
+                const statusesData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate) && 
+                                                            (!currentSubRep || (String(s.المندوب_الفرعي || '').trim() || 'بدون مندوب') === currentSubRep) &&
+                                                            (!currentRep || String(s.المندوب || '').trim() === currentRep));
                 const statuses = [...new Set(statusesData.map(s => getShipmentDisplayStatus(s)).filter(Boolean))].sort();
+
+                const subrepsData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate) && 
+                                                            (!currentStatus || getShipmentDisplayStatus(s) === currentStatus) &&
+                                                            (!currentRep || String(s.المندوب || '').trim() === currentRep));
+                const subreps = [...new Set(subrepsData.map(s => String(s.المندوب_الفرعي || '').trim() || 'بدون مندوب'))].sort();
+
+                const repsData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate) && 
+                                                            (!currentStatus || getShipmentDisplayStatus(s) === currentStatus) &&
+                                                            (!currentSubRep || (String(s.المندوب_الفرعي || '').trim() || 'بدون مندوب') === currentSubRep));
+                const reps = [...new Set(repsData.map(s => String(s.المندوب || '').trim()).filter(Boolean))].sort();
 
                 fillSelect('filterStatus', statuses);
                 fillSelect('filterZone', zones);
                 fillSelect('filterSender', senders);
+
+                const filterSubRepSelect = document.getElementById('filterSubRepName');
+                if (filterSubRepSelect) {
+                    filterSubRepSelect.innerHTML = '<option value="">كافة المناديب</option>';
+                    subreps.forEach(val => {
+                        filterSubRepSelect.innerHTML += `<option value="${val}">${val}</option>`;
+                    });
+                    if (subreps.includes(currentSubRep)) {
+                        filterSubRepSelect.value = currentSubRep;
+                    }
+                }
+
+                fillSelect('filterRep', reps);
 
                 const updateSelect = document.getElementById('filterUpdate');
                 updateSelect.innerHTML = '<option value="" class="text-slate-800 bg-white">كل التواريخ</option>';
@@ -778,8 +903,13 @@
                     try {
                         const data = new Uint8Array(e.target.result);
                         const workbook = XLSX.read(data, { type: 'array' });
-                        const firstSheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[firstSheetName];
+                        const targetSheetName = workbook.SheetNames.find(name => name.toLowerCase() === 'data');
+                        if (!targetSheetName) {
+                            Swal.fire('تنبيه هام', 'يجب أن يحتوي ملف الإكسل المرفوع على ورقة عمل (Sheet) باسم "data" لضمان صحة البيانات', 'warning');
+                            input.value = '';
+                            return;
+                        }
+                        const worksheet = workbook.Sheets[targetSheetName];
                         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
                         if (jsonData.length === 0) {
@@ -790,23 +920,42 @@
                         // Get today's date for 'الابيديت'
                         const today = new Date().toISOString().split('T')[0];
 
-                        // Map Excel headers to DB columns
-                        const shipmentsToUpload = jsonData.map(row => ({
-                            'الراسل': row['الراسل'] || '',
-                            'اسم_العميل': row['اسم_العميل'] || '',
-                            'الهاتف': row['الهاتف'] || '',
-                            'هاتف_بديل': row['هاتف_بديل'] || '',
-                            'العنوان': row['العنوان'] || '',
-                            'المبلغ': row['المبلغ'] || 0,
-                            'السعر_بعد_التعديل': row['السعر_بعد_التعديل'] || row['المبلغ'] || 0,
-                            'عمولة المندوب': row['عمولة المندوب'] || 0,
-                            'الحالة': row['الحالة'] || '',
-                            'سبب_الحالة': row['سبب الحالة'] || '',
-                            'المندوب_الفرعي': row['المندوب الفرعي'] || '',
-                            'order_id': row['كود الشحنة'] || '',
-                            'المندوب': `PRIVATE:${user.username}`, // Private flag
-                            'الابيديت': today
-                        }));
+                        // Helper function to extract value regardless of column order, exact spacing, or underscores
+                        const getVal = (row, ...possibleKeys) => {
+                            for (const key of Object.keys(row)) {
+                                const cleanKey = key.trim().replace(/_/g, ' ');
+                                for (const pk of possibleKeys) {
+                                    if (cleanKey === pk.trim().replace(/_/g, ' ')) {
+                                        return row[key] !== undefined && row[key] !== null ? row[key] : '';
+                                    }
+                                }
+                            }
+                            return '';
+                        };
+
+                        // Map Excel headers to DB columns matching standard names (Order independent)
+                        const shipmentsToUpload = jsonData.map(row => {
+                            const amount = getVal(row, 'المبلغ', 'مبلغ', 'السعر');
+                            return {
+                                'الراسل': getVal(row, 'الراسل', 'الشركه', 'الشركة'),
+                                'اسم_العميل': getVal(row, 'اسم العميل', 'اسم_العميل', 'العميل'),
+                                'الهاتف': String(getVal(row, 'الهاتف', 'رقم الهاتف', 'موبايل')),
+                                'هاتف_بديل': String(getVal(row, 'هاتف بديل', 'هاتف_بديل', 'رقم بديل')),
+                                'العنوان': getVal(row, 'العنوان', 'العنوان بالكامل'),
+                                'المبلغ': amount || 0,
+                                'السعر_بعد_التعديل': getVal(row, 'السعر بعد التعديل', 'السعر_بعد_التعديل') || amount || 0,
+                                'عمولة المندوب': getVal(row, 'عمولة المندوب', 'عمولة_المندوب') || 0,
+                                'الحالة': getVal(row, 'الحالة', 'حالة', 'حالة الشحنة'),
+                                'سبب الحالة': getVal(row, 'سبب الحالة', 'سبب_الحالة', 'السبب'),
+                                'المندوب_الفرعي': getVal(row, 'المندوب الفرعي', 'المندوب_الفرعي'),
+                                'order_id': String(getVal(row, 'كود الشحنة', 'الكود', 'كود', 'order id', 'order_id')),
+                                'المندوب': `PRIVATE:${user.username}`, // Private flag
+                                'الفرع': String(getVal(row, 'الفرع', 'الفرع') || ''),
+                                'الابيديت': String(getVal(row, 'الابيديت', 'تاريخ التحديث', 'التاريخ')) || today
+                            };
+                        });
+                        
+                        shipmentsToUpload.forEach(s => saveAuditLog('تم رفع ملف اكسل', s));
 
                         Swal.fire({
                             title: 'جاري رفع الشحنات...',
@@ -817,7 +966,7 @@
 
                         const { error } = await supabaseClient
                             .from(CONFIG.TABLES.SHIPMENTS)
-                            .insert(shipmentsToUpload);
+                            .upsert(shipmentsToUpload, { onConflict: 'order_id' });
 
                         if (error) throw error;
 
@@ -900,6 +1049,7 @@
                 globalStatFilter = '';
                 if (document.getElementById('searchInput')) document.getElementById('searchInput').value = '';
                 if (document.getElementById('filterStatus')) document.getElementById('filterStatus').value = '';
+                if (document.getElementById('filterSubRepName')) document.getElementById('filterSubRepName').value = '';
                 if (document.getElementById('filterZone')) document.getElementById('filterZone').value = '';
                 if (document.getElementById('filterSender')) document.getElementById('filterSender').value = '';
                 if (document.getElementById('filterUpdate')) document.getElementById('filterUpdate').value = '';
@@ -952,47 +1102,38 @@
 
                     container.innerHTML = `
                     <button onclick="resetAllFilters()" class="${cardStyle} bg-indigo-600 text-white border-none shadow-md hover:bg-indigo-700">
-                        <i class="fas fa-layer-group text-white/70 text-base mb-1.5"></i>
                         <span class="text-[10px] font-bold text-white/80">الكل</span>
                         <span class="text-base font-black text-white">${allShipments.length}</span>
                     </button>
                     <button onclick="toggleStatFilter('بدون مندوب')" class="${cardStyle} bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm ${getActiveClass('بدون مندوب')}">
-                        <i class="fas fa-user-slash text-slate-400 dark:text-slate-500 text-base mb-1.5"></i>
                         <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">بدون مندوب</span>
                         <span class="text-base font-black text-slate-700 dark:text-slate-200">${noDelegate}</span>
                     </button>
                     <button onclick="toggleStatFilter('مخزن')" class="${cardStyle} bg-white dark:bg-slate-900 border-amber-200 dark:border-amber-900/40 shadow-sm ${getActiveClass('مخزن')}">
-                        <i class="fas fa-warehouse text-amber-500 text-base mb-1.5"></i>
                         <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">المخزن</span>
                         <span class="text-base font-black text-amber-600 dark:text-amber-500">${warehouseCount}</span>
                     </button>
                     <button onclick="toggleStatFilter('تم التوصيل')" class="${cardStyle} bg-white dark:bg-slate-900 border-emerald-200 dark:border-emerald-900/40 shadow-sm ${getActiveClass('تم التوصيل')}">
-                        <i class="fas fa-check-circle text-emerald-500 text-base mb-1.5"></i>
                         <span class="text-[10px] font-bold text-slate-500">تم التوصيل</span>
                         <span class="text-base font-black text-emerald-600">${doneCount}</span>
                     </button>
                     <button onclick="toggleStatFilter('تعديل سعر')" class="${cardStyle} bg-white dark:bg-slate-800 border-indigo-200 dark:border-indigo-800/30 shadow-sm ${getActiveClass('تعديل سعر')}">
-                        <i class="fas fa-edit text-indigo-500 text-base mb-1.5"></i>
                         <span class="text-[10px] font-bold text-slate-500">تعديل سعر</span>
                         <span class="text-base font-black text-indigo-600">${amendedCount}</span>
                     </button>
                     <button onclick="toggleStatFilter('رفض')" class="${cardStyle} bg-white dark:bg-slate-800 border-rose-200 dark:border-rose-800/30 shadow-sm ${getActiveClass('رفض')}">
-                        <i class="fas fa-times-circle text-rose-500 text-base mb-1.5"></i>
                         <span class="text-[10px] font-bold text-slate-500">مرفوض/مرتجع</span>
                         <span class="text-base font-black text-rose-600">${rejectedCount}</span>
                     </button>
                     <button onclick="toggleStatFilter('مؤجل')" class="${cardStyle} bg-white dark:bg-slate-800 border-amber-200 dark:border-amber-800/30 shadow-sm ${getActiveClass('مؤجل')}">
-                        <i class="fas fa-clock text-amber-500 text-base mb-1.5"></i>
                         <span class="text-[10px] font-bold text-slate-500">مؤجل</span>
                         <span class="text-base font-black text-amber-600">${postponedCount}</span>
                     </button>
                     <button onclick="toggleStatFilter('قيد التوصيل')" class="${cardStyle} bg-white dark:bg-slate-800 border-sky-200 dark:border-sky-800/30 shadow-sm ${getActiveClass('قيد التوصيل')}">
-                        <i class="fas fa-truck text-sky-500 text-base mb-1.5"></i>
                         <span class="text-[10px] font-bold text-slate-500">قيد التوصيل</span>
                         <span class="text-base font-black text-sky-600">${inDeliveryCount}</span>
                     </button>
                     <div class="flex-shrink-0 min-w-[110px] bg-gradient-to-br from-indigo-600 to-indigo-800 p-3 rounded-2xl shadow-md flex flex-col justify-center items-center text-center">
-                        <i class="fas fa-money-bill-wave text-indigo-200 text-base mb-1.5"></i>
                         <span class="text-[10px] font-bold text-indigo-200">الصافي</span>
                         <span class="text-base font-black text-white" dir="ltr">${totalAmount.toLocaleString()}</span>
                     </div>
@@ -1002,16 +1143,20 @@
 
             function getVisibleShipments() {
                 const fStatus = document.getElementById('filterStatus')?.value || '';
+                const fSubRep = document.getElementById('filterSubRepName')?.value || '';
                 const fZone = document.getElementById('filterZone').value;
                 const fSender = document.getElementById('filterSender').value;
                 const fUpdate = document.getElementById('filterUpdate').value;
+                const fRep = document.getElementById('filterRep')?.value || '';
                 const searchQ = document.getElementById('searchInput').value.trim().toLowerCase();
 
                 return allShipments.filter(s => {
                     if (fStatus && getShipmentDisplayStatus(s) !== fStatus) return false;
+                    if (fSubRep && (String(s.المندوب_الفرعي || '').trim() || 'بدون مندوب') !== fSubRep) return false;
                     if (fZone && s.الزون !== fZone) return false;
                     if (fSender && s.الراسل !== fSender) return false;
                     if (fUpdate && s.الابيديت !== fUpdate) return false;
+                    if (fRep && String(s.المندوب || '').trim() !== fRep) return false;
 
                     // Add global stat filter logic
                     if (globalStatFilter) {
@@ -1076,6 +1221,7 @@
                     <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">${s.الزون || '---'}</td>
                     <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 max-w-[80px] truncate" title="${s.المنتج || ''}">${s.المنتج || '---'}</td>
                     <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">${s.الراسل || '---'}</td>
+                    <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">${s.الفرع || '---'}</td>
                     <td class="px-2 py-2 text-xs font-bold whitespace-nowrap">
                         ${(() => {
                         const subRepNamesShort = subRepAccounts.map(u => u.username).filter(Boolean);
@@ -1091,11 +1237,24 @@
                     })()}
                     </td>
                     <td class="px-2 py-2 whitespace-nowrap text-center">
-                        <span class="inline-block px-1.5 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-black rounded">${getShipmentDisplayStatus(s)}</span>
+                        <select onchange="updateShipmentInline('${s.id}', 'الحالة', this.value)" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-white text-[10px] font-black rounded px-1 py-1 w-[80px] outline-none focus:border-indigo-500 text-center">
+                            <option value="">--</option>
+                            <option value="قيد التنفيذ" ${getShipmentDisplayStatus(s) === 'قيد التنفيذ' ? 'selected' : ''}>قيد التنفيذ</option>
+                            <option value="تم التوصيل" ${getShipmentDisplayStatus(s) === 'تم التوصيل' ? 'selected' : ''}>تم التوصيل</option>
+                            <option value="تعديل سعر" ${getShipmentDisplayStatus(s) === 'تعديل سعر' ? 'selected' : ''}>تعديل سعر</option>
+                            <option value="مؤجل" ${getShipmentDisplayStatus(s) === 'مؤجل' ? 'selected' : ''}>مؤجل</option>
+                            <option value="مرفوض" ${getShipmentDisplayStatus(s) === 'مرفوض' ? 'selected' : ''}>مرفوض</option>
+                            <option value="مرتجع" ${getShipmentDisplayStatus(s) === 'مرتجع' ? 'selected' : ''}>مرتجع</option>
+                            <option value="الغاء" ${getShipmentDisplayStatus(s) === 'الغاء' ? 'selected' : ''}>الغاء</option>
+                        </select>
                     </td>
-                    <td class="px-2 py-2 text-[10px] text-slate-500 max-w-[100px] truncate" title="${getShipmentDisplayReason(s) || ''}">${getShipmentDisplayReason(s) || '---'}</td>
+                    <td class="px-2 py-2 text-[10px] text-slate-500 max-w-[100px]">
+                        <input type="text" onblur="updateShipmentInline('${s.id}', 'سبب الحالة', this.value)" value="${getShipmentDisplayReason(s) || ''}" placeholder="بدون سبب" class="w-full bg-transparent border-b border-dashed border-slate-300 dark:border-slate-600 focus:border-solid focus:border-indigo-500 outline-none text-[10px] text-center dark:text-slate-300 placeholder-slate-400">
+                    </td>
                     <td class="px-2 py-2 text-xs font-black text-slate-700 whitespace-nowrap">${s.المبلغ ? s.المبلغ : '0'}</td>
-                    <td class="px-2 py-2 text-xs font-black text-emerald-600 whitespace-nowrap">${s.السعر_بعد_التعديل ? s.السعر_بعد_التعديل : '---'}</td>
+                    <td class="px-2 py-2 text-xs font-black text-emerald-600 whitespace-nowrap text-center">
+                        <input type="text" onblur="updateShipmentInline('${s.id}', 'السعر_بعد_التعديل', this.value)" value="${s.السعر_بعد_التعديل ? s.السعر_بعد_التعديل : ''}" placeholder="---" class="w-16 bg-transparent border-b border-dashed border-slate-300 dark:border-slate-600 focus:border-solid focus:border-emerald-500 outline-none text-xs font-black text-emerald-600 dark:text-emerald-400 text-center placeholder-slate-400">
+                    </td>
                     <td class="px-2 py-2 text-center">
                         <div class="flex items-center justify-center gap-1">
                             ${renderShipmentContactActions(s)}
@@ -1108,7 +1267,50 @@
             `).join('');
 
                 renderPagination(totalPages);
+                updateSubRepRowSelection();
                 saveFollowerUiState();
+            }
+
+            async function updateShipmentInline(id, field, value) {
+                const sIndex = allShipments.findIndex(x => String(x.id) === String(id));
+                if (sIndex === -1) return;
+                
+                // For Status, we use getShipmentDisplayStatus. For others, direct mapping.
+                const oldVal = field === 'الحالة' ? getShipmentDisplayStatus(allShipments[sIndex]) : field === 'سبب الحالة' ? getShipmentDisplayReason(allShipments[sIndex]) : allShipments[sIndex][field];
+                
+                // Prevent unnecessary DB calls
+                if (String(oldVal || '').trim() === String(value || '').trim()) return;
+
+                // Update UI locally for responsiveness
+                allShipments[sIndex][field] = value;
+                const updateData = { [field]: value };
+
+                if (field === 'الحالة') {
+                    allShipments[sIndex]['الابيديت'] = new Date().toISOString().split('T')[0];
+                    updateData['الابيديت'] = allShipments[sIndex]['الابيديت'];
+                    updateData['تاريخ الحالة'] = allShipments[sIndex]['الابيديت'];
+                }
+
+                try {
+                    const { error } = await supabaseClient
+                        .from(CONFIG.TABLES.SHIPMENTS)
+                        .update(updateData)
+                        .eq('id', id);
+
+                    if (error) {
+                        allShipments[sIndex][field] = oldVal; // Revert
+                        throw error;
+                    }
+                    
+                    if (field === 'الحالة') {
+                        renderTable(); // Re-evaluate filters safely
+                    }
+                    
+                    // Show small success toast
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'تم التعديل بنجاح', showConfirmButton: false, timer: 1500 });
+                } catch (err) {
+                    Swal.fire('خطأ', 'فشل الحفظ: ' + err.message, 'error');
+                }
             }
 
             function toggleAllSubRepRows(source) {
@@ -1119,11 +1321,27 @@
             function updateSubRepRowSelection() {
                 const selectAll = document.getElementById('subRepSelectAll');
                 const checkboxes = document.querySelectorAll('.subrep-row-checkbox');
+                const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+                
                 if (selectAll && checkboxes.length > 0) {
-                    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-                    const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+                    const allChecked = checkedCount === checkboxes.length;
+                    const someChecked = checkedCount > 0;
                     selectAll.checked = allChecked;
                     selectAll.indeterminate = !allChecked && someChecked;
+                }
+                
+                const globalSelectAllText = document.getElementById('globalSelectAllText');
+                const globalDeleteBtnText = document.getElementById('globalDeleteBtnText');
+                if (globalSelectAllText) {
+                    globalSelectAllText.innerText = `تحديد الكل (${checkedCount})`;
+                }
+                if (globalDeleteBtnText) {
+                    globalDeleteBtnText.innerText = `مسح المحدد (${checkedCount})`;
+                }
+                const btnAssignBtnText = document.getElementById('btnAssignBtnText');
+                const assignRepVal = document.getElementById('assignSubRep')?.value;
+                if (btnAssignBtnText) {
+                    btnAssignBtnText.innerText = assignRepVal ? `تطبيق التعيين (${checkedCount})` : `تطبيق التعيين`;
                 }
             }
 
@@ -1164,6 +1382,27 @@
                     renderTable();
                 } else {
                     Swal.fire('خطأ', 'فشل في التعيين السريع', 'error');
+                }
+            }
+
+            function toggleAssignPulse(val) {
+                const btn = document.getElementById('btnAssignSubRep');
+                const btnText = document.getElementById('btnAssignBtnText');
+                if (!btn) return;
+                
+                const checkedCount = document.querySelectorAll('.subrep-row-checkbox:checked').length;
+                
+                if (val) {
+                    // Start strong pulse
+                    btn.classList.add('animate-pulse', 'ring-4', 'ring-rose-400', 'shadow-rose-500/50', 'shadow-2xl', 'scale-105');
+                    btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                    btn.classList.add('bg-rose-600', 'hover:bg-rose-700');
+                    if (btnText) btnText.innerText = `تطبيق التعيين (${checkedCount})`;
+                } else {
+                    // Stop pulse
+                    btn.classList.remove('animate-pulse', 'ring-4', 'ring-rose-400', 'shadow-rose-500/50', 'shadow-2xl', 'scale-105', 'bg-rose-600', 'hover:bg-rose-700');
+                    btn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                    if (btnText) btnText.innerText = `تطبيق التعيين`;
                 }
             }
 
@@ -1248,7 +1487,78 @@
                             showConfirmButton: false
                         });
                     }
+                    
+                    toggleAssignPulse('');
+                    document.getElementById('assignSubRep').value = '';
                     await fetchShipments();
+                }
+            }
+
+            function toggleAllSubRepRowsGlobal() {
+                const checkboxes = document.querySelectorAll('.subrep-row-checkbox');
+                let allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                
+                // If all are checked, uncheck them. Otherwise, check them all.
+                checkboxes.forEach(cb => cb.checked = !allChecked);
+                updateSubRepRowSelection();
+            }
+
+            async function deleteSelectedShipmentsSubRep() {
+                const selectedCheckboxes = document.querySelectorAll('.subrep-row-checkbox:checked');
+                if (selectedCheckboxes.length === 0) {
+                    Swal.fire('تنبيه', 'يرجى تحديد الشحنات التي تريد مسحها أولاً', 'warning');
+                    return;
+                }
+
+                const targetIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+                // Ask for admin password
+                const { value: password } = await Swal.fire({
+                    title: 'تأكيد المسح الجماعي',
+                    html: `هل أنت متأكد من مسح <b>(${targetIds.length})</b> شحنة نهائياً؟<br><br><span class="text-rose-600 font-bold text-sm">هذا الإجراء لا يمكن التراجع عنه.</span><br><br>يُرجى إدخال كلمة مرور الحساب للتأكيد:`,
+                    input: 'password',
+                    inputPlaceholder: 'كلمة المرور',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e11d48',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: 'نعم، قم بالمسح',
+                    cancelButtonText: 'إلغاء',
+                    customClass: {
+                        popup: 'rounded-[2rem]',
+                        confirmButton: 'rounded-xl font-bold',
+                        cancelButton: 'rounded-xl font-bold'
+                    }
+                });
+
+                if (!password) return;
+
+                // Validate password
+                if (password !== user.password) {
+                    Swal.fire('خطأ', 'كلمة المرور غير صحيحة، تم إلغاء المسح.', 'error');
+                    return;
+                }
+
+                try {
+                    Swal.fire({ title: 'جاري المسح...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    
+                    // Track before deleting
+                    const deletedShipmentsContext = allShipments.filter(s => targetIds.includes(String(s.id)));
+                    deletedShipmentsContext.forEach(s => saveAuditLog('تم مسحها', s));
+
+                    const { error } = await supabaseClient
+                        .from(CONFIG.TABLES.SHIPMENTS)
+                        .delete()
+                        .in('id', targetIds);
+
+                    if (error) throw error;
+
+                    Swal.fire('تم المسح', `تم مسح ${targetIds.length} شحنة نهائياً بنجاح`, 'success');
+                    await fetchShipments();
+
+                } catch (err) {
+                    console.error("Delete Selected Error:", err);
+                    Swal.fire('خطأ', 'حدث خطأ أثناء المسح: ' + err.message, 'error');
                 }
             }
 
@@ -1343,27 +1653,116 @@
     </div>
 
     <script>
-        function switchView(viewName) {
-            const dashboard = document.getElementById('dashboardView');
-            const accounts = document.getElementById('accountsView');
-            const navDashboard = document.getElementById('nav-dashboard');
-            const navAccounts = document.getElementById('nav-accounts');
+        const AUDIT_LOGS_KEY = 'subRepAuditLogs_' + user.username;
+        function getAuditLogs() {
+            try { return JSON.parse(localStorage.getItem(AUDIT_LOGS_KEY)) || []; }
+            catch (e) { return []; }
+        }
+        function saveAuditLog(actionType, shipment) {
+            const logs = getAuditLogs();
+            const logEntry = {
+                action_date: new Date().toISOString(),
+                action_type: actionType,
+                order_id: shipment.order_id || shipment['كود الشحنة'] || '---',
+                client_name: shipment.اسم_العميل || shipment['اسم العميل'] || '---',
+                zone: shipment.الزون || '---',
+                phone: shipment.الهاتف || '---',
+                alt_phone: shipment.هاتف_بديل || shipment['هاتف بديل'] || '---',
+                amount: shipment.السعر_بعد_التعديل || shipment.المبلغ || '0',
+                status: shipment.الحالة || '---',
+                sub_rep: shipment.المندوب_الفرعي || shipment['المندوب الفرعي'] || '---',
+                الفرع: shipment.الفرع || '---',
+                abydet: shipment.الابيديت || shipment['تاريخ التحديث'] || ''
+            };
+            logs.unshift(logEntry);
+            if (logs.length > 500) logs.length = 500;
+            localStorage.setItem(AUDIT_LOGS_KEY, JSON.stringify(logs));
+        }
+        
+        function populateAuditLogDateFilter() {
+            const filter = document.getElementById('auditLogDateFilter');
+            if (!filter) return;
+            const prevValue = filter.value;
+            
+            const uniqueDates = [...new Set(allShipments.map(s => {
+                const dateVal = s.الابيديت || s['تاريخ التحديث'];
+                if (!dateVal) return '';
+                return String(dateVal).split('T')[0]; // Extact yyyy-mm-dd
+            }).filter(Boolean))].sort((a,b) => new Date(b) - new Date(a));
+            
+            filter.innerHTML = '<option value="">كل التواريخ</option>';
+            uniqueDates.forEach(date => {
+                filter.innerHTML += `<option value="${date}">${date}</option>`;
+            });
+            if (uniqueDates.includes(prevValue)) filter.value = prevValue;
+        }
 
-            if (viewName === 'dashboard') {
-                dashboard.classList.remove('hidden');
-                accounts.classList.add('hidden');
-
-                navDashboard.className = "w-full flex items-center gap-3 px-5 py-4 bg-indigo-600 text-white rounded-[1.25rem] font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95";
-                navAccounts.className = "w-full flex items-center gap-3 px-5 py-4 text-slate-600 dark:text-slate-400 rounded-[1.25rem] font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all active:scale-95";
-            } else {
-                dashboard.classList.add('hidden');
-                accounts.classList.remove('hidden');
-                renderAccountsList();
-                renderSubRepStats();
-
-                navAccounts.className = "w-full flex items-center gap-3 px-5 py-4 bg-indigo-600 text-white rounded-[1.25rem] font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95";
-                navDashboard.className = "w-full flex items-center gap-3 px-5 py-4 text-slate-600 dark:text-slate-400 rounded-[1.25rem] font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all active:scale-95";
+        function renderAuditLogs() {
+            const container = document.getElementById('auditLogsTableBody');
+            if (!container) return;
+            const filterDate = document.getElementById('auditLogDateFilter').value;
+            
+            let logs = getAuditLogs();
+            if (filterDate) {
+                logs = logs.filter(log => {
+                    const logAbydet = log.abydet ? String(log.abydet).split('T')[0] : '';
+                    return logAbydet === filterDate || String(log.action_date).startsWith(filterDate);
+                });
             }
+            
+            if (logs.length === 0) {
+                container.innerHTML = `<tr><td colspan="10" class="text-center p-8 text-slate-500 font-bold">لا توجد عمليات مسجلة...</td></tr>`;
+                return;
+            }
+            
+            container.innerHTML = logs.map(log => {
+                const actionBadge = log.action_type === 'تم مسحها' 
+                    ? `<span class="bg-rose-100 text-rose-700 px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap border border-rose-200"><i class="fas fa-trash-alt"></i> ${log.action_type}</span>`
+                    : `<span class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap border border-indigo-200"><i class="fas fa-file-excel"></i> ${log.action_type}</span>`;
+                
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td class="px-2 py-3 text-[11px] font-bold text-slate-700 dark:text-slate-300 text-center border-l dark:border-slate-800/50">
+                            ${new Date(log.action_date).toLocaleDateString()}
+                        </td>
+                        <td class="px-2 py-3 text-center border-l dark:border-slate-800/50">${actionBadge}</td>
+                        <td class="px-2 py-3 text-xs font-black text-indigo-600 dark:text-indigo-400">${log.order_id}</td>
+                        <td class="px-2 py-3 text-[11px] text-slate-700 dark:text-slate-300 min-w-[120px] truncate max-w-[150px]">${log.client_name}</td>
+                        <td class="px-2 py-3 text-[11px] text-slate-700 dark:text-slate-300 whitespace-nowrap">${log.zone}</td>
+                        <td class="px-2 py-3 text-[11px] font-mono text-slate-600 dark:text-slate-400">${log.phone}</td>
+                        <td class="px-2 py-3 text-[11px] font-mono text-slate-600 dark:text-slate-400">${log.alt_phone}</td>
+                        <td class="px-2 py-3 text-xs font-black text-slate-800 dark:text-white whitespace-nowrap">${log.amount}</td>
+                        <td class="px-2 py-3 text-[11px] text-slate-600 dark:text-slate-300 whitespace-nowrap">${log.status}</td>
+                        <td class="px-2 py-3 text-[11px] font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">${log.sub_rep}</td>
+                        <td class="px-2 py-3 text-[11px] text-slate-600 dark:text-slate-300 whitespace-nowrap">${log.الفرع || '---'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function switchView(viewName) {
+            const views = ['dashboard', 'accounts', 'auditLogs'];
+            views.forEach(v => {
+                const el = document.getElementById(v + 'View');
+                const nav = document.getElementById('nav-' + v);
+                if (!el || !nav) return;
+                
+                if (v === viewName) {
+                    el.classList.remove('hidden');
+                    nav.className = "w-full flex items-center gap-3 px-5 py-4 bg-indigo-600 text-white rounded-[1.25rem] font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95";
+                    if (v === 'accounts') {
+                        renderAccountsList();
+                        renderSubRepStats();
+                    }
+                    if (v === 'auditLogs') {
+                        populateAuditLogDateFilter();
+                        renderAuditLogs();
+                    }
+                } else {
+                    el.classList.add('hidden');
+                    nav.className = "w-full flex items-center gap-3 px-5 py-4 text-slate-600 dark:text-slate-400 rounded-[1.25rem] font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all active:scale-95";
+                }
+            });
         }
 
         function renderAccountsList() {
@@ -1392,8 +1791,11 @@
                              مفعل
                         </span>
                         <div class="flex items-center gap-1">
-                            <button onclick="openEditUserModal('${acc.id}')" class="w-10 h-10 bg-indigo-50 dark:bg-slate-700 hover:bg-indigo-600 hover:text-white text-indigo-600 dark:text-indigo-300 rounded-xl transition-all flex items-center justify-center">
+                            <button onclick="openEditUserModal('${acc.id}')" class="w-10 h-10 bg-indigo-50 dark:bg-slate-700 hover:bg-indigo-600 hover:text-white text-indigo-600 dark:text-indigo-300 rounded-xl transition-all flex items-center justify-center" title="تعديل">
                                 <i class="fas fa-pen text-xs"></i>
+                            </button>
+                            <button onclick="deleteSubRepAccount('${acc.id}', '${acc.full_name || acc.username}')" class="w-10 h-10 bg-rose-50 dark:bg-rose-900/40 hover:bg-rose-600 hover:text-white text-rose-600 dark:text-rose-400 rounded-xl transition-all flex items-center justify-center" title="مسح">
+                                <i class="fas fa-trash-alt text-xs"></i>
                             </button>
                         </div>
                     </div>
@@ -1419,13 +1821,24 @@
                 const cancelled = repShipments.filter(s => getShipmentDisplayStatus(s) === 'الغاء').length;
                 const inProgress = total - (delivered + returned + postponed + cancelled);
 
+                const statusBadge = acc.approved 
+                    ? '<span class="text-[10px] font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 rounded-full uppercase border border-emerald-100 dark:border-emerald-500/20">مفعل</span>'
+                    : '<span class="text-[10px] font-black text-rose-600 bg-rose-50 dark:bg-rose-500/10 px-3 py-1 rounded-full uppercase border border-rose-100 dark:border-rose-500/20">معلق</span>';
+                
+                const approvalBtn = acc.approved
+                    ? `<button onclick="toggleAccountApproval('${acc.id}', false)" class="w-10 h-10 bg-rose-50 dark:bg-slate-700 hover:bg-rose-600 hover:text-white text-rose-600 dark:text-rose-300 rounded-xl transition-all flex items-center justify-center" title="تعطيل الحساب"><i class="fas fa-user-slash text-xs"></i></button>`
+                    : `<button onclick="toggleAccountApproval('${acc.id}', true)" class="w-10 h-10 bg-emerald-50 dark:bg-slate-700 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-300 rounded-xl transition-all flex items-center justify-center" title="تفعيل الحساب"><i class="fas fa-user-check text-xs"></i></button>`;
+
                 return `
                     <div class="glass p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800/60 mb-4 bg-white/40 dark:bg-slate-900/40">
                         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
                             <h3 class="font-bold text-slate-800 dark:text-white text-lg flex items-center gap-2">
                                 <i class="fas fa-user-circle text-indigo-500"></i> ${name}
                             </h3>
-                            <span class="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full uppercase">تقرير المندوب</span>
+                            <div class="flex items-center gap-2">
+                                ${statusBadge}
+                                <span class="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full uppercase">تقرير المندوب</span>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
                             <div class="bg-indigo-50/50 dark:bg-indigo-500/10 p-3 rounded-2xl text-center border border-indigo-100/50 dark:border-indigo-500/20">
@@ -1448,14 +1861,83 @@
                                 <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">إلغاء</p>
                                 <p class="text-xl font-black text-red-600 dark:text-red-400">${cancelled}</p>
                             </div>
-                            <div class="bg-sky-50/50 dark:bg-sky-500/10 p-3 rounded-2xl text-center border border-sky-100/50 dark:border-sky-500/20">
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">قيد التوصيل</p>
-                                <p class="text-xl font-black text-sky-600 dark:text-sky-400">${inProgress}</p>
+                            <div class="flex items-center justify-center gap-2">
+                                ${approvalBtn}
+                                <button onclick="openEditUserModal('${acc.id}')" class="w-10 h-10 bg-indigo-50 dark:bg-slate-700 hover:bg-indigo-600 hover:text-white text-indigo-600 dark:text-indigo-300 rounded-xl transition-all flex items-center justify-center" title="تعديل">
+                                    <i class="fas fa-pen text-xs"></i>
+                                </button>
+                                <button onclick="deleteSubRepAccount('${acc.id}', '${name}')" class="w-10 h-10 bg-rose-50 dark:bg-slate-700 hover:bg-rose-600 hover:text-white text-rose-600 dark:text-rose-300 rounded-xl transition-all flex items-center justify-center" title="حذف">
+                                    <i class="fas fa-trash text-xs"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
+
+            // Pulse effect for pending approvals
+            const hasPending = subRepAccounts.some(u => !u.approved);
+            const navBtn = document.getElementById('nav-accounts');
+            if (navBtn) {
+                if (hasPending) navBtn.classList.add('pulse-highlight-red');
+                else navBtn.classList.remove('pulse-highlight-red');
+            }
+        }
+
+        async function toggleAccountApproval(id, newStatus) {
+            try {
+                const { error } = await supabaseClient
+                    .from(CONFIG.TABLES.USERS)
+                    .update({ approved: newStatus })
+                    .eq('id', id);
+                
+                if (error) throw error;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: newStatus ? 'تم تفعيل الحساب' : 'تم تعطيل الحساب',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                await fetchSubRepAccounts();
+                renderAccountsList();
+            } catch (error) {
+                Swal.fire('خطأ', error.message, 'error');
+            }
+        }
+
+        async function deleteSubRepAccount(id, name) {
+            const confirmed = await Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: `هل تريد مسح المندوب الفرعي "${name}" نهائياً من حسابك؟`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'نعم، قم بالمسح',
+                cancelButtonText: 'إلغاء',
+                customClass: {
+                    popup: 'rounded-[2rem]',
+                    confirmButton: 'rounded-xl font-bold',
+                    cancelButton: 'rounded-xl font-bold'
+                }
+            });
+
+            if (confirmed.isConfirmed) {
+                Swal.fire({ title: 'جاري المسح...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                const { error } = await supabaseClient.from(CONFIG.TABLES.USERS).delete().eq('id', id);
+                
+                if (error) {
+                    Swal.fire('خطأ', 'حدث خطأ أثناء المسح: ' + error.message, 'error');
+                } else {
+                    Swal.fire('تم المسح', `تم مسح المندوب ${name} بنجاح.`, 'success');
+                    await fetchSubRepAccounts();
+                    renderAccountsList();
+                    renderSubRepStats();
+                    populateSubRepAssignTools();
+                    renderFilterOptions(); // update filters removing this sub-rep
+                }
+            }
         }
 
         function openEditUserModal(id) {
