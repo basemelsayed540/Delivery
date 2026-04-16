@@ -1163,6 +1163,9 @@
                                     style="display: none; font-size: 0.82rem;">
                                     <i class="fas fa-check-double me-1"></i> المحدد: 0
                                 </span>
+                                <button id="housingDeleteSelectedBtn" type="button" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3" style="display: none;" onclick="deleteSelectedHousingShipments()">
+                                    <i class="fas fa-trash-alt me-1"></i> حذف المحدد
+                                </button>
                                 <div class="dropdown">
                                     <button id="housingEditDateFilterBtn"
                                         class="btn btn-outline-secondary rounded-pill fw-bold dropdown-toggle rep-date-filter-glow"
@@ -1322,7 +1325,6 @@
                                     <th>الراسل</th>
                                     <th class="text-center">الكود</th>
                                     <th>المندوب</th>
-                                    <th>المندوب الفرعي</th>
                                     <th>الحالة</th>
                                     <th>سبب الحالة</th>
                                 </tr>
@@ -1375,11 +1377,7 @@
                                             class="form-control form-control-sm rounded-3" placeholder="🔍 المندوب">
                                         <datalist id="dl-housingRep"></datalist>
                                     </th>
-                                    <th class="py-1 px-2">
-                                        <input id="housingFilterSubRep" list="dl-housingSubRep" type="text"
-                                            class="form-control form-control-sm rounded-3" placeholder="🔍 فرعي">
-                                        <datalist id="dl-housingSubRep"></datalist>
-                                    </th>
+
                                     <th class="py-1 px-2">
                                         <input id="housingFilterStatus" list="dl-housingStatus" type="text"
                                             class="form-control form-control-sm rounded-3" placeholder="🔍 الحالة">
@@ -1394,7 +1392,7 @@
                             </thead>
                             <tbody id="housingShipmentsTable">
                                 <tr>
-                                    <td colspan="14" class="text-center py-4 text-secondary fw-bold">جاري التحميل...
+                                    <td colspan="13" class="text-center py-4 text-secondary fw-bold">جاري التحميل...
                                     </td>
                                 </tr>
                             </tbody>
@@ -2167,6 +2165,7 @@
             };
 
             const filtered = allShipments.filter(s => {
+                if (String(s.المندوب || '').startsWith('PRIVATE:')) return false;
                 if (filters.date && s.الابيديت !== filters.date) return false;
                 if (filters.zone && filters.zone.length > 0 && !filters.zone.includes(s.الزون)) return false;
                 if (filters.rep && filters.rep.length > 0 && !filters.rep.includes(s.المندوب)) return false;
@@ -2419,7 +2418,7 @@
         function isAdminPriceEditShipment(shipment) {
             const normalizedStatus = String(shipment?.الحالة || '').trim();
             const normalizedReason = String(shipment?.['سبب الحالة'] || shipment?.سبب_الحالة || '').trim();
-            return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر';
+            return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر' || normalizedReason === 'شحن';
         }
 
         function isAdminDeliveredShipment(shipment) {
@@ -2440,7 +2439,7 @@
         function getAdminDisplayStatus(shipment) {
             const normalizedStatus = String(shipment?.الحالة || '').trim();
             if (isAdminPriceEditShipment(shipment)) return 'تعديل سعر';
-            if (isAdminDeliveredShipment(shipment)) return 'تم';
+            if (isAdminDeliveredShipment(shipment)) return 'تم التوصيل';
             if (normalizedStatus === 'تأجيل' || normalizedStatus === 'مؤجل') return 'مؤجل';
             if (isAdminRejectedStatus(normalizedStatus)) return 'رفض';
             if (isAdminPendingStatus(normalizedStatus)) return 'قيد التوصيل';
@@ -2872,7 +2871,7 @@
                 'هاتف بديل': s.هاتف_بديل || '',
                 'المبلغ': s.المبلغ || '',
                 'الراسل': s.الراسل || '',
-                'كود الشحنة': s.كود_الشحنة || '',
+                'كود الشحنة': s.كود_الشحنة || s.الكود || s.order_id || '',
                 'المندوب': s.المندوب || '',
                 'الحالة': s.الحالة || '',
                 'سبب الحالة': s.سبب_الحالة || '',
@@ -3191,6 +3190,7 @@
         function getHousingShipmentsFilteredBy(excludeFields = []) {
             const filters = getHousingColumnFilters();
             return allShipments.filter(s => {
+                if (String(s.المندوب || '').startsWith('PRIVATE:')) return false;
                 const d = getHousingDisplayShipmentData(s);
 
                 if (housingDashStatFilter) {
@@ -3198,7 +3198,7 @@
                     if (housingDashStatFilter === 'بدون مندوب') {
                         if (d.المندوب) return false;
                     } else if (housingDashStatFilter === 'مخزن') {
-                        if (String(d.المندوب_الفرعي || '').trim() !== 'مخزن') return false;
+                        if (String(d.المندوب || '').trim() !== 'مخزن') return false;
                     } else {
                         if (disp !== housingDashStatFilter) return false;
                     }
@@ -3565,7 +3565,7 @@
                     if (housingDashStatFilter === 'بدون مندوب') {
                         if (currentData.المندوب) return false;
                     } else if (housingDashStatFilter === 'مخزن') {
-                        if (String(currentData.المندوب_الفرعي || '').trim() !== 'مخزن') return false;
+                        if (String(currentData.المندوب || '').trim() !== 'مخزن') return false;
                     } else if (housingDashStatFilter === 'رفض') {
                         if (disp !== 'رفض') return false;
                     } else {
@@ -4001,7 +4001,7 @@
 
             const warehouseCount = shipments.filter(s => {
                 const d = getHousingDisplayShipmentData(s);
-                return String(d.المندوب_الفرعي || '').trim() === 'مخزن';
+                return String(d.المندوب || '').trim() === 'مخزن';
             }).length;
 
             const doneCount = shipments.filter(s =>
@@ -4128,9 +4128,9 @@
             if (!filtered.length) {
                 const editDateFilters = getHousingEditDateFilters();
                 if (editDateFilters.length === 0) {
-                    tableEl.innerHTML = `<tr><td colspan="12" class="text-center py-4 text-warning fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>يرجى تحديد فلتر "تاريخ التحديث" أولاً لعرض الشحنات.</td></tr>`;
+                    tableEl.innerHTML = `<tr><td colspan="13" class="text-center py-4 text-warning fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>يرجى تحديد فلتر "تاريخ التحديث" أولاً لعرض الشحنات.</td></tr>`;
                 } else {
-                    tableEl.innerHTML = `<tr><td colspan="12" class="text-center py-4 text-secondary fw-bold">لا توجد شحنات مطابقة.</td></tr>`;
+                    tableEl.innerHTML = `<tr><td colspan="13" class="text-center py-4 text-secondary fw-bold">لا توجد شحنات مطابقة.</td></tr>`;
                 }
                 saveHousingUiState();
                 updateHousingSaveButtonState();
@@ -4197,12 +4197,7 @@
                                 ${getHousingRepOptions(currentData.المندوب || '')}
                             </select>
                         </td>
-                        <td>
-                            <select class="form-select form-select-sm rounded-3" id="housing-subrep-${s.id}" onchange="syncHousingDraft('${s.id}')">
-                                <option value="">بدون فرعي</option>
-                                ${getHousingRepOptions(currentData.المندوب_الفرعي || '')}
-                            </select>
-                        </td>
+
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-status-${s.id}" value="${escapeAttr(currentData.الحالة || '')}" placeholder="الحالة" oninput="syncHousingDraft('${s.id}')"></td>
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-reason-${s.id}" value="${escapeAttr(currentData['سبب الحالة'] || currentData.سبب_الحالة || '')}" placeholder="السبب" oninput="syncHousingDraft('${s.id}')"></td>
                     </tr>
@@ -4224,6 +4219,7 @@
             const selectAll = document.getElementById('housingSelectAll');
             const checkboxes = document.querySelectorAll('.housing-row-checkbox');
             const selectedCountEl = document.getElementById('housingSelectedCount');
+            const deleteBtnEl = document.getElementById('housingDeleteSelectedBtn');
 
             const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
 
@@ -4231,8 +4227,10 @@
                 if (checkedCount > 0) {
                     selectedCountEl.innerText = `المحدد: ${checkedCount}`;
                     selectedCountEl.style.display = 'inline-block';
+                    if (deleteBtnEl) deleteBtnEl.style.display = 'inline-block';
                 } else {
                     selectedCountEl.style.display = 'none';
+                    if (deleteBtnEl) deleteBtnEl.style.display = 'none';
                 }
             }
 
@@ -4432,6 +4430,63 @@
 
             refreshDashboard();
             updateHousingSaveButtonState();
+        }
+
+        async function deleteSelectedHousingShipments() {
+            const checkboxes = document.querySelectorAll('.housing-row-checkbox:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                Swal.fire('تنبيه', 'يرجى تحديد شحنات للحذف أولاً', 'warning');
+                return;
+            }
+
+            const { value: password } = await Swal.fire({
+                title: 'تأكيد حذف الشحنات المحددة',
+                html: `أنت على وشك حذف <b>${selectedIds.length}</b> شحنة بشكل نهائي.<br><br>يرجى إدخال كلمة مرور المدير للتأكيد.`,
+                input: 'password',
+                inputPlaceholder: 'كلمة المرور',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'تأكيد الحذف النهائي',
+                cancelButtonText: 'إلغاء',
+                inputValidator: (value) => {
+                    if (!value) return 'يرجى إدخال كلمة المرور!';
+                    if (value !== currentUser.password) return 'كلمة المرور غير صحيحة!';
+                }
+            });
+
+            if (!password) return;
+
+            showLoading(true);
+            try {
+                const { error } = await supabaseClient
+                    .from(CONFIG.TABLES.SHIPMENTS)
+                    .delete()
+                    .in('id', selectedIds);
+
+                if (error) throw error;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم الحذف بنجاح',
+                    text: `تم حذف ${selectedIds.length} شحنة من قاعدة البيانات.`,
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+
+                // تحديث البيانات محلياً
+                allShipments = allShipments.filter(s => !selectedIds.includes(String(s.id)));
+                
+                // إعادة تصيير الجدول والإحصائيات
+                refreshDashboard();
+
+            } catch (err) {
+                console.error("Delete Selected Error:", err);
+                Swal.fire('خطأ في العملية', 'فشل الحذف: ' + err.message, 'error');
+            }
+            showLoading(false);
         }
 
         // Ctrl+Z shortcut — only active when housing section is visible

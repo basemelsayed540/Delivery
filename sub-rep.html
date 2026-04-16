@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @keyframes repDateFilterGlow {
@@ -40,12 +41,18 @@
 
     <!-- Static Sidebar -->
     <aside
-        class="w-64 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex-shrink-0 flex flex-col h-screen sticky top-0 shadow-sm z-40 hidden md:flex">
+        class="w-72 bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 border-l border-slate-200 dark:border-slate-800/60 flex-shrink-0 flex flex-col h-screen sticky top-0 shadow-xl z-40 hidden md:flex">
         <div
-            class="p-6 border-b border-slate-100 dark:border-slate-800 bg-indigo-50/50 dark:bg-slate-800/50 mb-4 h-[76px] flex items-center">
-            <h2 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-3">
-                <i class="fas fa-eye text-indigo-600"></i> القائمة الرئيسية
-            </h2>
+            class="p-6 border-b border-slate-100 dark:border-slate-800/80 mb-4 h-[80px] flex items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+            <div
+                class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 ml-3">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div>
+                <h2 class="text-lg font-black text-slate-800 dark:text-white leading-tight">النظام الذكي</h2>
+                <p class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-tighter">لوحة
+                    المندوب المتقدم</p>
+            </div>
         </div>
 
         <div class="px-4 flex-1 overflow-y-auto custom-scrollbar pb-6 space-y-6">
@@ -80,6 +87,18 @@
                             <i class="fas fa-warehouse"></i>
                             <span>تحويل للمخزن</span>
                         </button>
+                        <button onclick="exportToExcel()"
+                            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl text-sm font-bold shadow-md flex items-center justify-center gap-2 transition-all active:scale-95 border border-emerald-500">
+                            <i class="fas fa-file-excel"></i>
+                            <span>تصدير Excel</span>
+                        </button>
+                        <!-- Excel Upload Button -->
+                        <button onclick="document.getElementById('excelFileInput').click()"
+                            class="w-full bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 py-3 px-4 rounded-xl text-sm font-bold shadow-md flex items-center justify-center gap-2 transition-all active:scale-95 border-2 border-dashed border-indigo-200 dark:border-indigo-900/50 hover:border-indigo-500">
+                            <i class="fas fa-file-import"></i>
+                            <span>رفع شحنات (إكسل)</span>
+                        </button>
+                        <input type="file" id="excelFileInput" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(this)">
                     </div>
                 </div>
             </div>
@@ -88,13 +107,13 @@
             <div class="border-t border-slate-100 dark:border-slate-800 pt-6">
                 <nav class="space-y-3">
                     <button onclick="switchView('dashboard')" id="nav-dashboard"
-                        class="w-full flex items-center gap-3 px-4 py-4 bg-indigo-600 text-white rounded-2xl font-bold transition-all shadow-md">
-                        <i class="fas fa-th-large w-5"></i>
+                        class="w-full flex items-center gap-3 px-5 py-4 bg-indigo-600 text-white rounded-[1.25rem] font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
+                        <i class="fas fa-th-large w-5 text-indigo-200"></i>
                         <span>لوحة التحكم</span>
                     </button>
                     <button onclick="switchView('accounts')" id="nav-accounts"
-                        class="w-full flex items-center gap-3 px-4 py-4 text-slate-600 dark:text-slate-400 rounded-2xl font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                        <i class="fas fa-users-cog w-5"></i>
+                        class="w-full flex items-center gap-3 px-5 py-4 text-slate-600 dark:text-slate-400 rounded-[1.25rem] font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all active:scale-95">
+                        <i class="fas fa-users-cog w-5 text-slate-400"></i>
                         <span>إدارة المناديب</span>
                     </button>
                 </nav>
@@ -106,7 +125,7 @@
     <div class="flex-1 flex flex-col min-w-0">
         <!-- Header -->
         <header
-            class="glass sticky top-0 z-30 px-4 py-4 mb-6 shadow-sm border-b border-slate-200 dark:border-slate-800">
+            class="glass sticky top-0 z-30 px-4 py-4 mb-6 shadow-sm border-b border-slate-200 dark:border-slate-800/60">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
                 <!-- Right Side (Title & Sub-Rep Name) -->
                 <div class="flex items-center gap-4">
@@ -225,7 +244,8 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-right border-collapse">
                         <thead>
-                            <tr class="bg-indigo-50 text-indigo-800 border-b-2 border-indigo-100">
+                            <tr
+                                class="bg-indigo-50 dark:bg-slate-800/60 text-indigo-800 dark:text-indigo-300 border-b-2 border-indigo-100 dark:border-indigo-900/30">
                                 <th class="p-2 text-center" style="width: 30px;">
                                     <input type="checkbox" id="subRepSelectAll" onclick="toggleAllSubRepRows(this)"
                                         class="rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 outline-none w-3.5 h-3.5 cursor-pointer">
@@ -395,7 +415,14 @@
                 await fetchSubRepAccounts();
 
                 // 2. Build list of names (Self + Delegates + Warehouse) to see the full pool
-                const myManagedNames = [user.username, user.full_name, ...subRepAccounts.map(u => u.username), ...subRepAccounts.map(u => u.full_name), 'مخزن'].filter(Boolean);
+                const myManagedNames = [
+                    user.username, 
+                    user.full_name, 
+                    ...subRepAccounts.map(u => u.username), 
+                    ...subRepAccounts.map(u => u.full_name), 
+                    'مخزن',
+                    `PRIVATE:${user.username}` // Include hidden uploads
+                ].filter(Boolean);
                 const uniqueManagedNames = [...new Set(myManagedNames)];
 
                 const { data, error } = await supabaseClient
@@ -477,7 +504,7 @@
             function isPriceEditShipment(shipment) {
                 const normalizedStatus = String(shipment?.الحالة || '').trim();
                 const normalizedReason = String(shipment?.['سبب الحالة'] || shipment?.سبب_الحالة || '').trim();
-                return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر';
+                return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر' || normalizedReason === 'شحن';
             }
 
             function isPendingStatus(status) {
@@ -742,6 +769,102 @@
                 })
                 .subscribe();
 
+            async function handleExcelUpload(input) {
+                const file = input.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                        if (jsonData.length === 0) {
+                            Swal.fire('تنبيه', 'الملف المرفوع فارغ', 'warning');
+                            return;
+                        }
+
+                        // Get today's date for 'الابيديت'
+                        const today = new Date().toISOString().split('T')[0];
+
+                        // Map Excel headers to DB columns
+                        const shipmentsToUpload = jsonData.map(row => ({
+                            'الراسل': row['الراسل'] || '',
+                            'اسم_العميل': row['اسم_العميل'] || '',
+                            'الهاتف': row['الهاتف'] || '',
+                            'هاتف_بديل': row['هاتف_بديل'] || '',
+                            'العنوان': row['العنوان'] || '',
+                            'المبلغ': row['المبلغ'] || 0,
+                            'السعر_بعد_التعديل': row['السعر_بعد_التعديل'] || row['المبلغ'] || 0,
+                            'عمولة المندوب': row['عمولة المندوب'] || 0,
+                            'الحالة': row['الحالة'] || '',
+                            'سبب_الحالة': row['سبب الحالة'] || '',
+                            'المندوب_الفرعي': row['المندوب الفرعي'] || '',
+                            'order_id': row['كود الشحنة'] || '',
+                            'المندوب': `PRIVATE:${user.username}`, // Private flag
+                            'الابيديت': today
+                        }));
+
+                        Swal.fire({
+                            title: 'جاري رفع الشحنات...',
+                            html: `يتم معالجة ${shipmentsToUpload.length} شحنة`,
+                            allowOutsideClick: false,
+                            didOpen: () => { Swal.showLoading(); }
+                        });
+
+                        const { error } = await supabaseClient
+                            .from(CONFIG.TABLES.SHIPMENTS)
+                            .insert(shipmentsToUpload);
+
+                        if (error) throw error;
+
+                        await Swal.fire('تم بنجاح', `تم رفع ${shipmentsToUpload.length} شحنة بنجاح`, 'success');
+                        await fetchShipments();
+
+                    } catch (error) {
+                        console.error('Excel Upload Error:', error);
+                        Swal.fire('خطأ', 'حدث خطأ أثناء رفع ملف الإكسل: ' + error.message, 'error');
+                    } finally {
+                        input.value = ''; // Reset input
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        
+            function exportToExcel() {
+                const data = getVisibleShipments();
+                if (!data || data.length === 0) {
+                    Swal.fire('تنبيه', 'لا توجد بيانات لتصديرها', 'warning');
+                    return;
+                }
+
+                const exportData = data.map(s => ({
+                    'اسم_العميل': s.اسم_العميل || '',
+                    'العنوان': s.العنوان || '',
+                    'الزون': s.الزون || '',
+                    'المنتج': s.المنتج || '',
+                    'الهاتف': s.الهاتف || '',
+                    'هاتف-بديل': s.هاتف_بديل || '',
+                    'المبلغ': s.المبلغ || '',
+                    'الراسل': s.الراسل || '',
+                    'كود الشحنة': s.كود_الشحنة || s.الكود || s.order_id || '',
+                    'المندوب': s.المندوب || '',
+                    'الحالة': getShipmentDisplayStatus(s),
+                    'سبب الحالة': getShipmentDisplayReason(s),
+                    'السعر_بعد_التعديل': s.السعر_بعد_التعديل || s.المبلغ || '',
+                    'تاريخ التحديث': s.الابيديت || '',
+                    'المندوب الفرعي': s.المندوب_الفرعي || ''
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "الشحنات");
+                XLSX.writeFile(wb, `شحنات_${new Date().toLocaleDateString('ar-EG').replace(/\//g, '-')}.xlsx`);
+            }
+
             /* ========================
                Sub-Rep Assignment Logic
                ======================== */
@@ -833,17 +956,17 @@
                         <span class="text-[10px] font-bold text-white/80">الكل</span>
                         <span class="text-base font-black text-white">${allShipments.length}</span>
                     </button>
-                    <button onclick="toggleStatFilter('بدون مندوب')" class="${cardStyle} bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-sm ${getActiveClass('بدون مندوب')}">
-                        <i class="fas fa-user-slash text-slate-400 text-base mb-1.5"></i>
-                        <span class="text-[10px] font-bold text-slate-500">بدون مندوب</span>
+                    <button onclick="toggleStatFilter('بدون مندوب')" class="${cardStyle} bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm ${getActiveClass('بدون مندوب')}">
+                        <i class="fas fa-user-slash text-slate-400 dark:text-slate-500 text-base mb-1.5"></i>
+                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">بدون مندوب</span>
                         <span class="text-base font-black text-slate-700 dark:text-slate-200">${noDelegate}</span>
                     </button>
-                    <button onclick="toggleStatFilter('مخزن')" class="${cardStyle} bg-white dark:bg-slate-800 border-amber-200 dark:border-amber-800/30 shadow-sm ${getActiveClass('مخزن')}">
+                    <button onclick="toggleStatFilter('مخزن')" class="${cardStyle} bg-white dark:bg-slate-900 border-amber-200 dark:border-amber-900/40 shadow-sm ${getActiveClass('مخزن')}">
                         <i class="fas fa-warehouse text-amber-500 text-base mb-1.5"></i>
-                        <span class="text-[10px] font-bold text-slate-500">المخزن</span>
-                        <span class="text-base font-black text-amber-600">${warehouseCount}</span>
+                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">المخزن</span>
+                        <span class="text-base font-black text-amber-600 dark:text-amber-500">${warehouseCount}</span>
                     </button>
-                    <button onclick="toggleStatFilter('تم التوصيل')" class="${cardStyle} bg-white dark:bg-slate-800 border-emerald-200 dark:border-emerald-800/30 shadow-sm ${getActiveClass('تم التوصيل')}">
+                    <button onclick="toggleStatFilter('تم التوصيل')" class="${cardStyle} bg-white dark:bg-slate-900 border-emerald-200 dark:border-emerald-900/40 shadow-sm ${getActiveClass('تم التوصيل')}">
                         <i class="fas fa-check-circle text-emerald-500 text-base mb-1.5"></i>
                         <span class="text-[10px] font-bold text-slate-500">تم التوصيل</span>
                         <span class="text-base font-black text-emerald-600">${doneCount}</span>
@@ -938,7 +1061,7 @@
 
                 const newRepName = (document.getElementById('subRepNewRepName')?.value || '').trim();
                 tbody.innerHTML = paginated.map(s => `
-                <tr class="hover:bg-slate-50 transition-colors group">
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
                     <td class="px-2 py-2 text-center">
                         <input class="subrep-row-checkbox rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 outline-none w-3.5 h-3.5 cursor-pointer" type="checkbox" value="${s.id}" onclick="updateSubRepRowSelection()">
                     </td>
@@ -948,11 +1071,11 @@
                         : `<button class="subrep-assign-btn bg-slate-100 text-slate-400 text-[10px] py-1 px-2 rounded-md border border-slate-200 cursor-not-allowed w-full" disabled><i class='fas fa-user-plus'></i></button>`
                     }
                     </td>
-                    <td class="px-2 py-2 text-xs font-bold text-slate-800 max-w-[120px] truncate" title="${s.اسم_العميل || ''}">${s.اسم_العميل || '---'}</td>
-                    <td class="px-2 py-2 text-[11px] text-slate-600 leading-tight max-w-[100px] truncate" title="${s.العنوان || ''}">${s.العنوان || '---'}</td>
-                    <td class="px-2 py-2 text-xs text-slate-700 whitespace-nowrap">${s.الزون || '---'}</td>
-                    <td class="px-2 py-2 text-xs text-slate-700 max-w-[80px] truncate" title="${s.المنتج || ''}">${s.المنتج || '---'}</td>
-                    <td class="px-2 py-2 text-xs text-slate-700 whitespace-nowrap">${s.الراسل || '---'}</td>
+                    <td class="px-2 py-2 text-xs font-bold text-slate-800 dark:text-slate-200 max-w-[120px] truncate" title="${s.اسم_العميل || ''}">${s.اسم_العميل || '---'}</td>
+                    <td class="px-2 py-2 text-[11px] text-slate-600 dark:text-slate-400 leading-tight max-w-[100px] truncate" title="${s.العنوان || ''}">${s.العنوان || '---'}</td>
+                    <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">${s.الزون || '---'}</td>
+                    <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 max-w-[80px] truncate" title="${s.المنتج || ''}">${s.المنتج || '---'}</td>
+                    <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">${s.الراسل || '---'}</td>
                     <td class="px-2 py-2 text-xs font-bold whitespace-nowrap">
                         ${(() => {
                         const subRepNamesShort = subRepAccounts.map(u => u.username).filter(Boolean);
@@ -1230,16 +1353,16 @@
                 dashboard.classList.remove('hidden');
                 accounts.classList.add('hidden');
 
-                navDashboard.className = "w-full flex items-center gap-3 px-4 py-4 bg-indigo-600 text-white rounded-2xl font-bold transition-all shadow-md";
-                navAccounts.className = "w-full flex items-center gap-3 px-4 py-4 text-slate-600 dark:text-slate-400 rounded-2xl font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all";
+                navDashboard.className = "w-full flex items-center gap-3 px-5 py-4 bg-indigo-600 text-white rounded-[1.25rem] font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95";
+                navAccounts.className = "w-full flex items-center gap-3 px-5 py-4 text-slate-600 dark:text-slate-400 rounded-[1.25rem] font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all active:scale-95";
             } else {
                 dashboard.classList.add('hidden');
                 accounts.classList.remove('hidden');
                 renderAccountsList();
                 renderSubRepStats();
 
-                navAccounts.className = "w-full flex items-center gap-3 px-4 py-4 bg-indigo-600 text-white rounded-2xl font-bold transition-all shadow-md";
-                navDashboard.className = "w-full flex items-center gap-3 px-4 py-4 text-slate-600 dark:text-slate-400 rounded-2xl font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all";
+                navAccounts.className = "w-full flex items-center gap-3 px-5 py-4 bg-indigo-600 text-white rounded-[1.25rem] font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95";
+                navDashboard.className = "w-full flex items-center gap-3 px-5 py-4 text-slate-600 dark:text-slate-400 rounded-[1.25rem] font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all active:scale-95";
             }
         }
 
@@ -1252,7 +1375,7 @@
             }
 
             container.innerHTML = subRepAccounts.map(acc => `
-                <div class="glass p-5 rounded-[2rem] flex items-center justify-between border border-slate-100 dark:border-slate-800 hover:border-indigo-300 transition-all hover:shadow-md bg-white/50 dark:bg-slate-800/50">
+                <div class="glass p-5 rounded-[2rem] flex items-center justify-between border border-slate-100 dark:border-slate-800/60 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all hover:shadow-md bg-white/50 dark:bg-slate-900/40">
                     <div class="flex items-center gap-4">
                         <div class="w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-xl shadow-sm">
                             ${(acc.full_name || acc.username || 'م')[0]}
@@ -1297,7 +1420,7 @@
                 const inProgress = total - (delivered + returned + postponed + cancelled);
 
                 return `
-                    <div class="glass p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800 mb-4 bg-white/40 dark:bg-slate-800/40">
+                    <div class="glass p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800/60 mb-4 bg-white/40 dark:bg-slate-900/40">
                         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
                             <h3 class="font-bold text-slate-800 dark:text-white text-lg flex items-center gap-2">
                                 <i class="fas fa-user-circle text-indigo-500"></i> ${name}
@@ -1305,29 +1428,29 @@
                             <span class="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full uppercase">تقرير المندوب</span>
                         </div>
                         <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
-                            <div class="bg-indigo-50/50 dark:bg-indigo-900/20 p-3 rounded-2xl text-center border border-indigo-100/50">
-                                <p class="text-[10px] text-slate-500 font-bold mb-1">الإجمالي</p>
-                                <p class="text-xl font-black text-indigo-600">${total}</p>
+                            <div class="bg-indigo-50/50 dark:bg-indigo-500/10 p-3 rounded-2xl text-center border border-indigo-100/50 dark:border-indigo-500/20">
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">الإجمالي</p>
+                                <p class="text-xl font-black text-indigo-600 dark:text-indigo-400">${total}</p>
                             </div>
-                            <div class="bg-emerald-50/50 dark:bg-emerald-900/20 p-3 rounded-2xl text-center border border-emerald-100/50">
-                                <p class="text-[10px] text-slate-500 font-bold mb-1">تم التوصيل</p>
-                                <p class="text-xl font-black text-emerald-600">${delivered}</p>
+                            <div class="bg-emerald-50/50 dark:bg-emerald-500/10 p-3 rounded-2xl text-center border border-emerald-100/50 dark:border-emerald-500/20">
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">تم التوصيل</p>
+                                <p class="text-xl font-black text-emerald-600 dark:text-emerald-400">${delivered}</p>
                             </div>
-                            <div class="bg-rose-50/50 dark:bg-rose-900/20 p-3 rounded-2xl text-center border border-rose-100/50">
-                                <p class="text-[10px] text-slate-500 font-bold mb-1">مرتجع</p>
-                                <p class="text-xl font-black text-rose-600">${returned}</p>
+                            <div class="bg-rose-50/50 dark:bg-rose-500/10 p-3 rounded-2xl text-center border border-rose-100/50 dark:border-rose-500/20">
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">مرتجع</p>
+                                <p class="text-xl font-black text-rose-600 dark:text-rose-400">${returned}</p>
                             </div>
-                            <div class="bg-amber-50/50 dark:bg-amber-900/20 p-3 rounded-2xl text-center border border-amber-100/50">
-                                <p class="text-[10px] text-slate-500 font-bold mb-1">مؤجل</p>
-                                <p class="text-xl font-black text-amber-600">${postponed}</p>
+                            <div class="bg-amber-50/50 dark:bg-amber-500/10 p-3 rounded-2xl text-center border border-amber-100/50 dark:border-amber-500/20">
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">مؤجل</p>
+                                <p class="text-xl font-black text-amber-600 dark:text-amber-400">${postponed}</p>
                             </div>
-                            <div class="bg-red-50/50 dark:bg-red-900/20 p-3 rounded-2xl text-center border border-red-100/50">
-                                <p class="text-[10px] text-slate-500 font-bold mb-1">إلغاء</p>
-                                <p class="text-xl font-black text-red-600">${cancelled}</p>
+                            <div class="bg-red-50/50 dark:bg-red-500/10 p-3 rounded-2xl text-center border border-red-100/50 dark:border-red-500/20">
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">إلغاء</p>
+                                <p class="text-xl font-black text-red-600 dark:text-red-400">${cancelled}</p>
                             </div>
-                            <div class="bg-sky-50/50 dark:bg-sky-900/20 p-3 rounded-2xl text-center border border-sky-100/50">
-                                <p class="text-[10px] text-slate-500 font-bold mb-1">قيد التوصيل</p>
-                                <p class="text-xl font-black text-sky-600">${inProgress}</p>
+                            <div class="bg-sky-50/50 dark:bg-sky-500/10 p-3 rounded-2xl text-center border border-sky-100/50 dark:border-sky-500/20">
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-1">قيد التوصيل</p>
+                                <p class="text-xl font-black text-sky-600 dark:text-sky-400">${inProgress}</p>
                             </div>
                         </div>
                     </div>

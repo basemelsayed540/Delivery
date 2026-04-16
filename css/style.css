@@ -1,13 +1,12 @@
 :root {
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --secondary: #ec4899;
     --bg-light: #f8fafc;
-    --bg-dark: #0f172a;
+    --bg-dark: #020617; /* Deeper black-blue */
     --card-light: #ffffff;
-    --card-dark: #1e293b;
-    --text-light: #1e293b;
-    --text-dark: #f1f5f9;
+    --card-dark: #0f172a; /* Slate 900 */
+    --text-light: #0f172a;
+    --text-dark: #f8fafc;
+    --accent: #6366f1;
+    --accent-dark: #4f46e5;
 }
 
 * {
@@ -37,12 +36,14 @@ body.dark {
 }
 
 .dark .glass {
-    background: rgba(30, 41, 59, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
     color: white;
     padding: 12px 24px;
     border-radius: 12px;
@@ -74,7 +75,7 @@ body.dark {
 }
 
 .input-field:focus {
-    border-color: var(--primary);
+    border-color: var(--accent);
     background: transparent;
 }
 
@@ -125,13 +126,13 @@ tr {
 
 @media (max-width: 768px) {
     body {
-        background: linear-gradient(180deg, #eef4ff 0%, #f8fafc 100%) !important;
-        color: #0f172a;
+        background: var(--bg-light) !important;
+        color: var(--text-light) !important;
     }
 
     body.dark {
-        background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important;
-        color: #e2e8f0;
+        background: linear-gradient(180deg, var(--bg-dark) 0%, #0f172a 100%) !important;
+        color: var(--text-dark) !important;
     }
 
     .glass {

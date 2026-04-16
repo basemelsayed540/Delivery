@@ -310,7 +310,7 @@
         function isPriceEditShipment(shipment) {
             const normalizedStatus = String(shipment?.الحالة || '').trim();
             const normalizedReason = String(shipment?.['سبب الحالة'] || shipment?.سبب_الحالة || '').trim();
-            return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر';
+            return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر' || normalizedReason === 'شحن';
         }
 
         function isPendingStatus(status) {
@@ -329,6 +329,7 @@
             if (isPendingStatus(normalizedStatus)) return 'قيد التوصيل';
             if (normalizedStatus === 'تأجيل' || normalizedStatus === 'مؤجل') return 'مؤجل';
             if (isRejectedStatus(normalizedStatus)) return 'رفض';
+            if (normalizedStatus === 'تم' || normalizedStatus === 'تم التسليم') return 'تم التوصيل';
             return normalizedStatus || 'قيد التوصيل';
         }
 
