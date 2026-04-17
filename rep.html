@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -1427,21 +1427,14 @@
                     <div class="space-y-4 text-right" dir="rtl">
                         <div>
                             <label class="block text-sm font-bold mb-1">نوع التعديل</label>
-                            <select id="swal-edit-type" onchange="
-                                const shippingFeeRow = document.getElementById('swal-shipping-fee-row');
-                                shippingFeeRow.style.display = this.value === 'شحن' ? 'block' : 'none';
-                            " class="swal2-input !m-0 !w-full border border-slate-200 rounded-lg">
+                            <select id="swal-edit-type" class="swal2-input !m-0 !w-full border border-slate-200 rounded-lg">
                                 <option value="تعديل سعر" ${!isShippingType ? 'selected' : ''}>تعديل سعر</option>
                                 <option value="شحن" ${isShippingType ? 'selected' : ''}>شحن</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold mb-1">السعر الجديد (الصافي)</label>
+                            <label class="block text-sm font-bold mb-1">المبلغ</label>
                             <input id="swal-edit-price" type="number" class="swal2-input !m-0 !w-full border border-slate-200 rounded-lg" value="${shipment.السعر_بعد_التعديل || shipment.المبلغ || ''}" step="0.01" min="0">
-                        </div>
-                        <div id="swal-shipping-fee-row" style="display:${isShippingType ? 'block' : 'none'}">
-                            <label class="block text-sm font-bold mb-1">قيمة الشحن <span class="text-slate-400 font-normal text-xs">(تُكتب في سبب الحالة)</span></label>
-                            <input id="swal-shipping-fee" type="number" class="swal2-input !m-0 !w-full border border-slate-200 rounded-lg" placeholder="مثال: 50" step="0.01" min="0" value="${(() => { const m = currentReason.match(/[\d]+(?:[.,][\d]+)?/); return m ? m[0] : ''; })()}">
                         </div>
                     </div>
                 `,
@@ -1449,19 +1442,11 @@
                 preConfirm: () => {
                     const type = document.getElementById('swal-edit-type').value;
                     const price = document.getElementById('swal-edit-price').value;
-                    const shippingFeeInput = document.getElementById('swal-shipping-fee');
                     if (price === '' || price === null || Number(price) < 0) {
-                        Swal.showValidationMessage('يرجى إدخال سعر صحيح');
+                        Swal.showValidationMessage('يرجى إدخال مبلغ صحيح');
                         return false;
                     }
-                    let reasonValue = type;
-                    if (type === 'شحن' && shippingFeeInput && shippingFeeInput.value !== '') {
-                        const fee = Number(shippingFeeInput.value);
-                        if (!isNaN(fee) && fee > 0) {
-                            reasonValue = `شحن ${fee}`;
-                        }
-                    }
-                    return { type, reasonValue, price: Number(price) };
+                    return { type, reasonValue: type, price: Number(price) };
                 },
                 showCancelButton: true,
                 confirmButtonText: 'حفظ',

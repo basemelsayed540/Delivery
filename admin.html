@@ -156,6 +156,15 @@
             color: #ef4444 !important;
         }
 
+        @keyframes repBlink {
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(239, 68, 68, 0.4); }
+        }
+
+        .rep-blink {
+            animation: repBlink 0.6s ease-in-out infinite;
+        }
+
         .badge-status {
             padding: 6px 12px;
             border-radius: 8px;
@@ -794,9 +803,7 @@
                 <button class="btn text-start text-secondary fw-bold" onclick="openHousingQrScanner()">
                     <i class="fas fa-qrcode me-2"></i> QR Scanner
                 </button>
-                <button class="btn text-start text-secondary fw-bold" onclick="exportHousingToExcel()">
-                    <i class="fas fa-file-excel me-2"></i> تصدير Excel
-                </button>
+
                 <button class="btn text-start sidebar-tab active-tab text-primary shadow-sm fw-bold"
                     onclick="showAdminSection('stats', this)"><i class="fas fa-chart-line me-2"></i> احصائية
                     المندوب</button>
@@ -832,10 +839,7 @@
                         onclick="openHousingQrScanner(); bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar')).hide()"><i
                             class="fas fa-qrcode me-2"></i>
                         QR Scanner</button>
-                    <button class="btn text-start text-secondary fw-bold"
-                        onclick="exportHousingToExcel(); bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar')).hide()"><i
-                            class="fas fa-file-excel me-2"></i>
-                        تصدير Excel</button>
+
                     <button class="btn text-start sidebar-tab active-tab text-primary shadow-sm fw-bold"
                         onclick="showAdminSection('stats', this, true)"><i class="fas fa-chart-line me-2"></i> احصائية
                         المندوب</button>
@@ -1220,6 +1224,27 @@
                             <button id="housingDeleteSelectedBtn" type="button" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3" onclick="deleteSelectedHousingShipments()" disabled>
                                 <i class="fas fa-trash-alt me-1"></i> حذف المحدد
                             </button>
+                            <button type="button" class="btn btn-emerald btn-sm rounded-pill fw-bold px-3" onclick="exportHousingToExcel()" style="background-color: #10b981; color: white; border: none;">
+                                <i class="fas fa-file-excel me-1"></i> تصدير Excel
+                            </button>
+                            <button id="housingWarehouseSelectedBtn" type="button" class="btn btn-warning btn-sm rounded-pill fw-bold px-3" onclick="moveSelectedToWarehouse()" disabled>
+                                <i class="fas fa-warehouse me-1"></i> المخزن
+                            </button>
+                            <button id="housingInDeliverySelectedBtn" type="button" class="btn btn-info btn-sm rounded-pill fw-bold px-3" onclick="moveSelectedToInDelivery()" disabled style="background-color: #0dcaf0; border: none; color: white;">
+                                <i class="fas fa-truck me-1"></i> قيد التوصيل
+                            </button>
+                            <button id="housingUndoBtn" type="button"
+                                    class="btn btn-outline-warning btn-sm rounded-pill fw-bold px-3 housing-undo-btn"
+                                    onclick="undoHousingAction()" disabled title="تراجع (Ctrl+Z)">
+                                    <i class="fas fa-undo me-1"></i> تراجع
+                                    <span class="badge bg-white text-warning housing-undo-count ms-1"
+                                        id="housingUndoBadge" style="font-size: 0.7rem;">0</span>
+                            </button>
+                            <button type="button"
+                                    class="btn btn-outline-info btn-sm rounded-pill fw-bold px-3 refresh-btn-glow"
+                                    onclick="refreshAdminData()" title="تحديث البيانات">
+                                    <i class="fas fa-sync-alt me-1"></i> تحديث
+                            </button>
                         </div>
                         
                         <!-- سريط الفلاتر والتعيين المدمج -->
@@ -1352,18 +1377,6 @@
                                 <input id="housingSearch" type="text"
                                     class="form-control rounded-pill border-secondary flex-grow-1 min-w-0"
                                     placeholder="🔍 ابحث في اسم العميل أو الهاتف أو البديل أو كود الشحنة...">
-                                <button id="housingUndoBtn" type="button"
-                                    class="btn btn-outline-warning rounded-pill fw-bold housing-undo-btn flex-shrink-0 px-3"
-                                    onclick="undoHousingAction()" disabled title="تراجع (Ctrl+Z)">
-                                    <i class="fas fa-undo me-1"></i> تراجع
-                                    <span class="badge bg-white text-warning housing-undo-count ms-1"
-                                        id="housingUndoBadge">0</span>
-                                </button>
-                                <button type="button"
-                                    class="btn btn-outline-info rounded-pill fw-bold flex-shrink-0 px-3 refresh-btn-glow"
-                                    onclick="refreshAdminData()" title="تحديث البيانات">
-                                    <i class="fas fa-sync-alt me-1"></i> تحديث
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -3073,21 +3086,24 @@
                 return;
             }
 
-            const exportData = data.map(s => ({
-                'اسم العميل': s.اسم_العميل || '',
-                'العنوان': s.العنوان || '',
-                'الزون': s.الزون || '',
-                'المنتج': s.المنتج || '',
-                'الهاتف': s.الهاتف || '',
-                'هاتف بديل': s.هاتف_بديل || '',
-                'المبلغ': s.المبلغ || '',
-                'الراسل': s.الراسل || '',
-                'كود الشحنة': s.كود_الشحنة || s.الكود || s.order_id || '',
-                'المندوب': s.المندوب || '',
-                'الحالة': s.الحالة || '',
-                'سبب الحالة': s.سبب_الحالة || '',
-                'السعر بعد التعديل': s.السعر_بعد_التعديل || ''
-            }));
+            const exportData = data.map(s => {
+                const d = getHousingDisplayShipmentData(s);
+                return {
+                    'اسم العميل': d.اسم_العميل || '',
+                    'العنوان': d.العنوان || '',
+                    'الزون': d.الزون || '',
+                    'المنتج': d.المنتج || d.الصنف || '',
+                    'الهاتف': d.الهاتف || '',
+                    'هاتف بديل': d.هاتف_بديل || '',
+                    'المبلغ': d.المبلغ || '',
+                    'الراسل': d.الراسل || '',
+                    'كود الشحنة': d.كود_الشحنة || d.order_id || '',
+                    'المندوب': d.المندوب || '',
+                    'الحالة': d.الحالة || '',
+                    'سبب الحالة': d['سبب الحالة'] || d.سبب_الحالة || '',
+                    'السعر بعد التعديل': d.السعر_بعد_التعديل || ''
+                };
+            });
 
             const ws = XLSX.utils.json_to_sheet(exportData);
             const wb = XLSX.utils.book_new();
@@ -3849,6 +3865,32 @@
                 }
             }
 
+            const statusVal = document.getElementById(`housing-status-${id}`)?.value;
+            
+            // إجبار مسح المندوب عند اختيار حالة "مجاش"
+            if (statusVal === 'مجاش') {
+                const repSelect = document.getElementById(`housing-rep-${id}`);
+                if (repSelect && repSelect.value) {
+                    repSelect.value = '';
+                    
+                    // إضافة الوميض للخلية لإظهار أنه تم المسح
+                    repSelect.classList.remove('rep-blink');
+                    void repSelect.offsetWidth; // تفعيل إعادة الرسم لتشغيل الأنيميشن مجدداً
+                    repSelect.classList.add('rep-blink');
+                }
+            }
+
+            const adjustedInp = document.getElementById(`housing-adjusted-${id}`);
+            if (adjustedInp) {
+                if ((statusVal === 'تعديل سعر' || statusVal === 'شحن') && (!adjustedInp.value.trim() || adjustedInp.value.trim() === '0')) {
+                    adjustedInp.style.border = '2px solid #dc3545';
+                    adjustedInp.style.backgroundColor = '#fff8f8';
+                } else {
+                    adjustedInp.style.border = '';
+                    adjustedInp.style.backgroundColor = '';
+                }
+            }
+
             const payload = getHousingRowPayload(id);
             const changedFields = getHousingChangedFields(shipment, payload);
 
@@ -4102,6 +4144,28 @@
             const entries = getHousingDraftEntries();
             if (!entries.length) return;
 
+            // التحقق من صحة البيانات (إجبار السعر بعد التعديل عند اختيار تعديل سعر أو شحن)
+            for (const entry of entries) {
+                const status = entry.payload.الحالة;
+                const price = String(entry.payload.السعر_بعد_التعديل || '').trim();
+                if ((status === 'تعديل سعر' || status === 'شحن') && (!price || price === '0')) {
+                    const customerName = entry.payload.اسم_العميل || entry.shipment.اسم_العميل || '---';
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'بيانات مفقودة',
+                        text: `يرجى إدخال السعر بعد التعديل للشحنة الخاصة بـ (${customerName}) لأنك اخترت حالة "${status}".`,
+                        confirmButtonText: 'حسناً'
+                    });
+                    const inp = document.getElementById(`housing-adjusted-${entry.id}`);
+                    if (inp) {
+                        inp.focus();
+                        inp.style.border = '2px solid #dc3545';
+                        inp.style.backgroundColor = '#fff8f8';
+                    }
+                    return;
+                }
+            }
+
             const { isConfirmed } = await Swal.fire({
                 title: 'تأكيد الحفظ الجماعي',
                 text: `هل أنت متأكد من حفظ ${entries.length} تغيير في قاعدة البيانات؟ سيتم تحديث الجدول الرئيسي في السيرفر.`,
@@ -4244,6 +4308,9 @@
             const postponedCount = shipments.filter(s =>
                 getHousingDashboardDisplayStatus(getHousingDisplayShipmentData(s)) === 'مؤجل'
             ).length;
+            const mjashCount = shipments.filter(s =>
+                getHousingDashboardDisplayStatus(getHousingDisplayShipmentData(s)) === 'مجاش'
+            ).length;
             const inDeliveryCount = shipments.filter(s =>
                 getHousingDashboardDisplayStatus(getHousingDisplayShipmentData(s)) === 'قيد التوصيل'
             ).length;
@@ -4254,7 +4321,7 @@
                 const d = getHousingDisplayShipmentData(s);
                 const status = getHousingDashboardDisplayStatus(d);
                 
-                // الصافي - Total Collected
+                // التوريد - Total Collected
                 if (status === 'تم التوصيل' || status === 'تعديل سعر') {
                     const priceStr = d.السعر_بعد_التعديل || d.المبلغ || '0';
                     const price = parseFloat(String(priceStr).replace(/[^0-9.-]+/g, '')) || 0;
@@ -4284,6 +4351,11 @@
                             <i class="fas fa-user-slash text-danger mb-1" style="font-size:1.1rem;"></i>
                             <small class="text-muted fw-bold" style="font-size:0.7rem;">بدون مندوب</small>
                             <span class="fw-bold fs-6 text-danger">${cardValue(noDelegate)}</span>
+                        </button>
+                        <button type="button" onclick="toggleHousingDashStatFilter('مجاش')" class="${cardStyle} border-dark-subtle ${getActiveClass('مجاش')}" style="min-width:100px;">
+                            <i class="fas fa-user-xmark text-dark mb-1" style="font-size:1.1rem;"></i>
+                            <small class="text-muted fw-bold" style="font-size:0.7rem;">مجاش</small>
+                            <span class="fw-bold fs-6 text-dark">${cardValue(mjashCount)}</span>
                         </button>
                         <button type="button" onclick="toggleHousingDashStatFilter('بدون مبلغ')" class="${cardStyle} border-danger-subtle ${getActiveClass('بدون مبلغ')}" style="min-width:100px;">
                             <i class="fas fa-comment-dollar text-danger mb-1" style="font-size:1.1rem;"></i>
@@ -4340,7 +4412,7 @@
                         </div>
                         <div class="d-flex flex-column align-items-center justify-content-center text-center rounded-3 px-3 py-2 flex-shrink-0 text-white shadow-sm" style="min-width:110px;background:linear-gradient(135deg,#4f46e5,#312e81);">
                             <i class="fas fa-money-bill-wave mb-1" style="font-size:1.1rem;opacity:0.9;"></i>
-                            <small class="fw-bold" style="font-size:0.7rem;opacity:0.9;">الصافي</small>
+                            <small class="fw-bold" style="font-size:0.7rem;opacity:0.9;">التوريد</small>
                             <span class="fw-bold fs-6" dir="ltr">${showCounts ? totalAmount.toLocaleString() : '0'}</span>
                         </div>
                     </div>
@@ -4435,6 +4507,9 @@
                 if (altPhoneValue && (phoneCounts.get(altPhoneValue) || 0) > 1) hasAnotherShipment = true;
 
                 const newRepName = (document.getElementById('housingNewRepName')?.value || '').trim();
+                const draft = housingDrafts.get(String(s.id));
+                const isMjashDraft = draft && draft.الحالة === 'مجاش';
+
                 return `
                     <tr class="${hasAnotherShipment ? 'housing-duplicate-row' : ''}" title="${hasAnotherShipment ? 'له شحنة أخرى بنفس رقم الهاتف' : ''}">
                         <td class="text-center">
@@ -4448,7 +4523,7 @@
                             ${hasAnotherShipment ? `<div class="housing-duplicate-badge">له شحنة أخرى</div>` : ''}
                         </td>
                         <td>
-                            <select class="form-select form-select-sm rounded-3" id="housing-rep-${s.id}" onchange="syncHousingDraft('${s.id}')">
+                            <select class="form-select form-select-sm rounded-3 ${isMjashDraft ? 'rep-blink' : ''}" id="housing-rep-${s.id}" onchange="syncHousingDraft('${s.id}')">
                                 <option value=""></option>
                                 ${getHousingRepOptions(currentData.المندوب || '')}
                             </select>
@@ -4469,7 +4544,18 @@
                         <td class="text-center small fw-bold text-secondary" style="display: none;">${escapeHtml(currentData.كود_الشحنة || currentData.order_id || '---')}</td>
 
 
-                        <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-status-${s.id}" value="${escapeAttr(currentData.الحالة || '')}" placeholder="الحالة" oninput="syncHousingDraft('${s.id}')"></td>
+                        <td>
+                            <select class="form-select form-select-sm rounded-3 fw-bold" id="housing-status-${s.id}" onchange="syncHousingDraft('${s.id}')">
+                                <option value="" ${!currentData.الحالة ? 'selected' : ''}></option>
+                                <option value="تم" ${currentData.الحالة === 'تم' ? 'selected' : ''}>تم</option>
+                                <option value="قيد التوصيل" ${currentData.الحالة === 'قيد التوصيل' ? 'selected' : ''}>قيد التوصيل</option>
+                                <option value="تعديل سعر" ${currentData.الحالة === 'تعديل سعر' ? 'selected' : ''}>تعديل سعر</option>
+                                <option value="شحن" ${currentData.الحالة === 'شحن' ? 'selected' : ''}>شحن</option>
+                                <option value="رفض" ${currentData.الحالة === 'رفض' ? 'selected' : ''}>رفض</option>
+                                <option value="مؤجل" ${currentData.الحالة === 'مؤجل' ? 'selected' : ''}>مؤجل</option>
+                                <option value="مجاش" ${currentData.الحالة === 'مجاش' ? 'selected' : ''}>مجاش</option>
+                            </select>
+                        </td>
                         <td><input type="text" class="form-control form-control-sm rounded-3" id="housing-reason-${s.id}" value="${escapeAttr(currentData['سبب الحالة'] || currentData.سبب_الحالة || '')}" placeholder="السبب" oninput="syncHousingDraft('${s.id}')"></td>
                         <td><input type="text" inputmode="numeric" dir="ltr" class="form-control form-control-sm rounded-3 text-end" id="housing-adjusted-${s.id}" value="${escapeAttr(currentData.السعر_بعد_التعديل || '')}" placeholder="السعر" oninput="syncHousingDraft('${s.id}')"></td>
                     </tr>
@@ -4500,6 +4586,14 @@
                 if (valEl) valEl.innerText = checkedCount;
                 else selectedCountEl.innerHTML = `<i class="fas fa-check-double me-1"></i> <span id="housingSelectedCountValue">${checkedCount}</span>`;
                 if (deleteBtnEl) deleteBtnEl.disabled = checkedCount === 0;
+                const warehouseBtnEl = document.getElementById('housingWarehouseSelectedBtn');
+                if (warehouseBtnEl) {
+                    warehouseBtnEl.disabled = checkedCount === 0;
+                    const badge = document.getElementById('housingWarehouseCountBadge');
+                    if (badge) badge.innerText = checkedCount;
+                }
+                const inDeliveryBtnEl = document.getElementById('housingInDeliverySelectedBtn');
+                if (inDeliveryBtnEl) inDeliveryBtnEl.disabled = checkedCount === 0;
             }
 
             if (selectAll && checkboxes.length > 0) {
@@ -4713,6 +4807,146 @@
 
             refreshDashboard();
             updateHousingSaveButtonState();
+        }
+
+        async function moveSelectedToWarehouse() {
+            const checkboxes = document.querySelectorAll('.housing-row-checkbox:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                Swal.fire('تنبيه', 'يرجى تحديد شحنات أولاً', 'warning');
+                return;
+            }
+
+            const { isConfirmed } = await Swal.fire({
+                title: 'تأكيد التحويل للمخزن',
+                html: `هل أنت متأكد من تحويل <b>${selectedIds.length}</b> شحنة إلى "المخزن"؟<br><br>سيتم تعيين عمود المندوب إلى "مخزن" لهذه الشحنات.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ff9800',
+                confirmButtonText: 'نعم، تحويل للمخزن',
+                cancelButtonText: 'إلغاء'
+            });
+
+            if (!isConfirmed) return;
+
+            // --- Undo Snapshot ---
+            const snapshots = selectedIds.map(id => {
+                const s = allShipments.find(sh => String(sh.id) === String(id));
+                return { id, fields: { المندوب: s ? (s.المندوب ?? null) : null } };
+            });
+            housingUndoStack.push({ label: `تحويل للمخزن لـ ${selectedIds.length} شحنة`, snapshots });
+            updateHousingUndoButtonState();
+
+            showLoading(true);
+            try {
+                const { error } = await supabaseClient
+                    .from(CONFIG.TABLES.SHIPMENTS)
+                    .update({ المندوب: 'مخزن' })
+                    .in('id', selectedIds);
+
+                if (error) throw error;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم التحويل للمخزن',
+                    text: `تم تحويل ${selectedIds.length} شحنة بنجاح.`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Update local data
+                allShipments = allShipments.map(s => {
+                    if (selectedIds.includes(String(s.id))) {
+                        return { ...s, المندوب: 'مخزن' };
+                    }
+                    return s;
+                });
+                
+                // Clear selections
+                document.querySelectorAll('.housing-row-checkbox').forEach(cb => cb.checked = false);
+                const selectAll = document.getElementById('housingSelectAll');
+                if (selectAll) selectAll.checked = false;
+
+                refreshDashboard();
+
+            } catch (err) {
+                console.error("Move To Warehouse Error:", err);
+                housingUndoStack.pop();
+                updateHousingUndoButtonState();
+                Swal.fire('خطأ في العملية', 'فشل التحويل: ' + err.message, 'error');
+            }
+            showLoading(false);
+        }
+
+        async function moveSelectedToInDelivery() {
+            const checkboxes = document.querySelectorAll('.housing-row-checkbox:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                Swal.fire('تنبيه', 'يرجى تحديد شحنات أولاً', 'warning');
+                return;
+            }
+
+            const { isConfirmed } = await Swal.fire({
+                title: 'تأكيد التحويل لقيد التوصيل',
+                html: `هل أنت متأكد من تغيير حالة <b>${selectedIds.length}</b> شحنة إلى "قيد التوصيل"؟`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0dcaf0',
+                confirmButtonText: 'نعم، تحويل',
+                cancelButtonText: 'إلغاء'
+            });
+
+            if (!isConfirmed) return;
+
+            // --- Undo Snapshot ---
+            const snapshots = selectedIds.map(id => {
+                const s = allShipments.find(sh => String(sh.id) === String(id));
+                return { id, fields: { الحالة: s ? (s.الحالة ?? null) : null } };
+            });
+            housingUndoStack.push({ label: `تغيير الحالة لـ قيد التوصيل لـ ${selectedIds.length} شحنة`, snapshots });
+            updateHousingUndoButtonState();
+
+            showLoading(true);
+            try {
+                const { error } = await supabaseClient
+                    .from(CONFIG.TABLES.SHIPMENTS)
+                    .update({ الحالة: 'قيد التوصيل' })
+                    .in('id', selectedIds);
+
+                if (error) throw error;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم التحديث بنجاح',
+                    text: `تم تغيير حالة ${selectedIds.length} شحنة إلى "قيد التوصيل" بنجاح.`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Update local data
+                allShipments = allShipments.map(s => {
+                    if (selectedIds.includes(String(s.id))) {
+                        return { ...s, الحالة: 'قيد التوصيل' };
+                    }
+                    return s;
+                });
+                
+                // Clear selections
+                document.querySelectorAll('.housing-row-checkbox').forEach(cb => cb.checked = false);
+                const selectAll = document.getElementById('housingSelectAll');
+                if (selectAll) selectAll.checked = false;
+
+                refreshDashboard();
+
+            } catch (err) {
+                console.error("Move To In-Delivery Error:", err);
+                housingUndoStack.pop();
+                updateHousingUndoButtonState();
+                Swal.fire('خطأ في العملية', 'فشل التحديث: ' + err.message, 'error');
+            }
+            showLoading(false);
         }
 
         async function deleteSelectedHousingShipments() {
