@@ -2899,6 +2899,10 @@
                 const payload = {};
                 if (newRep) payload.المندوب = newRep;
                 if (newStatus) payload.الحالة = newStatus;
+                
+                // Track who did the housing/assignment
+                const currentU = currentUser.full_name || currentUser.username || 'المدير';
+                payload.موظف_التسكين = currentU;
 
                 if (progressText) progressText.innerText = `جاري معالجة: ${escapeHtml(entry.shipment.اسم_العميل || 'شحنة')}`;
 
@@ -3248,6 +3252,8 @@
                         'عمولة المندوب': 'عمولة_المندوب'
                     };
 
+                    const currentU = currentUser.full_name || currentUser.username || 'المدير';
+
                     const updates = [];
                     for (const row of json) {
                         const payload = {};
@@ -3259,6 +3265,7 @@
 
                         const orderId = String(payload.order_id || '').trim();
                         if (orderId) {
+                            payload.موظف_التسكين = currentU;
                             updates.push(payload);
                         }
                     }
@@ -4464,9 +4471,12 @@
 
                 if (progressText) progressText.innerText = `جاري معالجة: ${escapeHtml(entry.payload.اسم_العميل || entry.shipment.اسم_العميل || 'شحنة غير معروفة')}`;
 
+                const currentU = currentUser.full_name || currentUser.username || 'المدير';
+                const finalPayload = { ...entry.payload, موظف_التسكين: currentU };
+
                 const { error } = await supabaseClient
                     .from(CONFIG.TABLES.SHIPMENTS)
-                    .update(entry.payload)
+                    .update(finalPayload)
                     .eq('id', entry.id);
 
                 if (!error) {

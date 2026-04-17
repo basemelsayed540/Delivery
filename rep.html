@@ -146,8 +146,10 @@
             </div>
         </div>
 
-        <!-- Search and Filter -->
-        <div class="mb-6 space-y-4">
+        <!-- View Containers -->
+        <div id="dashboard-view">
+            <!-- Search and Filter -->
+            <div class="mb-6 space-y-4">
             <div class="relative group">
                 <i
                     class="fas fa-search absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors text-base"></i>
@@ -200,31 +202,51 @@
                 <div class="h-32 bg-slate-200 rounded-2xl w-full"></div>
             </div>
         </div>
-        <div id="shipmentMenu"
-            class="hidden fixed z-50 min-w-[220px] rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
-            <button onclick="copyShipmentDataFromMenu()"
-                class="w-full rounded-xl px-4 py-3 text-right text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100">
-                نسخ بيانات الشحنة
-            </button>
+            <div id="shipmentMenu"
+                class="hidden fixed z-50 min-w-[220px] rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
+                <button onclick="copyShipmentDataFromMenu()"
+                    class="w-full rounded-xl px-4 py-3 text-right text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100">
+                    نسخ بيانات الشحنة
+                </button>
+            </div>
+        </div>
+
+        <!-- Notifications View -->
+        <div id="notifications-view" class="hidden space-y-4">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-black text-slate-900 dark:text-white">سجل الإشعارات</h2>
+                <button onclick="clearRepNotifications()" class="text-[10px] font-black text-rose-500 bg-rose-50 dark:bg-rose-900/30 px-3 py-1.5 rounded-xl border border-rose-100 dark:border-rose-800">
+                    مسح الكل
+                </button>
+            </div>
+            <div id="repNotificationsContainer" class="space-y-3">
+                <!-- Notifications injected here -->
+            </div>
         </div>
     </main>
 
     <!-- Navigation Bottom (Mobile Only) -->
     <nav
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass rounded-full px-8 py-4 flex items-center justify-between shadow-2xl z-50">
-        <button class="flex flex-col items-center gap-1 text-indigo-600">
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg glass rounded-full px-4 py-3 flex items-center justify-around shadow-2xl z-50">
+        <button id="nav-btn-dashboard" onclick="switchRepView('dashboard')" class="flex flex-col items-center gap-1 text-indigo-600 transition-all">
             <i class="fas fa-box text-xl"></i>
-            <span class="text-[10px] font-bold">شحناتي</span>
+            <span class="text-[9px] font-black">شحناتي</span>
         </button>
         <a href="wallet.html"
-            class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors">
+            class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors relative">
             <i class="fas fa-wallet text-xl"></i>
-            <span class="text-[10px] font-bold">المحفظة</span>
+            <span class="text-[9px] font-black">المحفظة</span>
         </a>
+        <button id="nav-btn-notifications" onclick="switchRepView('notifications')"
+            class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors relative">
+            <i class="fas fa-bell text-xl"></i>
+            <span class="text-[9px] font-black">الإشعارات</span>
+            <span id="low-unread-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[8px] font-black flex items-center justify-center border-2 border-white dark:border-slate-900 animate-pulse">0</span>
+        </button>
         <a href="account.html"
             class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors">
             <i class="fas fa-user text-xl"></i>
-            <span class="text-[10px] font-bold">الحساب</span>
+            <span class="text-[9px] font-black">الحساب</span>
         </a>
     </nav>
 
@@ -247,6 +269,119 @@
         const REP_UI_STATE_KEY = 'repUiState';
         const REP_SEEN_SHIPMENTS_KEY_PREFIX = 'repSeenShipments:';
         const REP_UNREAD_SESSION_KEY = 'repUnreadShipments:';
+        const REP_NOTIFICATIONS_KEY = 'rep_local_notifications';
+        
+        let repNotifications = JSON.parse(localStorage.getItem(REP_NOTIFICATIONS_KEY) || '[]');
+        let currentActiveView = 'dashboard';
+
+        function addRepNotification(type, shipment) {
+            const notif = {
+                id: Date.now() + Math.random(),
+                type: type, // 'added', 'removed', 'deleted', 'status_changed'
+                order_id: shipment.order_id || shipment.كود_الشحنة || shipment.الكود || '---',
+                client: shipment.اسم_العميل || '---',
+                employee: shipment.موظف_التسكين || '---',
+                newStatus: shipment.الحالة || '---',
+                isWarehouse: normalizeComparableValue(shipment.المندوب) === normalizeComparableValue('مخزن'),
+                time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                date: new Date().toLocaleDateString('ar-EG'),
+                read: false
+            };
+            repNotifications.unshift(notif);
+            if (repNotifications.length > 50) repNotifications.pop();
+            localStorage.setItem(REP_NOTIFICATIONS_KEY, JSON.stringify(repNotifications));
+            updateRepNotifUI();
+        }
+
+        function updateRepNotifUI() {
+            const unreadCount = repNotifications.filter(n => !n.read).length;
+            const badge = document.getElementById('low-unread-badge');
+            if (badge) {
+                badge.innerText = unreadCount;
+                badge.classList.toggle('hidden', unreadCount === 0);
+                badge.classList.toggle('flex', unreadCount > 0);
+            }
+            if (currentActiveView === 'notifications') renderRepNotifications();
+        }
+
+        function clearRepNotifications() {
+            repNotifications = [];
+            localStorage.setItem(REP_NOTIFICATIONS_KEY, JSON.stringify(repNotifications));
+            renderRepNotifications();
+            updateRepNotifUI();
+        }
+
+        function renderRepNotifications() {
+            const container = document.getElementById('repNotificationsContainer');
+            if (!container) return;
+            
+            if (repNotifications.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-20 glass rounded-[2.5rem]">
+                        <div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-4">
+                            <i class="fas fa-bell-slash text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 dark:text-white">لا توجد إشعارات</h3>
+                        <p class="text-[10px] text-slate-400 mt-1">سيتم إخطارك بكل جديد هنا</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = repNotifications.map(n => {
+                let icon = 'fa-plus-circle text-emerald-500 bg-emerald-50';
+                let text = 'شحنة جديدة بعهدتكم';
+                if (n.type === 'removed') { 
+                    icon = n.isWarehouse ? 'fa-warehouse text-slate-500 bg-slate-50' : 'fa-exchange-alt text-amber-500 bg-amber-50'; 
+                    text = n.isWarehouse ? 'تم التحويل للمخزن' : 'تم سحب شحنة من عهدتكم'; 
+                }
+                if (n.type === 'deleted') { icon = 'fa-trash text-rose-500 bg-rose-50'; text = 'تم حذف شحنة من عهدتكم'; }
+                if (n.type === 'status_changed') { icon = 'fa-info-circle text-sky-500 bg-sky-50'; text = `تم تغيير الحالة إلى (${n.newStatus})`; }
+
+                return `
+                    <div class="glass p-4 rounded-3xl flex items-start gap-3 border ${n.read ? 'border-slate-100' : 'border-indigo-200 bg-indigo-50/20 shadow-sm'}">
+                        <div class="w-10 h-10 ${icon} rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <i class="fas ${icon.split(' ')[0]}"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <h4 class="text-xs font-black text-slate-800 dark:text-white">${text}</h4>
+                                <span class="text-[9px] text-slate-400 font-bold">${n.time}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">المعرف: <span class="font-black text-black dark:text-white">${n.order_id}</span> | العميل: ${n.client}</p>
+                            <p class="text-[10px] text-indigo-500 font-bold mt-1 leading-none flex items-center gap-1">
+                                <i class="fas fa-user-edit text-[9px]"></i> بواسطة: ${n.employee}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchRepView(viewId) {
+            currentActiveView = viewId;
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('notifications-view').classList.add('hidden');
+            document.getElementById(viewId + '-view').classList.remove('hidden');
+
+            const dashBtn = document.getElementById('nav-btn-dashboard');
+            const notifBtn = document.getElementById('nav-btn-notifications');
+            
+            if (viewId === 'dashboard') {
+                dashBtn?.classList.replace('text-slate-400', 'text-indigo-600');
+                notifBtn?.classList.replace('text-indigo-600', 'text-slate-400');
+            } else {
+                notifBtn?.classList.replace('text-slate-400', 'text-indigo-600');
+                dashBtn?.classList.replace('text-indigo-600', 'text-slate-400');
+                
+                // Mark as read
+                repNotifications.forEach(n => n.read = true);
+                localStorage.setItem(REP_NOTIFICATIONS_KEY, JSON.stringify(repNotifications));
+                setTimeout(updateRepNotifUI, 1000);
+                renderRepNotifications();
+            }
+        }
+
         let notificationAudioContext = null;
         let dateFilterSelections = new Set();
         let statusFilterSelections = new Set(['قيد التوصيل']); // Default
@@ -636,6 +771,8 @@
             if (newShipments.length > 0) {
                 syncUnreadShipments(newShipments);
                 showNewShipmentNotification(newShipments);
+                // Also add to the persistent notification log (history tab)
+                newShipments.forEach(s => addRepNotification('added', s));
             }
 
             await fetchLockedShipmentIds();
@@ -1581,6 +1718,34 @@
         const channel = supabaseClient
             .channel('public:shipments1')
             .on('postgres_changes', { event: '*', schema: 'public', table: CONFIG.TABLES.SHIPMENTS }, async (payload) => {
+                const event = payload.eventType;
+                const newRow = payload.new;
+                const oldRow = payload.old;
+                const repIdentifiers = getRepIdentifiers().map(normalizeComparableValue);
+
+                if (event === 'INSERT') {
+                    if (repIdentifiers.includes(normalizeComparableValue(newRow.المندوب))) {
+                        addRepNotification('added', newRow);
+                    }
+                } else if (event === 'UPDATE') {
+                    const localOld = allShipments.find(s => String(s.id) === String(newRow.id));
+                    const wasMine = localOld && repIdentifiers.includes(normalizeComparableValue(localOld.المندوب));
+                    const currentRepInRows = newRow.hasOwnProperty('المندوب') ? newRow.المندوب : (localOld ? localOld.المندوب : null);
+                    const isMine = currentRepInRows && repIdentifiers.includes(normalizeComparableValue(currentRepInRows));
+
+                    const merged = { ...localOld, ...newRow };
+                    if (!wasMine && isMine) addRepNotification('added', merged);
+                    else if (wasMine && !isMine) addRepNotification('removed', merged);
+                    else if (wasMine && isMine && localOld && newRow.hasOwnProperty('الحالة') && localOld.الحالة !== newRow.الحالة) {
+                        addRepNotification('status_changed', merged);
+                    }
+                } else if (event === 'DELETE') {
+                    const localDeleted = allShipments.find(s => String(s.id) === String(oldRow.id));
+                    if (localDeleted && repIdentifiers.includes(normalizeComparableValue(localDeleted.المندوب))) {
+                        addRepNotification('deleted', localDeleted);
+                    }
+                }
+
                 triggerDateFilterGlow();
                 await fetchShipments();
                 console.log('تحديث جديد للشحنات');
@@ -1670,6 +1835,7 @@
 
         fetchShipments();
         initUnreadBadge();
+        updateRepNotifUI(); // Initialize notification system
     </script>
 </body>
 
