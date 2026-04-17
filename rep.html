@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -159,7 +159,7 @@
                 <div class="relative flex-1 min-w-[100px]">
                     <button id="filterDateBtn"
                         onclick="document.getElementById('filterDateMenu').classList.toggle('hidden'); stopDateFilterGlow();"
-                        class="rep-date-filter-glow w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-black dark:text-white dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all">
+                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-black dark:text-white dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all">
                         <span id="filterDateLabel" class="truncate">التاريخ</span>
                         <i class="fas fa-chevron-down text-[10px]"></i>
                     </button>
@@ -168,37 +168,26 @@
                     </div>
                 </div>
                 <div class="relative flex-1 min-w-[100px]">
-                    <button id="filterStatusBtn"
-                        onclick="document.getElementById('filterStatusMenu').classList.toggle('hidden');"
-                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-black dark:text-white dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all">
-                        <span id="filterStatusLabel" class="truncate">الحالة</span>
-                        <i class="fas fa-chevron-down text-[10px]"></i>
-                    </button>
-                    <div id="filterStatusMenu"
-                        class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full bg-white rounded-xl shadow-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-700 max-h-60 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right">
-                    </div>
+                    <select id="filterStatus" onchange="toggleStatusSelection(this.value)"
+                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
+                        <option value="الكل">الحالة: الكل</option>
+                        <!-- Options will be populated dynamically or we can just let fillStatusDropdown do it -->
+                    </select>
+                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
                 </div>
                 <div class="relative flex-1 min-w-[100px]">
-                    <button id="filterZoneBtn"
-                        onclick="document.getElementById('filterZoneMenu').classList.toggle('hidden');"
-                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-black dark:text-white dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all">
-                        <span id="filterZoneLabel" class="truncate">الزون</span>
-                        <i class="fas fa-chevron-down text-[10px]"></i>
-                    </button>
-                    <div id="filterZoneMenu"
-                        class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full bg-white rounded-xl shadow-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-700 max-h-60 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right">
-                    </div>
+                    <select id="filterZone" onchange="toggleZoneSelection(this.value)"
+                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
+                        <option value="الكل">الزون: الكل</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
                 </div>
                 <div class="relative flex-1 min-w-[100px]">
-                    <button id="filterSenderBtn"
-                        onclick="document.getElementById('filterSenderMenu').classList.toggle('hidden');"
-                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-black dark:text-white dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all">
-                        <span id="filterSenderLabel" class="truncate">الراسل</span>
-                        <i class="fas fa-chevron-down text-[10px]"></i>
-                    </button>
-                    <div id="filterSenderMenu"
-                        class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full bg-white rounded-xl shadow-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-700 max-h-60 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right">
-                    </div>
+                    <select id="filterSender" onchange="toggleSenderSelection(this.value)"
+                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
+                        <option value="الكل">الراسل: الكل</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
                 </div>
             </div>
         </div>
@@ -298,8 +287,10 @@
             const normalizedValue = String(value || '').trim();
             if (!normalizedValue) return;
 
-            if (zoneFilterSelections.has(normalizedValue)) zoneFilterSelections.delete(normalizedValue);
-            else zoneFilterSelections.add(normalizedValue);
+            zoneFilterSelections.clear();
+            if (normalizedValue !== 'الكل') {
+                zoneFilterSelections.add(normalizedValue);
+            }
 
             saveRepUiState();
             renderShipments();
@@ -309,8 +300,10 @@
             const normalizedValue = String(value || '').trim();
             if (!normalizedValue) return;
 
-            if (statusFilterSelections.has(normalizedValue)) statusFilterSelections.delete(normalizedValue);
-            else statusFilterSelections.add(normalizedValue);
+            statusFilterSelections.clear();
+            if (normalizedValue !== 'الكل') {
+                statusFilterSelections.add(normalizedValue);
+            }
 
             saveRepUiState();
             renderShipments();
@@ -320,8 +313,10 @@
             const normalizedValue = String(value || '').trim();
             if (!normalizedValue) return;
 
-            if (senderFilterSelections.has(normalizedValue)) senderFilterSelections.delete(normalizedValue);
-            else senderFilterSelections.add(normalizedValue);
+            senderFilterSelections.clear();
+            if (normalizedValue !== 'الكل') {
+                senderFilterSelections.add(normalizedValue);
+            }
 
             saveRepUiState();
             renderShipments();
@@ -339,7 +334,7 @@
             const menu = document.getElementById('filterDateMenu');
             if (!btn || !menu || !menu.classList.contains('hidden')) return;
 
-            btn.classList.add('rep-date-filter-glow');
+            // btn.classList.add('rep-date-filter-glow');
             if (dateFilterGlowTimeout) {
                 clearTimeout(dateFilterGlowTimeout);
                 dateFilterGlowTimeout = null;
@@ -682,7 +677,25 @@
             const currentZone = document.getElementById('filterZone')?.value || '';
             const currentSender = document.getElementById('filterSender')?.value || '';
 
+            const selectedStatuses = getSelectedStatuses();
+
+            const checkStatus = (s) => {
+                if (selectedStatuses.length === 0) return true;
+                if (selectedStatuses.includes('قيد التوصيل') && isPendingStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('تم') && isDeliveredStatus(s.الحالة, s)) return true;
+                if (selectedStatuses.includes('تعديل سعر') && isPriceEditShipment(s)) return true;
+                if (selectedStatuses.includes('مؤجل') && isDelayedStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('رفض') && isRejectedStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('شحن') && isShippingFeeShipment(s)) return true;
+                return false;
+            };
+
             const dates = [...new Set(allShipments
+                .filter(s => 
+                    (!currentZone || currentZone === 'الكل' || s.الزون === currentZone) &&
+                    (!currentSender || currentSender === 'الكل' || s.الراسل === currentSender) &&
+                    checkStatus(s)
+                )
                 .map(s => getShipmentUpdateValue(s))
                 .filter(Boolean))].sort().reverse();
             const datesSet = new Set(dates);
@@ -695,12 +708,20 @@
             const selectedDates = normalizedSelectedDates;
 
             const zones = [...new Set(allShipments
-                .filter(s => (selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s))) && (!currentSender || s.الراسل === currentSender))
+                .filter(s => 
+                    (selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s))) && 
+                    (!currentSender || currentSender === 'الكل' || s.الراسل === currentSender) &&
+                    checkStatus(s)
+                )
                 .map(s => s.الزون)
                 .filter(Boolean))].sort();
 
             const senders = [...new Set(allShipments
-                .filter(s => (selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s))) && (!currentZone || s.الزون === currentZone))
+                .filter(s => 
+                    (selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s))) && 
+                    (!currentZone || currentZone === 'الكل' || s.الزون === currentZone) &&
+                    checkStatus(s)
+                )
                 .map(s => s.الراسل)
                 .filter(Boolean))].sort();
 
@@ -711,36 +732,49 @@
         }
 
         function fillStatusDropdown() {
-            const menu = document.getElementById('filterStatusMenu');
-            const label = document.getElementById('filterStatusLabel');
-            if (!menu || !label) return;
+            const select = document.getElementById('filterStatus');
+            if (!select) return;
 
-            const statusOptions = ['قيد التوصيل', 'تم التوصيل', 'تأجيل', 'رفض', 'تعديل سعر'];
-            const selectedArr = getSelectedStatuses();
-            label.innerText = selectedArr.length > 0 ? `الحالة (${selectedArr.length})` : 'الحالة';
+            const statusOptions = ['قيد التوصيل', 'تم', 'مؤجل', 'رفض', 'تعديل سعر', 'شحن'];
+            
+            const selectedDates = getSelectedDates();
+            const currentZone = document.getElementById('filterZone')?.value || '';
+            const currentSender = document.getElementById('filterSender')?.value || '';
 
-            const scopedShipments = getDateFilteredShipments();
+            const scopedShipments = allShipments.filter(s => {
+                const matchDate = selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s));
+                const matchZone = !currentZone || currentZone === 'الكل' || s.الزون === currentZone;
+                const matchSender = !currentSender || currentSender === 'الكل' || s.الراسل === currentSender;
+                return matchDate && matchZone && matchSender;
+            });
+            
             const counts = {
                 'قيد التوصيل': scopedShipments.filter(s => isPendingStatus(s.الحالة)).length,
-                'تم التسليم': scopedShipments.filter(s => isDeliveredStatus(s.الحالة, s)).length,
-                'تأجيل': scopedShipments.filter(s => isDelayedStatus(s.الحالة)).length,
+                'تم': scopedShipments.filter(s => isDeliveredStatus(s.الحالة, s)).length,
+                'مؤجل': scopedShipments.filter(s => isDelayedStatus(s.الحالة)).length,
                 'رفض': scopedShipments.filter(s => isRejectedStatus(s.الحالة)).length,
-                'تعديل سعر': scopedShipments.filter(s => isPriceEditShipment(s)).length
+                'تعديل سعر': scopedShipments.filter(s => isPriceEditShipment(s)).length,
+                'شحن': scopedShipments.filter(s => isShippingFeeShipment(s)).length
             };
 
-            menu.innerHTML = statusOptions.map(opt => {
-                const isSelected = statusFilterSelections.has(opt);
+            let optionsHtml = `<option value="الكل" class="text-slate-800 bg-white">الحالة: الكل (${scopedShipments.length})</option>`;
+            statusOptions.forEach(opt => {
                 const count = counts[opt] || 0;
-                return `
-                    <label class="flex items-center justify-between gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors" onclick="event.stopPropagation()">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange='toggleStatusSelection(${JSON.stringify(opt)})' class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
-                            <span class="text-slate-700 dark:text-slate-200 font-bold text-[11px]">${opt}</span>
-                        </div>
-                        <span class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full font-black">${count}</span>
-                    </label>
-                `;
-            }).join('');
+                optionsHtml += `<option value="${opt}" class="text-slate-800 bg-white">${opt} (${count})</option>`;
+            });
+
+            select.innerHTML = optionsHtml;
+
+            const selectedArr = getSelectedStatuses();
+            if (selectedArr.length > 0) {
+                select.value = selectedArr[0];
+                select.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600', 'shadow-indigo-500/30');
+                select.classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-200');
+            } else {
+                select.value = 'الكل';
+                select.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600', 'shadow-indigo-500/30');
+                select.classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-200');
+            }
         }
 
         function fillDateDropdown(items) {
@@ -749,7 +783,25 @@
             if (!menu || !label) return;
 
             const selectedArr = getSelectedDates();
-            label.innerText = selectedArr.length > 0 ? `تاريخ التحديث (${selectedArr.length})` : 'تاريخ التحديث';
+            const btn = document.getElementById('filterDateBtn');
+            
+            if (selectedArr.length > 0) {
+                label.innerText = selectedArr.length === 1 ? selectedArr[0] : `تاريخ التحديث (${selectedArr.length})`;
+                label.classList.add('text-white', 'font-black');
+                label.classList.remove('text-slate-700', 'dark:text-slate-200');
+                if (btn) {
+                    btn.classList.add('bg-indigo-600', 'dark:bg-indigo-500', 'border-indigo-600', 'shadow-indigo-500/30');
+                    btn.classList.remove('bg-white', 'dark:bg-slate-800', 'border-slate-200', 'text-black', 'dark:text-white');
+                }
+            } else {
+                label.innerText = 'تاريخ التحديث';
+                label.classList.remove('text-white', 'font-black');
+                label.classList.add('text-slate-700', 'dark:text-slate-200');
+                if (btn) {
+                    btn.classList.remove('bg-indigo-600', 'dark:bg-indigo-500', 'border-indigo-600', 'shadow-indigo-500/30');
+                    btn.classList.add('bg-white', 'dark:bg-slate-800', 'border-slate-200', 'text-black', 'dark:text-white');
+                }
+            }
 
             if (!items || items.length === 0) {
                 menu.innerHTML = `
@@ -760,9 +812,29 @@
                 return;
             }
 
-            // Calculate counts for each date
+            const currentZone = document.getElementById('filterZone')?.value || '';
+            const currentSender = document.getElementById('filterSender')?.value || '';
+            const selectedStatuses = getSelectedStatuses();
+
+            const checkStatus = (s) => {
+                if (selectedStatuses.length === 0) return true;
+                if (selectedStatuses.includes('قيد التوصيل') && isPendingStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('تم') && isDeliveredStatus(s.الحالة, s)) return true;
+                if (selectedStatuses.includes('تعديل سعر') && isPriceEditShipment(s)) return true;
+                if (selectedStatuses.includes('مؤجل') && isDelayedStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('رفض') && isRejectedStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('شحن') && isShippingFeeShipment(s)) return true;
+                return false;
+            };
+
+            const narrowedData = allShipments.filter(s => {
+                const matchZone = !currentZone || currentZone === 'الكل' || s.الزون === currentZone;
+                const matchSender = !currentSender || currentSender === 'الكل' || s.الراسل === currentSender;
+                return matchZone && matchSender && checkStatus(s);
+            });
+
             const dateCounts = {};
-            allShipments.forEach(s => {
+            narrowedData.forEach(s => {
                 const d = getShipmentUpdateValue(s);
                 if (d) dateCounts[d] = (dateCounts[d] || 0) + 1;
             });
@@ -783,70 +855,83 @@
         }
 
         function fillZoneDropdown(items) {
-            const menu = document.getElementById('filterZoneMenu');
-            const label = document.getElementById('filterZoneLabel');
-            if (!menu || !label) return;
+            const select = document.getElementById('filterZone');
+            if (!select) return;
 
             const selectedArr = getSelectedZones();
-            label.innerText = selectedArr.length > 0 ? `الزون (${selectedArr.length})` : 'الزون';
-
-            if (!items || items.length === 0) {
-                menu.innerHTML = `
-                    <div class="px-2 py-3 text-center text-[11px] font-bold text-slate-500 dark:text-slate-300">
-                        لا يوجد مناطق متاحة
-                    </div>
-                `;
-                return;
-            }
-
-            // Calculate counts for each zone based on narrowed data
+            
             const selectedDates = getSelectedDates();
-            const narrowedData = allShipments.filter(s => selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s)));
+            const currentSender = document.getElementById('filterSender')?.value || '';
+            const selectedStatuses = getSelectedStatuses();
+
+            const checkStatus = (s) => {
+                if (selectedStatuses.length === 0) return true;
+                if (selectedStatuses.includes('قيد التوصيل') && isPendingStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('تم') && isDeliveredStatus(s.الحالة, s)) return true;
+                if (selectedStatuses.includes('تعديل سعر') && isPriceEditShipment(s)) return true;
+                if (selectedStatuses.includes('مؤجل') && isDelayedStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('رفض') && isRejectedStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('شحن') && isShippingFeeShipment(s)) return true;
+                return false;
+            };
+
+            const narrowedData = allShipments.filter(s => {
+                const matchDate = selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s));
+                const matchSender = !currentSender || currentSender === 'الكل' || s.الراسل === currentSender;
+                return matchDate && matchSender && checkStatus(s);
+            });
             const zoneCounts = {};
             narrowedData.forEach(s => {
                 const z = s.الزون;
                 if (z) zoneCounts[z] = (zoneCounts[z] || 0) + 1;
             });
 
-            menu.innerHTML = items.map(item => {
-                const isSelected = zoneFilterSelections.has(item);
-                const count = zoneCounts[item] || 0;
-                return `
-                    <label class="flex items-center justify-between gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors" onclick="event.stopPropagation()">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange='toggleZoneSelection(${JSON.stringify(item)})' class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
-                            <span class="text-slate-700 dark:text-slate-200 font-bold">${item}</span>
-                        </div>
-                        <span class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full font-black">${count}</span>
-                    </label>
-                `;
-            }).join('');
+            let optionsHtml = `<option value="الكل" class="text-slate-800 bg-white">الزون: الكل</option>`;
+            if (items && items.length > 0) {
+                items.forEach(item => {
+                    const count = zoneCounts[item] || 0;
+                    optionsHtml += `<option value="${item}" class="text-slate-800 bg-white">${item} (${count})</option>`;
+                });
+            }
+
+            select.innerHTML = optionsHtml;
+
+            if (selectedArr.length > 0) {
+                select.value = selectedArr[0];
+                select.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600', 'shadow-indigo-500/30');
+                select.classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-200');
+            } else {
+                select.value = 'الكل';
+                select.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600', 'shadow-indigo-500/30');
+                select.classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-200');
+            }
         }
 
         function fillSenderDropdown(items) {
-            const menu = document.getElementById('filterSenderMenu');
-            const label = document.getElementById('filterSenderLabel');
-            if (!menu || !label) return;
+            const select = document.getElementById('filterSender');
+            if (!select) return;
 
             const selectedArr = getSelectedSenders();
-            label.innerText = selectedArr.length > 0 ? `الراسل (${selectedArr.length})` : 'الراسل';
-
-            if (!items || items.length === 0) {
-                menu.innerHTML = `
-                    <div class="px-2 py-3 text-center text-[11px] font-bold text-slate-500 dark:text-slate-300">
-                        لا يوجد رواسل متاحة
-                    </div>
-                `;
-                return;
-            }
-
-            // Calculate counts for each sender based on narrowed data
+            
             const selectedDates = getSelectedDates();
-            const selectedZones = getSelectedZones();
+            const currentZone = document.getElementById('filterZone')?.value || '';
+            const selectedStatuses = getSelectedStatuses();
+
+            const checkStatus = (s) => {
+                if (selectedStatuses.length === 0) return true;
+                if (selectedStatuses.includes('قيد التوصيل') && isPendingStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('تم') && isDeliveredStatus(s.الحالة, s)) return true;
+                if (selectedStatuses.includes('تعديل سعر') && isPriceEditShipment(s)) return true;
+                if (selectedStatuses.includes('مؤجل') && isDelayedStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('رفض') && isRejectedStatus(s.الحالة)) return true;
+                if (selectedStatuses.includes('شحن') && isShippingFeeShipment(s)) return true;
+                return false;
+            };
+
             const narrowedData = allShipments.filter(s => {
                 const matchDate = selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s));
-                const matchZone = selectedZones.length === 0 || selectedZones.includes(s.الزون);
-                return matchDate && matchZone;
+                const matchZone = !currentZone || currentZone === 'الكل' || s.الزون === currentZone;
+                return matchDate && matchZone && checkStatus(s);
             });
             const senderCounts = {};
             narrowedData.forEach(s => {
@@ -854,19 +939,25 @@
                 if (sn) senderCounts[sn] = (senderCounts[sn] || 0) + 1;
             });
 
-            menu.innerHTML = items.map(item => {
-                const isSelected = senderFilterSelections.has(item);
-                const count = senderCounts[item] || 0;
-                return `
-                    <label class="flex items-center justify-between gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors" onclick="event.stopPropagation()">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange='toggleSenderSelection(${JSON.stringify(item)})' class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
-                            <span class="text-slate-700 dark:text-slate-200 font-bold">${item}</span>
-                        </div>
-                        <span class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full font-black">${count}</span>
-                    </label>
-                `;
-            }).join('');
+            let optionsHtml = `<option value="الكل" class="text-slate-800 bg-white">الراسل: الكل</option>`;
+            if (items && items.length > 0) {
+                items.forEach(item => {
+                    const count = senderCounts[item] || 0;
+                    optionsHtml += `<option value="${item}" class="text-slate-800 bg-white">${item} (${count})</option>`;
+                });
+            }
+
+            select.innerHTML = optionsHtml;
+
+            if (selectedArr.length > 0) {
+                select.value = selectedArr[0];
+                select.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600', 'shadow-indigo-500/30');
+                select.classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-200');
+            } else {
+                select.value = 'الكل';
+                select.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600', 'shadow-indigo-500/30');
+                select.classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-200');
+            }
         }
 
         function fillSelect(id, items, defaultText, currentValue = '') {
@@ -885,13 +976,21 @@
         function isPriceEditShipment(shipment) {
             const normalizedStatus = String(shipment?.الحالة || '').trim();
             const normalizedReason = String(shipment?.['سبب الحالة'] || shipment?.سبب_الحالة || '').trim();
-            return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر' || normalizedReason === 'شحن';
+            // شحن is a separate category, NOT price edit
+            return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر';
+        }
+
+        function isShippingFeeShipment(shipment) {
+            const normalizedStatus = String(shipment?.الحالة || '').trim();
+            const normalizedReason = String(shipment?.['سبب الحالة'] || shipment?.سبب_الحالة || '').trim();
+            return normalizedStatus === 'شحن' || normalizedReason.includes('شحن');
         }
 
         function isDeliveredStatus(status, shipment = null) {
             const normalizedStatus = String(status || '').trim();
             if (shipment && isPriceEditShipment(shipment)) return false;
-            return normalizedStatus === 'تم' || normalizedStatus === 'تم التسليم' || normalizedStatus === 'شحن';
+            if (shipment && isShippingFeeShipment(shipment)) return false;
+            return normalizedStatus === 'تم' || normalizedStatus === 'تم التسليم';
         }
 
         function isPendingStatus(status) {
@@ -901,7 +1000,7 @@
 
         function isDelayedStatus(status) {
             const normalizedStatus = String(status || '').trim();
-            return normalizedStatus === 'تأجيل' || normalizedStatus === 'مؤجل';
+            return normalizedStatus === 'مؤجل' || normalizedStatus === 'مؤجل';
         }
 
         function isRejectedStatus(status) {
@@ -926,7 +1025,8 @@
 
         function isCommissionEligibleShipment(shipment) {
             const normalizedStatus = String(shipment?.الحالة || '').trim();
-            return normalizedStatus === 'تم' || normalizedStatus === 'تم التسليم' || normalizedStatus === 'شحن' || isPriceEditShipment(shipment);
+            // 'تم' = delivered, isPriceEditShipment = price edit (تعديل سعر), isShippingFeeShipment = shipping fee (شحن)
+            return normalizedStatus === 'تم' || normalizedStatus === 'تم التسليم' || isPriceEditShipment(shipment) || isShippingFeeShipment(shipment);
         }
 
         function getDateFilteredShipments() {
@@ -961,7 +1061,9 @@
             const selectedZones = getSelectedZones();
             const selectedSenders = getSelectedSenders();
 
-            if (selectedDates.length === 0) {
+            const selectedStatuses = getSelectedStatuses();
+
+            if (selectedDates.length === 0 && selectedStatuses.length === 0) {
                 list.innerHTML = `
                     <div class="text-center py-10 opacity-60">
                         <i class="fas fa-calendar-alt text-5xl mb-3"></i>
@@ -971,28 +1073,31 @@
                 return;
             }
 
-            const filtered = allShipments.filter(s => {
+            const filtered2 = allShipments.filter(s => {
                 const matchSearch = String(s.order_id).toLowerCase().includes(search) ||
                     String(s.الهاتف).toLowerCase().includes(search) ||
                     String(s.اسم_العميل).toLowerCase().includes(search);
 
-                const selectedStatuses = getSelectedStatuses();
                 let matchStatus = false;
                 if (selectedStatuses.length === 0) matchStatus = true;
                 else {
                     if (selectedStatuses.includes('قيد التوصيل') && isPendingStatus(s.الحالة)) matchStatus = true;
-                    if (selectedStatuses.includes('تم التسليم') && isDeliveredStatus(s.الحالة, s)) matchStatus = true;
+                    if (selectedStatuses.includes('تم') && isDeliveredStatus(s.الحالة, s)) matchStatus = true;
                     if (selectedStatuses.includes('تعديل سعر') && isPriceEditShipment(s)) matchStatus = true;
-                    if (selectedStatuses.includes('تأجيل') && isDelayedStatus(s.الحالة)) matchStatus = true;
+                    if (selectedStatuses.includes('مؤجل') && isDelayedStatus(s.الحالة)) matchStatus = true;
                     if (selectedStatuses.includes('رفض') && isRejectedStatus(s.الحالة)) matchStatus = true;
+                    if (selectedStatuses.includes('شحن') && isShippingFeeShipment(s)) matchStatus = true;
                 }
 
-                const matchDate = selectedDates.includes(getShipmentUpdateValue(s));
+                // If date is selected, must match date; if no date selected but status filter is active, show all matching statuses
+                const matchDate = selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s));
                 const matchZone = selectedZones.length === 0 || selectedZones.includes(s.الزون);
                 const matchSender = selectedSenders.length === 0 || selectedSenders.includes(s.الراسل);
 
                 return matchSearch && matchStatus && matchDate && matchZone && matchSender;
             });
+
+            const filtered = filtered2;
 
             if (filtered.length === 0) {
                 list.innerHTML = `
@@ -1019,7 +1124,7 @@
                             <h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">${s.اسم_العميل || 'غير مسجل'}</h3>
                         </div>
                         <span class="px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm border border-white dark:border-slate-800 ${getStatusBadgeClass(s)}">
-                            ${isPendingStatus(s.الحالة) ? 'قيد التوصيل' : (isPriceEditShipment(s) ? 'تعديل سعر' : (isDelayedStatus(s.الحالة) ? 'مؤجل' : (isRejectedStatus(s.الحالة) ? 'رفض' : (isDeliveredStatus(s.الحالة, s) ? 'تم' : (s.الحالة || 'قيد التوصيل')))))}
+                            ${isPendingStatus(s.الحالة) ? 'قيد التوصيل' : (isPriceEditShipment(s) ? (s['سبب الحالة'] || s.سبب_الحالة || 'تعديل سعر') : (isDelayedStatus(s.الحالة) ? 'مؤجل' : (isRejectedStatus(s.الحالة) ? 'رفض' : (isDeliveredStatus(s.الحالة, s) ? 'تم' : (s.الحالة || 'قيد التوصيل')))))}
                         </span>
                     </div>
 
@@ -1050,7 +1155,7 @@
                     <div class="grid grid-cols-2 gap-3 mt-1">
                         <button onclick="updateStatus('${s.id}', 'تم التسليم')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-indigo-100 active:scale-95 transition-all">تم التسليم</button>
                         <button onclick="editPrice('${s.id}')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-slate-100 active:scale-95 transition-all">تعديل سعر</button>
-                        <button onclick="updateStatus('${s.id}', 'تأجيل')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-amber-500 hover:bg-amber-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-amber-100 active:scale-95 transition-all">تأجيل</button>
+                        <button onclick="updateStatus('${s.id}', 'مؤجل')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-amber-500 hover:bg-amber-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-amber-100 active:scale-95 transition-all">مؤجل</button>
                         <button onclick="handleRejectAction('${s.id}')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-rose-600 hover:bg-rose-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-rose-100 active:scale-95 transition-all">رفض</button>
                     </div>
                     ${isShipmentLocked(s.id) ? `
@@ -1222,7 +1327,7 @@
             const shipment = allShipments.find(s => s.id == id);
             if (!shipment) return;
 
-            const normalizedStatus = status === 'تم التسليم' ? 'تم' : (status === 'تأجيل' ? 'مؤجل' : status);
+            const normalizedStatus = status === 'تم التسليم' ? 'تم' : (status === 'مؤجل' ? 'مؤجل' : status);
             const updatePayload = {
                 الحالة: normalizedStatus
             };
@@ -1230,7 +1335,7 @@
             if (arguments.length > 2 && arguments[2]) {
                 updatePayload['سبب الحالة'] = arguments[2];
             } else if (normalizedStatus === 'مؤجل') {
-                updatePayload['سبب الحالة'] = 'تأجيل';
+                updatePayload['سبب الحالة'] = 'مؤجل';
             }
 
             if (normalizedStatus === 'تم') {
@@ -1313,20 +1418,30 @@
                 return;
             }
 
+            const currentReason = String(shipment['سبب الحالة'] || shipment.سبب_الحالة || '').trim();
+            const isShippingType = currentReason.includes('شحن');
+
             const { value: formValues } = await Swal.fire({
                 title: 'تعديل سعر الشحنة',
                 html: `
                     <div class="space-y-4 text-right" dir="rtl">
                         <div>
                             <label class="block text-sm font-bold mb-1">نوع التعديل</label>
-                            <select id="swal-edit-type" class="swal2-input !m-0 !w-full border border-slate-200 rounded-lg">
-                                <option value="تعديل سعر" ${shipment.سبب_الحالة === 'تعديل سعر' ? 'selected' : ''}>تعديل سعر</option>
-                                <option value="شحن" ${shipment.سبب_الحالة === 'شحن' ? 'selected' : ''}>شحن</option>
+                            <select id="swal-edit-type" onchange="
+                                const shippingFeeRow = document.getElementById('swal-shipping-fee-row');
+                                shippingFeeRow.style.display = this.value === 'شحن' ? 'block' : 'none';
+                            " class="swal2-input !m-0 !w-full border border-slate-200 rounded-lg">
+                                <option value="تعديل سعر" ${!isShippingType ? 'selected' : ''}>تعديل سعر</option>
+                                <option value="شحن" ${isShippingType ? 'selected' : ''}>شحن</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold mb-1">السعر الجديد</label>
-                            <input id="swal-edit-price" type="number" class="swal2-input !m-0 !w-full border border-slate-200 rounded-lg" value="${shipment.السعر_بعد_التعديل || shipment.المبلغ || ''}" step="0.01">
+                            <label class="block text-sm font-bold mb-1">السعر الجديد (الصافي)</label>
+                            <input id="swal-edit-price" type="number" class="swal2-input !m-0 !w-full border border-slate-200 rounded-lg" value="${shipment.السعر_بعد_التعديل || shipment.المبلغ || ''}" step="0.01" min="0">
+                        </div>
+                        <div id="swal-shipping-fee-row" style="display:${isShippingType ? 'block' : 'none'}">
+                            <label class="block text-sm font-bold mb-1">قيمة الشحن <span class="text-slate-400 font-normal text-xs">(تُكتب في سبب الحالة)</span></label>
+                            <input id="swal-shipping-fee" type="number" class="swal2-input !m-0 !w-full border border-slate-200 rounded-lg" placeholder="مثال: 50" step="0.01" min="0" value="${(() => { const m = currentReason.match(/[\d]+(?:[.,][\d]+)?/); return m ? m[0] : ''; })()}">
                         </div>
                     </div>
                 `,
@@ -1334,11 +1449,19 @@
                 preConfirm: () => {
                     const type = document.getElementById('swal-edit-type').value;
                     const price = document.getElementById('swal-edit-price').value;
+                    const shippingFeeInput = document.getElementById('swal-shipping-fee');
                     if (price === '' || price === null || Number(price) < 0) {
                         Swal.showValidationMessage('يرجى إدخال سعر صحيح');
                         return false;
                     }
-                    return { type, price: Number(price) };
+                    let reasonValue = type;
+                    if (type === 'شحن' && shippingFeeInput && shippingFeeInput.value !== '') {
+                        const fee = Number(shippingFeeInput.value);
+                        if (!isNaN(fee) && fee > 0) {
+                            reasonValue = `شحن ${fee}`;
+                        }
+                    }
+                    return { type, reasonValue, price: Number(price) };
                 },
                 showCancelButton: true,
                 confirmButtonText: 'حفظ',
@@ -1347,14 +1470,18 @@
 
             if (!formValues) return;
 
-            const { type, price } = formValues;
+            const { type, reasonValue, price } = formValues;
+            // الحالة = 'شحن' when type is شحن, الحالة = 'تم' when type is تعديل سعر
+            const newStatus = type === 'شحن' ? 'شحن' : 'تم';
+            const updatePayload = {
+                الحالة: newStatus,
+                'سبب الحالة': reasonValue,
+                السعر_بعد_التعديل: price
+            };
+
             const { error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
-                .update({
-                    الحالة: 'تم',
-                    'سبب الحالة': type,
-                    السعر_بعد_التعديل: price
-                })
+                .update(updatePayload)
                 .eq('id', Number(id) || id);
 
             if (error) {
@@ -1365,8 +1492,9 @@
 
             const index = allShipments.findIndex(s => s.id == id);
             if (index !== -1) {
-                allShipments[index].الحالة = 'تم';
-                allShipments[index]['سبب الحالة'] = type;
+                allShipments[index].الحالة = newStatus;
+                allShipments[index]['سبب الحالة'] = reasonValue;
+                allShipments[index].سبب_الحالة = reasonValue;
                 allShipments[index].السعر_بعد_التعديل = price;
             }
 
@@ -1525,14 +1653,16 @@
                     for (const st of statuses) {
                         if (st === 'قيد التوصيل') {
                             if (isPendingStatus(s.الحالة)) { matchStatus = true; break; }
-                        } else if (st === 'تم التوصيل') {
+                        } else if (st === 'تم') {
                             if (isDeliveredStatus(s.الحالة, s)) { matchStatus = true; break; }
                         } else if (st === 'رفض') {
                             if (isRejectedStatus(s.الحالة)) { matchStatus = true; break; }
                         } else if (st === 'تعديل سعر') {
                             if (isPriceEditShipment(s)) { matchStatus = true; break; }
-                        } else if (st === 'مؤجل') {
-                            if (s.الحالة === 'تأجيل' || s.الحالة === 'مؤجل') { matchStatus = true; break; }
+                        } else if (st === 'مؤجل' || st === 'مؤجل') {
+                            if (isDelayedStatus(s.الحالة)) { matchStatus = true; break; }
+                        } else if (st === 'شحن') {
+                            if (String(s.الحالة || '').trim() === 'شحن' || String(s.سبب_الحالة || '').includes('شحن')) { matchStatus = true; break; }
                         } else if (s.الحالة === st) {
                             matchStatus = true; break;
                         }

@@ -68,7 +68,7 @@
         <div class="glass p-4 rounded-3xl">
             <div class="relative">
                 <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input type="text" id="searchInput" onkeyup="filterData()"
+                <input type="text" id="searchInput" oninput="debouncedFilterData()"
                     placeholder="ابحث برقم الشحنة، اسم العميل، رقم الهاتف، أو هاتف بديل..."
                     class="w-full bg-white/50 dark:bg-slate-800/50 pr-12 pl-4 py-3 rounded-xl text-sm font-bold text-slate-700 dark:text-white outline-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors shadow-sm">
             </div>
@@ -232,6 +232,17 @@
             currentPage = Number(state.currentPage) || 1;
         }
 
+        let filterDebounceTimer;
+        function debouncedFilterData() {
+            clearTimeout(filterDebounceTimer);
+            filterDebounceTimer = setTimeout(() => {
+                const searchInput = document.getElementById('searchInput');
+                const val = (searchInput?.value || '').trim();
+                if (val.length > 0 && val.length < 3) return; // Do not apply search yet
+                filterData();
+            }, 350);
+        }
+
         function filterData() {
             currentPage = 1;
             populateFilters();
@@ -353,7 +364,7 @@
                 if (fSender && s.الراسل !== fSender) return false;
                 if (fUpdate && s.الابيديت !== fUpdate) return false;
 
-                if (searchQ) {
+                if (searchQ && searchQ.length >= 3) {
                     const matchOrderId = String(s.order_id || '').toLowerCase().includes(searchQ);
                     const matchName = String(s.اسم_العميل || '').toLowerCase().includes(searchQ);
                     const matchPhone = String(s.الهاتف || '').toLowerCase().includes(searchQ);

@@ -13,6 +13,15 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .highlight-active {
+            background-color: #4f46e5 !important;
+            border-color: #4f46e5 !important;
+            color: #ffffff !important;
+        }
+        .highlight-active span, .highlight-active i {
+            color: #ffffff !important;
+            opacity: 1 !important;
+        }
         @keyframes repDateFilterGlow {
 
             0%,
@@ -227,7 +236,7 @@
                             <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
                         </div>
                     </div>
-                    <div class="flex-1">
+                    <div class="flex-1 hidden">
                         <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">المندوب (الرئيسي)</label>
                         <div class="relative w-full">
                             <select id="filterRep" onchange="filterData()"
@@ -281,7 +290,7 @@
                     <label class="block text-[11px] font-bold text-slate-500 mb-1 px-1">بحث في النتائج</label>
                     <div class="relative w-full">
                         <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="searchInput" onkeyup="filterData()"
+                        <input type="text" id="searchInput" oninput="debouncedFilterData()"
                             placeholder="ابحث برقم الشحنة، اسم العميل، رقم الهاتف..."
                             class="w-full bg-slate-50/50 dark:bg-slate-800/50 pr-12 pl-4 py-3 rounded-xl text-sm font-bold text-slate-700 dark:text-white outline-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-all">
                     </div>
@@ -310,7 +319,7 @@
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap text-center">الحالة</th>
                                 <th class="p-2 text-[11px] font-black min-w-[100px]">السبب</th>
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap">المبلغ</th>
-                                <th class="p-2 text-[11px] font-black whitespace-nowrap text-emerald-700">الصافي</th>
+                                <th class="p-2 text-[11px] font-black whitespace-nowrap text-emerald-700">التوريد</th>
                                 <th class="p-2 text-[11px] font-black text-center whitespace-nowrap"
                                     style="width: 80px;">إجراء</th>
                             </tr>
@@ -495,6 +504,17 @@
                 if (filterSender) filterSender.value = state.sender || '';
                 if (filterUpdate) filterUpdate.value = state.update || '';
                 currentPage = Number(state.currentPage) || 1;
+            }
+
+            let filterDebounceTimer;
+            function debouncedFilterData() {
+                clearTimeout(filterDebounceTimer);
+                filterDebounceTimer = setTimeout(() => {
+                    const searchInput = document.getElementById('searchInput');
+                    const val = (searchInput?.value || '').trim();
+                    if (val.length > 0 && val.length < 3) return; // Do not apply search yet
+                    filterData();
+                }, 350);
             }
 
             function filterData() {
@@ -1077,6 +1097,10 @@
                     const rep = s.المندوب_الفرعي;
                     return !subRepNamesShort.includes(rep) && !subRepNamesFull.includes(rep) && rep !== 'مخزن';
                 }).length;
+                const noAmountCount = shipments.filter(s => {
+                    const amt = String(s.المبلغ || '').trim();
+                    return !amt || amt === '0' || amt === '0.0' || amt === '0.00';
+                }).length;
                 const warehouseCount = shipments.filter(s => s.المندوب_الفرعي === 'مخزن').length;
                 const doneCount = shipments.filter(s => getShipmentDisplayStatus(s) === 'تم التوصيل').length;
                 const amendedCount = shipments.filter(s => getShipmentDisplayStatus(s) === 'تعديل سعر').length;
@@ -1096,18 +1120,22 @@
 
                 const container = document.getElementById('dashboardStatsContainer');
                 if (container) {
-                    const getActiveClass = (s) => globalStatFilter === s ? 'ring-2 ring-indigo-500 ring-offset-1 scale-105 shadow-md bg-indigo-50 dark:bg-indigo-900/40 border-indigo-300' : 'hover:bg-slate-50 dark:hover:bg-slate-700 transition-all';
+                    const getActiveClass = (s) => globalStatFilter === s ? 'highlight-active scale-105 shadow-xl ring-2 ring-indigo-300 ring-offset-2 transition-all' : 'hover:bg-slate-50 dark:hover:bg-slate-700 transition-all';
 
                     const cardStyle = "flex-shrink-0 min-w-[100px] md:min-w-[120px] p-3 rounded-2xl border flex flex-col justify-center items-center text-center cursor-pointer transition-all active:scale-95";
 
                     container.innerHTML = `
-                    <button onclick="resetAllFilters()" class="${cardStyle} bg-indigo-600 text-white border-none shadow-md hover:bg-indigo-700">
-                        <span class="text-[10px] font-bold text-white/80">الكل</span>
-                        <span class="text-base font-black text-white">${allShipments.length}</span>
+                    <button onclick="resetAllFilters()" class="${cardStyle} bg-white dark:bg-slate-900 border-indigo-200 dark:border-indigo-900/40 shadow-sm ${getActiveClass('')}">
+                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">الكل</span>
+                        <span class="text-base font-black text-indigo-600 dark:text-indigo-500">${allShipments.length}</span>
                     </button>
                     <button onclick="toggleStatFilter('بدون مندوب')" class="${cardStyle} bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm ${getActiveClass('بدون مندوب')}">
                         <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">بدون مندوب</span>
                         <span class="text-base font-black text-slate-700 dark:text-slate-200">${noDelegate}</span>
+                    </button>
+                    <button onclick="toggleStatFilter('بدون مبلغ')" class="${cardStyle} bg-white dark:bg-slate-900 border-rose-200 dark:border-rose-900/40 shadow-sm ${getActiveClass('بدون مبلغ')}">
+                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">بدون مبلغ</span>
+                        <span class="text-base font-black text-rose-600 dark:text-rose-500">${noAmountCount}</span>
                     </button>
                     <button onclick="toggleStatFilter('مخزن')" class="${cardStyle} bg-white dark:bg-slate-900 border-amber-200 dark:border-amber-900/40 shadow-sm ${getActiveClass('مخزن')}">
                         <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">المخزن</span>
@@ -1134,7 +1162,7 @@
                         <span class="text-base font-black text-sky-600">${inDeliveryCount}</span>
                     </button>
                     <div class="flex-shrink-0 min-w-[110px] bg-gradient-to-br from-indigo-600 to-indigo-800 p-3 rounded-2xl shadow-md flex flex-col justify-center items-center text-center">
-                        <span class="text-[10px] font-bold text-indigo-200">الصافي</span>
+                        <span class="text-[10px] font-bold text-indigo-200">التوريد</span>
                         <span class="text-base font-black text-white" dir="ltr">${totalAmount.toLocaleString()}</span>
                     </div>
                 `;
@@ -1165,6 +1193,9 @@
                             const subRepNamesFull = subRepAccounts.map(u => u.full_name).filter(Boolean);
                             const rep = s.المندوب_الفرعي;
                             if (subRepNamesShort.includes(rep) || subRepNamesFull.includes(rep) || rep === 'مخزن') return false;
+                        } else if (globalStatFilter === 'بدون مبلغ') {
+                            const amt = String(s.المبلغ || '').trim();
+                            if (amt && amt !== '0' && amt !== '0.0' && amt !== '0.00') return false;
                         } else if (globalStatFilter === 'مخزن') {
                             if (s.المندوب_الفرعي !== 'مخزن') return false;
                         } else if (globalStatFilter === 'رفض') {
@@ -1175,7 +1206,7 @@
                         }
                     }
 
-                    if (searchQ) {
+                    if (searchQ && searchQ.length >= 3) {
                         const matchOrderId = String(s.order_id || '').toLowerCase().includes(searchQ);
                         const matchName = String(s.اسم_العميل || '').toLowerCase().includes(searchQ);
                         const matchPhone = String(s.الهاتف || '').toLowerCase().includes(searchQ);
