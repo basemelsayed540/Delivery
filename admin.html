@@ -1224,8 +1224,16 @@
                             <button id="housingDeleteSelectedBtn" type="button" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3" onclick="deleteSelectedHousingShipments()" disabled>
                                 <i class="fas fa-trash-alt me-1"></i> حذف المحدد
                             </button>
+                            <button type="button" class="btn btn-emerald btn-sm rounded-pill fw-bold px-3" onclick="exportHousingAllByDate()" style="background-color: #059669; color: white; border: none;">
+                                <i class="fas fa-file-export me-1"></i> تصدير الاكسل
+                            </button>
                             <button type="button" class="btn btn-emerald btn-sm rounded-pill fw-bold px-3" onclick="exportHousingToExcel()" style="background-color: #10b981; color: white; border: none;">
-                                <i class="fas fa-file-excel me-1"></i> تصدير Excel
+                                <i class="fas fa-file-excel me-1"></i> تصدير الظاهر
+                            </button>
+                            <!-- Import Excel Feature -->
+                            <input type="file" id="housingExcelInput" accept=".xlsx, .xls, .xlsb" style="display: none;" onchange="importHousingExcel(event)">
+                            <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold px-3" onclick="document.getElementById('housingExcelInput').click()" style="background-color: #4f46e5; border: none; color: white;">
+                                <i class="fas fa-file-import me-1"></i> رفع اكسل
                             </button>
                             <button id="housingWarehouseSelectedBtn" type="button" class="btn btn-warning btn-sm rounded-pill fw-bold px-3" onclick="moveSelectedToWarehouse()" disabled>
                                 <i class="fas fa-warehouse me-1"></i> المخزن
@@ -3111,6 +3119,255 @@
             XLSX.writeFile(wb, `شحنات_تسكين_${new Date().toLocaleDateString('ar-EG').replace(/\//g, '-')}.xlsx`);
         }
 
+        function exportHousingAllByDate() {
+            const selectedDates = getHousingEditDateFilters();
+            if (selectedDates.length === 0) {
+                Swal.fire('تنبيه', 'يرجى اختيار تاريخ تحديث من الفلتر أولاً', 'warning');
+                return;
+            }
+            if (selectedDates.length > 1) {
+                Swal.fire('تنبيه', 'يرجى اختيار قيمة واحدة فقط داخل فلتر تاريخ التحديث', 'warning');
+                return;
+            }
+
+            const targetDate = selectedDates[0];
+            const data = allShipments.filter(s => String(s.الابيديت || '').trim() === targetDate);
+
+            if (!data || data.length === 0) {
+                Swal.fire('تنبيه', 'لا توجد بيانات لهذا التاريخ', 'warning');
+                return;
+            }
+
+            const labelOrder = [
+                { key: 'اسم_العميل', label: 'اسم العميل' },
+                { key: 'م', label: 'م' },
+                { key: 'العنوان', label: 'العنوان' },
+                { key: 'الزون', label: 'الزون' },
+                { key: 'المنتج', label: 'المنتج' },
+                { key: 'الهاتف', label: 'الهاتف' },
+                { key: 'هاتف_بديل', label: 'هاتف بديل' },
+                { key: 'المبلغ', label: 'المبلغ' },
+                { key: 'الراسل', label: 'الراسل' },
+                { key: 'order_id', label: 'كود الشحنة' },
+                { key: 'المندوب', label: 'المندوب' },
+                { key: 'الحالة', label: 'الحالة' },
+                { key: 'سبب_الحالة', label: 'سبب الحالة' },
+                { key: 'السعر_بعد_التعديل', label: 'السعر بعد التعديل' },
+                { key: 'ملاحظات', label: 'ملاحظات' },
+                { key: 'الابيديت', label: 'تاريخ التحديث' },
+                { key: 'الصافي', label: 'الصافي' },
+                { key: 'الشحن', label: 'الشحن' },
+                { key: 'كود_اضافي', label: 'كود اضافي' },
+                { key: 'تقفيل', label: 'تقفيل' },
+                { key: 'عمولة_المندوب', label: 'عمولة المندوب' },
+                { key: 'exporter_name', label: 'اسم الموظف' }
+            ];
+
+            const currentExporter = currentUser.username || currentUser.full_name || 'المدير';
+
+            const exportData = data.map(s => {
+                const d = getHousingDisplayShipmentData(s);
+                const row = {};
+                
+                // 1. Add requested columns in specific order
+                labelOrder.forEach(item => {
+                    let val = '';
+                    if (item.key === 'سبب_الحالة') {
+                        val = d['سبب الحالة'] || d.سبب_الحالة || '';
+                    } else if (item.key === 'order_id') {
+                        val = d.order_id || d.كود_الشحنة || '';
+                    } else if (item.key === 'exporter_name') {
+                        val = currentExporter;
+                    } else {
+                        val = d[item.key] || '';
+                    }
+                    row[item.label] = val;
+                });
+
+                // 2. Add any other remaining fields from the database record
+                const orderedKeys = labelOrder.map(i => i.key);
+                Object.keys(d).forEach(k => {
+                    // Skip keys already processed or internal IDs
+                    if (!orderedKeys.includes(k) && !['id', 'سبب الحالة', 'كود_الشحنة'].includes(k)) {
+                         row[k] = d[k] || '';
+                    }
+                });
+
+                return row;
+            });
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "الشحنات");
+            XLSX.writeFile(wb, `جرد_يومي_${targetDate.replace(/\//g, '-')}.xlsx`);
+        }
+
+        async function importHousingExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Reset input
+            event.target.value = '';
+
+            showLoading(true);
+            try {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(sheet);
+
+                    if (!json.length) {
+                        Swal.fire('خطأ', 'الملف المختار فارغ!', 'error');
+                        showLoading(false);
+                        return;
+                    }
+
+                    const mapping = {
+                        'اسم العميل': 'اسم_العميل',
+                        'م': 'م',
+                        'العنوان': 'العنوان',
+                        'الزون': 'الزون',
+                        'المنتج': 'المنتج',
+                        'الهاتف': 'الهاتف',
+                        'هاتف بديل': 'هاتف_بديل',
+                        'المبلغ': 'المبلغ',
+                        'الراسل': 'الراسل',
+                        'كود الشحنة': 'order_id',
+                        'المندوب': 'المندوب',
+                        'الحالة': 'الحالة',
+                        'سبب الحالة': 'سبب_الحالة',
+                        'السعر بعد التعديل': 'السعر_بعد_التعديل',
+                        'ملاحظات': 'ملاحظات',
+                        'تاريخ التحديث': 'الابيديت',
+                        'الصافي': 'الصافي',
+                        'الشحن': 'الشحن',
+                        'كود اضافي': 'كود_اضافي',
+                        'تقفيل': 'تقفيل',
+                        'عمولة المندوب': 'عمولة_المندوب'
+                    };
+
+                    const updates = [];
+                    for (const row of json) {
+                        const payload = {};
+                        Object.keys(mapping).forEach(arKey => {
+                            if (row.hasOwnProperty(arKey)) {
+                                payload[mapping[arKey]] = row[arKey];
+                            }
+                        });
+
+                        const orderId = String(payload.order_id || '').trim();
+                        if (orderId) {
+                            updates.push(payload);
+                        }
+                    }
+
+                    if (!updates.length) {
+                        Swal.fire('خطأ', 'لم يتم العثور على أكواد شحنات صالحة للتحديث!', 'error');
+                        showLoading(false);
+                        return;
+                    }
+
+                    showLoading(false);
+
+                    // Preview the data before uploading
+                    const previewRows = updates.slice(0, 10).map(u => `
+                        <tr>
+                            <td>${u.order_id}</td>
+                            <td>${u.اسم_العميل || '-'}</td>
+                            <td>${u.الحالة || '-'}</td>
+                            <td>${u.المبلغ || '0'}</td>
+                        </tr>
+                    `).join('');
+
+                    const { isConfirmed } = await Swal.fire({
+                        title: 'مراجعة بيانات الرفع',
+                        html: `
+                            <div class="text-start mb-3 small text-secondary">تم العثور على <b>${updates.length}</b> شحنة في الملف. فيما يلي معاينة لأول 10 صفوف:</div>
+                            <div class="table-responsive" style="max-height: 250px;">
+                                <table class="table table-sm table-bordered text-center small">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>الكود</th>
+                                            <th>العميل</th>
+                                            <th>الحالة</th>
+                                            <th>المبلغ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${previewRows}</tbody>
+                                </table>
+                            </div>
+                            <div class="mt-2 text-danger fw-bold small">هل ترغب في تأكيد الرفع للسيرفر وتحديث البيانات؟</div>
+                        `,
+                        icon: 'info',
+                        width: '600px',
+                        showCancelButton: true,
+                        confirmButtonText: 'تأكيد الرفع لقاعدة البيانات',
+                        cancelButtonText: 'إلغاء وفحص الملف',
+                        confirmButtonColor: '#4f46e5'
+                    });
+
+                    if (!isConfirmed) return;
+
+                    showLoading(true);
+                    
+                    // Perform updates in chunks using UPSERT for much faster performance
+                    let successCount = 0;
+                    const chunkSize = 100;
+                    
+                    try {
+                        for (let i = 0; i < updates.length; i += chunkSize) {
+                            const chunk = updates.slice(i, i + chunkSize);
+                            
+                            // Using upsert with onConflict on order_id for bulk update
+                            const { error } = await supabaseClient
+                                .from(CONFIG.TABLES.SHIPMENTS)
+                                .upsert(chunk, { onConflict: 'order_id' });
+
+                            if (error) {
+                                console.error("Chunk processing error:", error);
+                                // Fallback: if bulk upsert fails, try individual updates for this chunk
+                                for (const item of chunk) {
+                                    const { order_id, ...fields } = item;
+                                    const { error: indError } = await supabaseClient
+                                        .from(CONFIG.TABLES.SHIPMENTS)
+                                        .update(fields)
+                                        .eq('order_id', order_id);
+                                    if (!indError) successCount++;
+                                }
+                            } else {
+                                successCount += chunk.length;
+                            }
+                        }
+
+                        Swal.fire({
+                            icon: successCount > 0 ? 'success' : 'info',
+                            title: 'اكتملت العملية',
+                            text: `تم تحديث ${successCount} شحنة بنجاح من إجمالي ${updates.length} في الملف.`,
+                            confirmButtonText: 'حسناً'
+                        });
+                    } catch (bulkErr) {
+                        console.error("Bulk Process Error:", bulkErr);
+                        Swal.fire('خطأ في المعالجة', 'حدث خطأ غير متوقع أثناء تحديث البيانات.', 'error');
+                    } finally {
+                        showLoading(false);
+                        await fetchShipments();
+                        refreshDashboard();
+                    }
+                };
+                reader.onerror = () => {
+                    showLoading(false);
+                    Swal.fire('خطأ', 'فشل في قراءة الملف المختار.', 'error');
+                };
+                reader.readAsArrayBuffer(file);
+            } catch (err) {
+                console.error("Import Global Error:", err);
+                showLoading(false);
+                Swal.fire('خطأ في العملية', 'فشل استيراد الملف: ' + err.message, 'error');
+            }
+        }
+
         async function openHousingQrScanner() {
             await setupHousingScannerSession({ clearResults: true });
             housingQrModal?.show();
@@ -4352,10 +4609,10 @@
                             <small class="text-muted fw-bold" style="font-size:0.7rem;">بدون مندوب</small>
                             <span class="fw-bold fs-6 text-danger">${cardValue(noDelegate)}</span>
                         </button>
-                        <button type="button" onclick="toggleHousingDashStatFilter('مجاش')" class="${cardStyle} border-dark-subtle ${getActiveClass('مجاش')}" style="min-width:100px;">
-                            <i class="fas fa-user-xmark text-dark mb-1" style="font-size:1.1rem;"></i>
+                        <button type="button" onclick="toggleHousingDashStatFilter('مجاش')" class="${cardStyle} border-secondary-subtle ${getActiveClass('مجاش')}" style="min-width:100px;">
+                            <i class="fas fa-user-xmark text-secondary mb-1" style="font-size:1.1rem;"></i>
                             <small class="text-muted fw-bold" style="font-size:0.7rem;">مجاش</small>
-                            <span class="fw-bold fs-6 text-dark">${cardValue(mjashCount)}</span>
+                            <span class="fw-bold fs-6 text-secondary">${cardValue(mjashCount)}</span>
                         </button>
                         <button type="button" onclick="toggleHousingDashStatFilter('بدون مبلغ')" class="${cardStyle} border-danger-subtle ${getActiveClass('بدون مبلغ')}" style="min-width:100px;">
                             <i class="fas fa-comment-dollar text-danger mb-1" style="font-size:1.1rem;"></i>
@@ -4438,9 +4695,7 @@
             // Temporarily ignore the clicked stat filter to get valid base counts for all cards
             const currentStatFilter = housingDashStatFilter;
             housingDashStatFilter = '';
-            const baseStatsFiltered = getHousingRepFilters().length > 0
-                ? getHousingFilteredShipmentsWithoutRepFilter()
-                : getHousingFilteredShipments();
+            const baseStatsFiltered = getHousingFilteredShipments();
             housingDashStatFilter = currentStatFilter; // Restore before updating UI
 
             updateHousingDashboardStats(baseStatsFiltered);

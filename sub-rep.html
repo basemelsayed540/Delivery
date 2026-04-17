@@ -156,6 +156,14 @@
                         <i class="fas fa-history w-5 text-slate-400"></i>
                         <span>مراجعة التعديلات</span>
                     </button>
+                    <button onclick="switchView('notifications')" id="nav-notifications"
+                        class="w-full flex items-center justify-between gap-3 px-5 py-4 text-slate-600 dark:text-slate-400 rounded-[1.25rem] font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all active:scale-95 relative">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-bell w-4 text-slate-400"></i>
+                            <span>الإشعارات</span>
+                        </div>
+                        <span id="notif-badge" class="hidden bg-rose-500 text-white text-[10px] w-5 h-5 rounded-full items-center justify-center animate-bounce shadow-lg shadow-rose-500/20">0</span>
+                    </button>
                 </nav>
             </div>
         </div>
@@ -195,6 +203,22 @@
                 </div>
             </div>
         </header>
+
+        <main id="notificationsView" class="max-w-4xl mx-auto px-4 pb-12 space-y-6 w-full hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 dark:text-white">الإشعارات</h2>
+                    <p class="text-xs font-bold text-slate-400 mt-1">تابع آخر التغييرات في شحناتك</p>
+                </div>
+                <button onclick="clearNotifications()" class="text-[10px] font-black text-rose-500 bg-rose-50 dark:bg-rose-900/40 px-3 py-2 rounded-xl border border-rose-100 dark:border-rose-800 hover:bg-rose-600 hover:text-white transition-all">
+                    <i class="fas fa-trash-alt ml-1"></i> مسح سجل الإشعارات
+                </button>
+            </div>
+            
+            <div id="notificationsContainer" class="space-y-4">
+                <!-- Notifications list will be injected here -->
+            </div>
+        </main>
 
         <main id="dashboardView" class="max-w-7xl mx-auto px-4 pb-12 space-y-6 w-full show">
             <!-- Statistics Dashboard -->
