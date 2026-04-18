@@ -89,12 +89,6 @@
                 </div>
             </div>
 
-            <div class="mt-4">
-                <button id="requestSettlementBtn" onclick="requestSettlement()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <i class="fas fa-hand-holding-usd text-xl"></i>
-                    طلب تسوية / حساب
-                </button>
-            </div>
         </div>
     </main>
 
@@ -431,69 +425,12 @@
             document.getElementById('walletInTransitCount').innerText = inTransitCount;
             document.getElementById('walletTotalMoney').innerHTML = `${currentWalletBalance} <span class="text-xs">ج.م</span>`;
             document.getElementById('walletCommissionTotal').innerHTML = `${currentCommissionTotal} <span class="text-xs text-slate-800 dark:text-white">ج.م</span>`;
-            document.getElementById('requestSettlementBtn').disabled = (currentWalletBalance <= 0 || pendingOrderIds.length === 0);
+            const requestSettlementBtn = document.getElementById('requestSettlementBtn');
+            if (requestSettlementBtn) {
+                requestSettlementBtn.disabled = (currentWalletBalance <= 0 || pendingOrderIds.length === 0);
+            }
             populateDates();
             saveWalletUiState();
-        }
-
-        async function requestSettlement() {
-            if (currentWalletBalance <= 0 || pendingOrderIds.length === 0) return;
-
-            if (!currentSettlementDate) {
-                Swal.fire('تنبيه', 'يرجى اختيار تاريخ التحديث أولاً قبل طلب التسوية.', 'warning');
-                return;
-            }
-
-            const res = await Swal.fire({
-                title: 'تأكيد طلب تسوية / حساب',
-                html: `
-                    <div class="text-right space-y-3">
-                        <p>سيتم إنشاء طلب تسوية للشحنات المرتبطة بتاريخ التحديث: <b>${currentSettlementDate}</b></p>
-                        <p>عدد الشحنات التي سيتم منع تعديلها مرة أخرى: <b>${pendingOrderIds.length}</b></p>
-                        <p>المبلغ المطلوب للمندوبية: <b>${currentWalletBalance} ج.م</b></p>
-                        <p class="text-rose-600 font-bold">تحذير: بعد إرسال الطلب لن تتمكن من تعديل هذه الشحنات مرة أخرى.</p>
-                    </div>
-                `,
-                icon: 'warning',
-                input: 'password',
-                inputLabel: 'كلمة المرور',
-                inputPlaceholder: 'أدخل كلمة المرور لتأكيد الطلب',
-                showCancelButton: true,
-                confirmButtonText: 'نعم، أرسل الطلب',
-                cancelButtonText: 'إلغاء',
-                preConfirm: async (password) => {
-                    if (!password) {
-                        Swal.showValidationMessage('يرجى إدخال كلمة المرور');
-                        return false;
-                    }
-                    if (!(await verifyPassword(user.password, password))) {
-                        Swal.showValidationMessage('كلمة المرور غير صحيحة');
-                        return false;
-                    }
-                    return password;
-                }
-            });
-
-            if (res.isConfirmed) {
-                const repName = String(user.username || user.full_name || user.phone || '').trim();
-                const sanitizedOrderIds = [...new Set((pendingOrderIds || []).map(id => String(id)).filter(Boolean))];
-                const { error } = await supabaseClient
-                    .from(CONFIG.TABLES.SETTLEMENTS)
-                    .insert([{
-                        rep_name: repName,
-                        balance: Number(currentWalletBalance) || 0,
-                        order_ids: JSON.stringify(sanitizedOrderIds),
-                        status: 'pending'
-                    }]);
-
-                if (error) {
-                    console.error('Settlement request error:', error);
-                    Swal.fire('خطأ', error.message || 'حدث خطأ أثناء إرسال الطلب', 'error');
-                } else {
-                    Swal.fire('تم بنجاح', 'تم إرسال طلب التسوية للإدارة', 'success');
-                    updateWalletStats();
-                }
-            }
         }
 
         document.addEventListener('click', (event) => {
