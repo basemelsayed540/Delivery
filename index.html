@@ -172,12 +172,13 @@
             e.preventDefault();
             const phone = document.getElementById('phone').value.trim();
             const password = document.getElementById('password').value;
+            const hashedPassword = await hashPassword(password);
 
             loginBtn.disabled = true;
             loginBtn.innerHTML = 'جاري التحقق...';
 
             try {
-                if (phone === 'admin' && password === 'admin') {
+                if (phone === 'admin') {
                     let { data: adminFound } = await supabaseClient
                         .from(CONFIG.TABLES.USERS)
                         .select('*')
@@ -185,13 +186,16 @@
                         .single();
 
                     if (!adminFound) {
+                        if (password !== 'admin') {
+                            throw new Error('بيانات الدخول غير صحيحة');
+                        }
                         const { data: createdAdmin, error: createError } = await supabaseClient
                             .from(CONFIG.TABLES.USERS)
                             .insert([{
                                 username: 'المدير العام',
                                 phone: 'admin',
                                 email: 'admin@admin.com',
-                                password: 'admin',
+                                password: hashedPassword,
                                 role: 'admin',
                                 approved: true
                             }])
@@ -200,6 +204,24 @@
                         
                         if (createError) throw new Error('فشل تسجيل حساب المدير في قاعدة البيانات');
                         adminFound = createdAdmin;
+                    }
+
+                    if (!(await verifyPassword(adminFound.password, password))) {
+                        throw new Error('بيانات الدخول غير صحيحة');
+                    }
+
+                    if (!isHashedPassword(adminFound.password)) {
+                        const { data: upgradedAdmin, error: upgradeError } = await supabaseClient
+                            .from(CONFIG.TABLES.USERS)
+                            .update({ password: hashedPassword })
+                            .eq('id', adminFound.id)
+                            .select()
+                            .single();
+                        if (!upgradeError && upgradedAdmin) {
+                            adminFound = upgradedAdmin;
+                        } else {
+                            adminFound.password = hashedPassword;
+                        }
                     }
 
                     localStorage.setItem('user', JSON.stringify(adminFound));
@@ -219,11 +241,24 @@
                     .from(CONFIG.TABLES.USERS)
                     .select('*')
                     .eq('phone', phone)
-                    .eq('password', password)
                     .single();
 
-                if (error || !data) {
+                if (error || !data || !(await verifyPassword(data.password, password))) {
                     throw new Error('بيانات الدخول غير صحيحة');
+                }
+
+                if (!isHashedPassword(data.password)) {
+                    const { data: upgradedUser, error: upgradeError } = await supabaseClient
+                        .from(CONFIG.TABLES.USERS)
+                        .update({ password: hashedPassword })
+                        .eq('id', data.id)
+                        .select()
+                        .single();
+                    if (!upgradeError && upgradedUser) {
+                        Object.assign(data, upgradedUser);
+                    } else {
+                        data.password = hashedPassword;
+                    }
                 }
 
                 if (!data.approved) {
@@ -318,7 +353,7 @@
                     username,
                     phone,
                     email: email || null,
-                    password,
+                    password: await hashPassword(password),
                     role: signupRole,
                     approved: false
                 };

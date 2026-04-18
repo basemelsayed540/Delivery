@@ -160,10 +160,9 @@
                     .from(CONFIG.TABLES.USERS)
                     .select('*')
                     .eq('phone', user.phone)
-                    .eq('password', oldPass)
                     .single();
 
-                if (fetchError || !userData) {
+                if (fetchError || !userData || !(await verifyPassword(userData.password, oldPass))) {
                     Swal.fire('خطأ', 'كلمة المرور الحالية غير صحيحة', 'error');
                     btn.disabled = false;
                     btn.innerHTML = 'حفظ كلمة المرور';
@@ -171,9 +170,10 @@
                 }
 
                 // 2. Update to new password
+                const hashedNewPass = await hashPassword(newPass);
                 const { error: updateError } = await supabaseClient
                     .from(CONFIG.TABLES.USERS)
-                    .update({ password: newPass })
+                    .update({ password: hashedNewPass })
                     .eq('id', userData.id);
 
                 if (updateError) {

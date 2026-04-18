@@ -90,6 +90,20 @@
     <script>
         const { createClient } = supabase;
         const supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+        const SHIPMENT_CODE_FIELD = 'كود الشحنة';
+        const SHIPMENT_CODE_FIELD_LEGACY = 'order_id';
+
+        function normalizeShipmentRecord(record) {
+            if (!record || typeof record !== 'object') return record;
+            const normalized = { ...record };
+            const resolvedCodeValue = normalized[SHIPMENT_CODE_FIELD] ?? normalized[SHIPMENT_CODE_FIELD_LEGACY] ?? normalized['كود_الشحنة'] ?? normalized['الكود'];
+            if (resolvedCodeValue !== undefined) {
+                normalized[SHIPMENT_CODE_FIELD] = resolvedCodeValue;
+                normalized[SHIPMENT_CODE_FIELD_LEGACY] = resolvedCodeValue;
+                normalized['كود_الشحنة'] = resolvedCodeValue;
+            }
+            return normalized;
+        }
 
         let user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'sender') {
@@ -139,7 +153,7 @@
                 return;
             }
 
-            myShipments = data;
+            myShipments = (data || []).map(normalizeShipmentRecord);
             restoreSenderUiState();
             renderTable();
             updateStats();

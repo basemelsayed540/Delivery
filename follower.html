@@ -178,6 +178,34 @@
     <script>
         const { createClient } = supabase;
         const supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+        const SHIPMENT_PRICE_FIELD = 'السعر بعد التعديل';
+        const SHIPMENT_PRICE_FIELD_LEGACY = 'السعر_بعد_التعديل';
+        const SHIPMENT_CODE_FIELD = 'كود الشحنة';
+        const SHIPMENT_CODE_FIELD_LEGACY = 'order_id';
+
+        function normalizeShipmentPriceField(record) {
+            if (!record || typeof record !== 'object') return record;
+            const normalized = { ...record };
+            const serverValue = normalized[SHIPMENT_PRICE_FIELD];
+            const legacyValue = normalized[SHIPMENT_PRICE_FIELD_LEGACY];
+            const resolvedValue = serverValue ?? legacyValue;
+            const serverCodeValue = normalized[SHIPMENT_CODE_FIELD];
+            const legacyCodeValue = normalized[SHIPMENT_CODE_FIELD_LEGACY] ?? normalized['كود_الشحنة'] ?? normalized['الكود'];
+            const resolvedCodeValue = serverCodeValue ?? legacyCodeValue;
+
+            if (resolvedValue !== undefined) {
+                normalized[SHIPMENT_PRICE_FIELD] = resolvedValue;
+                normalized[SHIPMENT_PRICE_FIELD_LEGACY] = resolvedValue;
+            }
+
+            if (resolvedCodeValue !== undefined) {
+                normalized[SHIPMENT_CODE_FIELD] = resolvedCodeValue;
+                normalized[SHIPMENT_CODE_FIELD_LEGACY] = resolvedCodeValue;
+                normalized['كود_الشحنة'] = resolvedCodeValue;
+            }
+
+            return normalized;
+        }
 
         let user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'follower') {
@@ -254,7 +282,7 @@
             const { data, error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
                 .select('*')
-                .order('order_id', { ascending: false });
+                .order('كود الشحنة', { ascending: false });
 
             if (error) {
                 console.error(error);
@@ -262,7 +290,7 @@
                 return;
             }
 
-            allShipments = data || [];
+            allShipments = (data || []).map(normalizeShipmentPriceField);
             restoreFollowerUiState();
             populateFilters();
             renderTable();

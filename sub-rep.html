@@ -338,7 +338,7 @@
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap">الزون</th>
                                 <th class="p-2 text-[11px] font-black max-w-[80px] truncate">المنتج</th>
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap">الراسل</th>
-                                <th class="p-2 text-[11px] font-black whitespace-nowrap">الفرع</th>
+                                <th class="p-2 text-[11px] font-black whitespace-nowrap">الوكيل</th>
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap">المندوب الفرعي</th>
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap text-center">الحالة</th>
                                 <th class="p-2 text-[11px] font-black min-w-[100px]">السبب</th>
@@ -474,6 +474,66 @@
         <script>
             const { createClient } = supabase;
             const supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+            const SHIPMENT_PRICE_FIELD = 'السعر بعد التعديل';
+            const SHIPMENT_PRICE_FIELD_LEGACY = 'السعر_بعد_التعديل';
+            const SHIPMENT_CODE_FIELD = 'كود الشحنة';
+            const SHIPMENT_CODE_FIELD_LEGACY = 'order_id';
+            const SHIPMENT_COMMISSION_FIELD = 'عمولة المندوب';
+            const SHIPMENT_COMMISSION_FIELD_LEGACY = 'عمولة_المندوب';
+
+            function normalizeShipmentPriceField(record) {
+                if (!record || typeof record !== 'object') return record;
+                const normalized = { ...record };
+                const serverValue = normalized[SHIPMENT_PRICE_FIELD];
+                const legacyValue = normalized[SHIPMENT_PRICE_FIELD_LEGACY];
+                const resolvedValue = serverValue ?? legacyValue;
+                const serverCodeValue = normalized[SHIPMENT_CODE_FIELD];
+                const legacyCodeValue = normalized[SHIPMENT_CODE_FIELD_LEGACY] ?? normalized['كود_الشحنة'] ?? normalized['الكود'];
+                const resolvedCodeValue = serverCodeValue ?? legacyCodeValue;
+                const serverCommissionValue = normalized[SHIPMENT_COMMISSION_FIELD];
+                const legacyCommissionValue = normalized[SHIPMENT_COMMISSION_FIELD_LEGACY];
+                const resolvedCommissionValue = serverCommissionValue ?? legacyCommissionValue;
+
+                if (resolvedValue !== undefined) {
+                    normalized[SHIPMENT_PRICE_FIELD] = resolvedValue;
+                    normalized[SHIPMENT_PRICE_FIELD_LEGACY] = resolvedValue;
+                }
+
+                if (resolvedCodeValue !== undefined) {
+                    normalized[SHIPMENT_CODE_FIELD] = resolvedCodeValue;
+                    normalized[SHIPMENT_CODE_FIELD_LEGACY] = resolvedCodeValue;
+                    normalized['كود_الشحنة'] = resolvedCodeValue;
+                }
+
+                if (resolvedCommissionValue !== undefined) {
+                    normalized[SHIPMENT_COMMISSION_FIELD] = resolvedCommissionValue;
+                    normalized[SHIPMENT_COMMISSION_FIELD_LEGACY] = resolvedCommissionValue;
+                }
+
+                return normalized;
+            }
+
+            function toServerShipmentPayload(payload) {
+                if (!payload || typeof payload !== 'object') return payload;
+                const normalized = { ...payload };
+
+                if (Object.prototype.hasOwnProperty.call(normalized, SHIPMENT_PRICE_FIELD_LEGACY)) {
+                    normalized[SHIPMENT_PRICE_FIELD] = normalized[SHIPMENT_PRICE_FIELD_LEGACY];
+                    delete normalized[SHIPMENT_PRICE_FIELD_LEGACY];
+                }
+
+                if (Object.prototype.hasOwnProperty.call(normalized, SHIPMENT_CODE_FIELD_LEGACY)) {
+                    normalized[SHIPMENT_CODE_FIELD] = normalized[SHIPMENT_CODE_FIELD_LEGACY];
+                    delete normalized[SHIPMENT_CODE_FIELD_LEGACY];
+                }
+
+                if (Object.prototype.hasOwnProperty.call(normalized, SHIPMENT_COMMISSION_FIELD_LEGACY)) {
+                    normalized[SHIPMENT_COMMISSION_FIELD] = normalized[SHIPMENT_COMMISSION_FIELD_LEGACY];
+                    delete normalized[SHIPMENT_COMMISSION_FIELD_LEGACY];
+                }
+
+                return normalized;
+            }
 
             let user = JSON.parse(localStorage.getItem('user'));
             if (!user || user.role !== 'sub-rep') {
@@ -558,7 +618,6 @@
                     user.full_name, 
                     ...subRepAccounts.map(u => u.username), 
                     ...subRepAccounts.map(u => u.full_name), 
-                    'مخزن',
                     `PRIVATE:${user.username}` // Include hidden uploads
                 ].filter(Boolean);
                 const uniqueManagedNames = [...new Set(myManagedNames)];
@@ -567,7 +626,7 @@
                     .from(CONFIG.TABLES.SHIPMENTS)
                     .select('*')
                     .in('المندوب', uniqueManagedNames)
-                    .order('order_id', { ascending: false });
+                    .order('كود الشحنة', { ascending: false });
 
                 if (error) {
                     console.error(error);
@@ -575,7 +634,7 @@
                     return;
                 }
 
-                allShipments = data || [];
+                allShipments = (data || []).map(normalizeShipmentPriceField);
                 restoreFollowerUiState();
                 populateSubRepAssignTools();
                 populateFilters();
@@ -942,6 +1001,18 @@
                 const file = input.files[0];
                 if (!file) return;
 
+                const extractMissingSchemaColumn = (message) => {
+                    const match = String(message || '').match(/Could not find the '([^']+)' column of 'shipments1'/);
+                    return match ? match[1] : '';
+                };
+
+                const omitFieldFromRows = (rows, fieldName) => rows.map(row => {
+                    if (!fieldName || !Object.prototype.hasOwnProperty.call(row, fieldName)) return row;
+                    const clone = { ...row };
+                    delete clone[fieldName];
+                    return clone;
+                });
+
                 const reader = new FileReader();
                 reader.onload = async (e) => {
                     try {
@@ -977,24 +1048,43 @@
                             return '';
                         };
 
+                        const cleanNumericValue = (value, fallback = 0) => {
+                            if (value === null || value === undefined || String(value).trim() === '') return fallback;
+                            const cleaned = parseFloat(String(value).replace(/[^\d.-]/g, ''));
+                            return Number.isNaN(cleaned) ? fallback : cleaned;
+                        };
+
                         // Map Excel headers to DB columns matching standard names (Order independent)
-                        const shipmentsToUpload = jsonData.map(row => {
+                        const currentUName = user.full_name || user.username || 'مندوب';
+                        const shipmentsToUpload = jsonData.map((row, index) => {
                             const amount = getVal(row, 'المبلغ', 'مبلغ', 'السعر');
+                            let orderId = String(getVal(row, 'كود الشحنة', 'الكود', 'كود', 'order id', 'order_id')).trim();
+                            
+                            // Automatically generate a unique, non-repeating order ID if none exists
+                            if (!orderId) {
+                                const uniqueSuffix = Date.now() + '-' + Math.floor(Math.random() * 10000) + '-' + (index + 1);
+                                orderId = 'SR-' + uniqueSuffix;
+                            }
+
                             return {
                                 'الراسل': getVal(row, 'الراسل', 'الشركه', 'الشركة'),
                                 'اسم_العميل': getVal(row, 'اسم العميل', 'اسم_العميل', 'العميل'),
                                 'الهاتف': String(getVal(row, 'الهاتف', 'رقم الهاتف', 'موبايل')),
                                 'هاتف_بديل': String(getVal(row, 'هاتف بديل', 'هاتف_بديل', 'رقم بديل')),
                                 'العنوان': getVal(row, 'العنوان', 'العنوان بالكامل'),
-                                'المبلغ': amount || 0,
-                                'السعر_بعد_التعديل': getVal(row, 'السعر بعد التعديل', 'السعر_بعد_التعديل') || amount || 0,
-                                'عمولة المندوب': getVal(row, 'عمولة المندوب', 'عمولة_المندوب') || 0,
+                                'المبلغ': cleanNumericValue(amount),
+                                'السعر_بعد_التعديل': cleanNumericValue(getVal(row, 'السعر بعد التعديل', 'السعر_بعد_التعديل'), cleanNumericValue(amount)),
+                                'الصافي': cleanNumericValue(getVal(row, 'الصافي')),
+                                'الشحن': cleanNumericValue(getVal(row, 'الشحن')),
+                                'كود اضافي': getVal(row, 'كود اضافي', 'كود_اضافي'),
+                                'تقفيل': cleanNumericValue(getVal(row, 'تقفيل')),
+                                'عمولة المندوب': cleanNumericValue(getVal(row, 'عمولة المندوب', 'عمولة_المندوب')),
                                 'الحالة': getVal(row, 'الحالة', 'حالة', 'حالة الشحنة'),
                                 'سبب الحالة': getVal(row, 'سبب الحالة', 'سبب_الحالة', 'السبب'),
                                 'المندوب_الفرعي': getVal(row, 'المندوب الفرعي', 'المندوب_الفرعي'),
-                                'order_id': String(getVal(row, 'كود الشحنة', 'الكود', 'كود', 'order id', 'order_id')),
+                                'order_id': orderId,
                                 'المندوب': `PRIVATE:${user.username}`, // Private flag
-                                'الفرع': String(getVal(row, 'الفرع', 'الفرع') || ''),
+                                'اسم الموظف': currentUName,
                                 'الابيديت': String(getVal(row, 'الابيديت', 'تاريخ التحديث', 'التاريخ')) || today
                             };
                         });
@@ -1008,13 +1098,29 @@
                             didOpen: () => { Swal.showLoading(); }
                         });
 
-                        const { error } = await supabaseClient
+                        let payloadRows = shipmentsToUpload;
+                        let { error } = await supabaseClient
                             .from(CONFIG.TABLES.SHIPMENTS)
-                            .upsert(shipmentsToUpload, { onConflict: 'order_id' });
+                            .upsert(payloadRows.map(toServerShipmentPayload), { onConflict: 'كود الشحنة' });
+
+                        let skippedSchemaField = '';
+                        if (error) {
+                            const missingField = extractMissingSchemaColumn(error.message);
+                            if (missingField) {
+                                skippedSchemaField = missingField;
+                                payloadRows = omitFieldFromRows(payloadRows, missingField);
+                                ({ error } = await supabaseClient
+                                    .from(CONFIG.TABLES.SHIPMENTS)
+                                    .upsert(payloadRows.map(toServerShipmentPayload), { onConflict: 'كود الشحنة' }));
+                            }
+                        }
 
                         if (error) throw error;
 
-                        await Swal.fire('تم بنجاح', `تم رفع ${shipmentsToUpload.length} شحنة بنجاح`, 'success');
+                        const successMessage = skippedSchemaField
+                            ? `تم رفع ${payloadRows.length} شحنة بنجاح مع تجاهل العمود "${skippedSchemaField}" لأن السيرفر لا يتعرف عليه حالياً`
+                            : `تم رفع ${payloadRows.length} شحنة بنجاح`;
+                        await Swal.fire('تم بنجاح', successMessage, 'success');
                         await fetchShipments();
 
                     } catch (error) {
@@ -1035,6 +1141,7 @@
                 }
 
                 const exportData = data.map(s => ({
+                    'm': s.م || '',
                     'اسم_العميل': s.اسم_العميل || '',
                     'العنوان': s.العنوان || '',
                     'الزون': s.الزون || '',
@@ -1043,6 +1150,7 @@
                     'هاتف-بديل': s.هاتف_بديل || '',
                     'المبلغ': s.المبلغ || '',
                     'الراسل': s.الراسل || '',
+                    'الوكيل': s['اسم الموظف'] || '',
                     'كود الشحنة': s.كود_الشحنة || s.الكود || s.order_id || '',
                     'المندوب': s.المندوب || '',
                     'الحالة': getShipmentDisplayStatus(s),
@@ -1276,7 +1384,7 @@
                     <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">${s.الزون || '---'}</td>
                     <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 max-w-[80px] truncate" title="${s.المنتج || ''}">${s.المنتج || '---'}</td>
                     <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">${s.الراسل || '---'}</td>
-                    <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">${s.الفرع || '---'}</td>
+                    <td class="px-2 py-2 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">${s['اسم الموظف'] || '---'}</td>
                     <td class="px-2 py-2 text-xs font-bold whitespace-nowrap">
                         ${(() => {
                         const subRepNamesShort = subRepAccounts.map(u => u.username).filter(Boolean);
@@ -1337,7 +1445,7 @@
                 if (String(oldVal || '').trim() === String(value || '').trim()) return;
 
                 // Update UI locally for responsiveness
-                allShipments[sIndex][field] = value;
+                allShipments[sIndex] = normalizeShipmentPriceField({ ...allShipments[sIndex], [field]: value });
                 const updateData = { [field]: value };
 
                 if (field === 'الحالة') {
@@ -1349,7 +1457,7 @@
                 try {
                     const { error } = await supabaseClient
                         .from(CONFIG.TABLES.SHIPMENTS)
-                        .update(updateData)
+                        .update(toServerShipmentPayload(updateData))
                         .eq('id', id);
 
                     if (error) {
@@ -1494,9 +1602,9 @@
                     confirmButtonText: 'تأكيد التعيين',
                     cancelButtonText: 'إلغاء',
                     confirmButtonColor: '#4f46e5',
-                    inputValidator: (value) => {
+                    inputValidator: async (value) => {
                         if (!value) return 'يجب إدخال كلمة المرور!';
-                        if (value !== user.password) return 'كلمة المرور غير صحيحة!';
+                        if (!(await verifyPassword(user.password, value))) return 'كلمة المرور غير صحيحة!';
                     }
                 });
 
@@ -1589,7 +1697,7 @@
                 if (!password) return;
 
                 // Validate password
-                if (password !== user.password) {
+                if (!(await verifyPassword(user.password, password))) {
                     Swal.fire('خطأ', 'كلمة المرور غير صحيحة، تم إلغاء المسح.', 'error');
                     return;
                 }
@@ -2027,7 +2135,7 @@
             };
 
             if (password) {
-                updateData.password = password;
+                updateData.password = await hashPassword(password);
             }
 
             try {
@@ -2062,7 +2170,7 @@
                     .insert([{
                         username,
                         phone,
-                        password,
+                        password: await hashPassword(password),
                         email: `${phone}@delegate.local`,
                         role: 'rep',
                         parent_id: parentId,
