@@ -4232,6 +4232,15 @@
             return fields.filter(key => normalizeHousingComparableValue(key, payload[key]) !== normalizeHousingComparableValue(key, baseShipment?.[key]));
         }
 
+        function pickHousingChangedPayload(baseShipment, payload) {
+            const changedFields = getHousingChangedFields(baseShipment, payload);
+            const changedPayload = {};
+            changedFields.forEach(key => {
+                changedPayload[key] = payload[key];
+            });
+            return changedPayload;
+        }
+
         function syncHousingDraft(id) {
             const shipment = allShipments.find(s => String(s.id) === String(id));
             if (!shipment) return;
@@ -4587,7 +4596,8 @@
                 if (progressText) progressText.innerText = `جاري معالجة: ${escapeHtml(entry.payload.اسم_العميل || entry.shipment.اسم_العميل || 'شحنة غير معروفة')}`;
 
                 const currentU = currentUser.full_name || currentUser.username || 'المدير';
-                const finalPayload = toServerShipmentPayload({ ...entry.payload, ['اسم الموظف']: currentU });
+                const changedPayload = pickHousingChangedPayload(entry.shipment, entry.payload);
+                const finalPayload = toServerShipmentPayload({ ...changedPayload, ['اسم الموظف']: currentU });
 
                 // Handle Sub-rep Agent (اسم الموظف) logic
                 if (finalPayload.المندوب) {

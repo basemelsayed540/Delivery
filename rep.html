@@ -125,7 +125,8 @@
                         <h2 class="text-xl font-black text-black dark:text-white leading-none"><span
                                 id="progressPercent">0</span>%</h2>
                         <p class="text-[11px] font-black text-slate-800 dark:text-slate-200">تم <span
-                                id="progressDelivered" class="text-emerald-600">0</span> من <span
+                                id="progressDelivered" class="text-emerald-600">0</span> | شحن <span
+                                id="progressShipping" class="text-sky-600">0</span> من <span
                                 id="progressTotal">0</span></p>
                     </div>
                     <div class="min-w-0 text-left">
@@ -1227,10 +1228,12 @@
             const scopedShipments = getDateFilteredShipments();
             const total = scopedShipments.length;
             const delivered = scopedShipments.filter(s => isDeliveredStatus(s.الحالة, s)).length;
+            const shipping = scopedShipments.filter(s => isShippingFeeShipment(s)).length;
             const progress = total ? Math.round((delivered / total) * 100) : 0;
 
             document.getElementById('progressPercent').innerText = progress;
             document.getElementById('progressDelivered').innerText = delivered;
+            document.getElementById('progressShipping').innerText = shipping;
             document.getElementById('progressTotal').innerText = total;
             document.getElementById('progressBar').style.width = `${progress}%`;
             document.getElementById('repCommissionTotal').innerHTML = `${scopedShipments.filter(isCommissionEligibleShipment).reduce((acc, shipment) => acc + getShipmentCommission(shipment), 0)} <span class="text-sm text-slate-800 dark:text-white">ج.م</span>`;
@@ -1298,7 +1301,15 @@
             }
 
             list.innerHTML = filtered.map(s => {
-                const hideUpdateActions = selectedStatuses.includes('تم') && isDeliveredStatus(s.الحالة, s);
+                const hideUpdateActions =
+                    (selectedStatuses.length === 0 && (
+                        isDeliveredStatus(s.الحالة, s) ||
+                        isShippingFeeShipment(s) ||
+                        isPriceEditShipment(s)
+                    )) ||
+                    (selectedStatuses.includes('تم') && isDeliveredStatus(s.الحالة, s)) ||
+                    (selectedStatuses.includes('شحن') && isShippingFeeShipment(s)) ||
+                    (selectedStatuses.includes('تعديل سعر') && isPriceEditShipment(s));
                 return `
                 <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl relative overflow-hidden group transition-all duration-300 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md mb-3">
                     <div class="absolute top-0 right-0 w-1.5 h-full ${getStatusColor(s)}"></div>
@@ -1313,9 +1324,14 @@
                             </div>
                             <h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">${s.اسم_العميل || 'غير مسجل'}</h3>
                         </div>
-                        <span class="px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm border border-white dark:border-slate-800 ${getStatusBadgeClass(s)}">
-                            ${isPendingStatus(s.الحالة) ? 'قيد التوصيل' : (isPriceEditShipment(s) ? (s['سبب الحالة'] || s.سبب_الحالة || 'تعديل سعر') : (isDelayedStatus(s.الحالة) ? 'مؤجل' : (isRejectedStatus(s.الحالة) ? 'رفض' : (isDeliveredStatus(s.الحالة, s) ? 'تم' : (s.الحالة || 'قيد التوصيل')))))}
-                        </span>
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm border border-white dark:border-slate-800 ${getStatusBadgeClass(s)}">
+                                ${isPendingStatus(s.الحالة) ? 'قيد التوصيل' : (isPriceEditShipment(s) ? (s['سبب الحالة'] || s.سبب_الحالة || 'تعديل سعر') : (isDelayedStatus(s.الحالة) ? 'مؤجل' : (isRejectedStatus(s.الحالة) ? 'رفض' : (isDeliveredStatus(s.الحالة, s) ? 'تم' : (s.الحالة || 'قيد التوصيل')))))}
+                            </span>
+                            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                                الراسل: ${s.الراسل || '---'}
+                            </span>
+                        </div>
                     </div>
 
                     <div class="space-y-2.5 mb-5">
