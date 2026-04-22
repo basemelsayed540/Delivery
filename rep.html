@@ -862,6 +862,15 @@
             lockedShipmentIds.add(String(id));
         }
 
+        function isShipmentUpdateLocked(shipmentOrId) {
+            const shipment = typeof shipmentOrId === 'object'
+                ? shipmentOrId
+                : allShipments.find(s => String(s.id) === String(shipmentOrId));
+
+            if (!shipment) return isShipmentLocked(shipmentOrId);
+            return isShipmentLocked(shipment.id) || isRejectedStatus(shipment.الحالة);
+        }
+
         function populateDropdowns() {
             const currentZone = document.getElementById('filterZone')?.value || '';
             const currentSender = document.getElementById('filterSender')?.value || '';
@@ -1309,7 +1318,8 @@
                     )) ||
                     (selectedStatuses.includes('تم') && isDeliveredStatus(s.الحالة, s)) ||
                     (selectedStatuses.includes('شحن') && isShippingFeeShipment(s)) ||
-                    (selectedStatuses.includes('تعديل سعر') && isPriceEditShipment(s));
+                    (selectedStatuses.includes('تعديل سعر') && isPriceEditShipment(s)) ||
+                    (selectedStatuses.includes('رفض') && isRejectedStatus(s.الحالة));
                 return `
                 <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl relative overflow-hidden group transition-all duration-300 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md mb-3">
                     <div class="absolute top-0 right-0 w-1.5 h-full ${getStatusColor(s)}"></div>
@@ -1360,15 +1370,15 @@
 
                     ${hideUpdateActions ? '' : `
                     <div class="grid grid-cols-2 gap-3 mt-1">
-                        <button onclick="updateStatus('${s.id}', 'تم التسليم')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-indigo-100 active:scale-95 transition-all">تم التسليم</button>
-                        <button onclick="editPrice('${s.id}')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-slate-100 active:scale-95 transition-all">تعديل سعر</button>
-                        <button onclick="updateStatus('${s.id}', 'مؤجل')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-amber-500 hover:bg-amber-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-amber-100 active:scale-95 transition-all">مؤجل</button>
-                        <button onclick="handleRejectAction('${s.id}')" ${isShipmentLocked(s.id) ? 'disabled' : ''} class="bg-rose-600 hover:bg-rose-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-rose-100 active:scale-95 transition-all">رفض</button>
+                        <button onclick="updateStatus('${s.id}', 'تم التسليم')" ${isShipmentUpdateLocked(s) ? 'disabled' : ''} class="bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-indigo-100 active:scale-95 transition-all">تم التسليم</button>
+                        <button onclick="editPrice('${s.id}')" ${isShipmentUpdateLocked(s) ? 'disabled' : ''} class="bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-slate-100 active:scale-95 transition-all">تعديل سعر</button>
+                        <button onclick="updateStatus('${s.id}', 'مؤجل')" ${isShipmentUpdateLocked(s) ? 'disabled' : ''} class="bg-amber-500 hover:bg-amber-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-amber-100 active:scale-95 transition-all">مؤجل</button>
+                        <button onclick="handleRejectAction('${s.id}')" ${isShipmentUpdateLocked(s) ? 'disabled' : ''} class="bg-rose-600 hover:bg-rose-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-rose-100 active:scale-95 transition-all">رفض</button>
                     </div>
                     `}
-                    ${isShipmentLocked(s.id) ? `
+                    ${isShipmentUpdateLocked(s) ? `
                         <div class="mt-2 rounded-xl border border-amber-100/50 bg-amber-50/50 px-3 py-1.5 text-center text-[10px] font-bold text-amber-600">
-                            هذه الشحنة مرتبطة بطلب تسوية
+                            هذه الشحنة لا يمكن تعديلها مرة أخرى
                         </div>
                     ` : ''}
                 </div>
@@ -1527,7 +1537,7 @@
         }
 
         async function updateStatus(id, status) {
-            if (isShipmentLocked(id)) {
+            if (isShipmentUpdateLocked(id)) {
                 Swal.fire('تنبيه', 'هذه الشحنة مرتبطة بطلب تسوية ولا يمكن تعديلها مرة أخرى', 'warning');
                 return;
             }
@@ -1589,7 +1599,7 @@
         }
 
         async function handleRejectAction(id) {
-            if (isShipmentLocked(id)) {
+            if (isShipmentUpdateLocked(id)) {
                 Swal.fire('تنبيه', 'هذه الشحنة مرتبطة بطلب تسوية ولا يمكن تعديلها مرة أخرى', 'warning');
                 return;
             }
@@ -1624,7 +1634,7 @@
         async function editPrice(id) {
             const shipment = allShipments.find(s => s.id == id);
             if (!shipment) return;
-            if (isShipmentLocked(id)) {
+            if (isShipmentUpdateLocked(shipment)) {
                 Swal.fire('تنبيه', 'هذه الشحنة مرتبطة بطلب تسوية ولا يمكن تعديلها مرة أخرى', 'warning');
                 return;
             }
@@ -1680,10 +1690,15 @@
             const isShippingEdit = type === 'شحن';
             const newStatus = isPriceEdit ? 'تم' : (isShippingEdit ? 'شحن' : type);
             const newReason = note;
+            const baseCommission = parseFloat(String(shipment?.['عمولة المندوب'] ?? 0).replace(/[^0-9.-]+/g, '')) || 0;
+            const calculatedCommission = isShippingEdit
+                ? (price < 50 ? baseCommission / 2 : baseCommission)
+                : baseCommission;
             const updatePayload = {
                 الحالة: newStatus,
                 'سبب الحالة': newReason,
-                السعر_بعد_التعديل: price
+                السعر_بعد_التعديل: price,
+                'عمولة المندوب': calculatedCommission
             };
 
             const { error } = await supabaseClient
@@ -1703,6 +1718,7 @@
                 allShipments[index]['سبب الحالة'] = newReason;
                 allShipments[index].سبب_الحالة = newReason;
                 allShipments[index].السعر_بعد_التعديل = price;
+                allShipments[index]['عمولة المندوب'] = calculatedCommission;
             }
             if (newStatus === 'تم' || newStatus === 'شحن') {
                 lockShipmentForFurtherUpdates(id);
