@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://evrqxgnqwngokukqerps.supabase.co https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(self), camera=(self), microphone=(), payment=(), usb=(), browsing-topics=()">
     <title>الحساب | نظام الشحن الاحترافي</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,9 +28,12 @@
                     <p class="text-xs font-bold text-indigo-600" id="repName">مندوب توصيل</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <button onclick="toggleTheme()" class="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+            <div class="flex items-center gap-1">
+                <button onclick="toggleTheme()" class="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors">
                     <i id="themeIcon" class="fas fa-moon text-xl"></i>
+                </button>
+                <button onclick="logout()" class="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-colors">
+                    <i class="fas fa-power-off text-xl"></i>
                 </button>
             </div>
         </div>
@@ -103,19 +109,25 @@
     </main>
 
     <!-- Navigation Bottom (Mobile Only) -->
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass rounded-full px-8 py-4 flex items-center justify-between shadow-2xl z-50">
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg glass rounded-full px-4 py-3 flex items-center justify-around shadow-2xl z-50">
         <a href="rep.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors">
             <i class="fas fa-box text-xl"></i>
-            <span class="text-[10px] font-bold">شحناتي</span>
+            <span class="text-[9px] font-black">شحناتي</span>
         </a>
 
-        <a href="wallet.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors">
+        <a href="wallet.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors relative">
             <i class="fas fa-wallet text-xl"></i>
-            <span class="text-[10px] font-bold">المحفظة</span>
+            <span class="text-[9px] font-black">المحفظة</span>
         </a>
-        <button class="flex flex-col items-center gap-1 text-indigo-600">
+
+        <a href="rep.html#notifications" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors relative">
+            <i class="fas fa-bell text-xl"></i>
+            <span class="text-[9px] font-black">الإشعارات</span>
+        </a>
+
+        <button class="flex flex-col items-center gap-1 text-indigo-600 transition-colors">
             <i class="fas fa-user text-xl"></i>
-            <span class="text-[10px] font-bold">الحساب</span>
+            <span class="text-[9px] font-black">الحساب</span>
         </button>
     </nav>
 
@@ -125,9 +137,18 @@
         const supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
         let user = JSON.parse(localStorage.getItem('user'));
-        if (!user || user.role !== 'rep') {
+        if (!user || (user.role !== 'rep' && user.role !== 'مندوب فرعي')) {
             window.location.href = 'index.html';
         }
+        startStoredUserSessionGuard(supabaseClient, {
+            allowedRoles: ['rep', 'مندوب فرعي'],
+            onValidUser: (latestUser) => {
+                user = latestUser;
+                document.getElementById('repName').innerText = latestUser.full_name || latestUser.username || latestUser.phone;
+                document.getElementById('profileName').innerText = latestUser.full_name || latestUser.username || 'مندوب';
+                document.getElementById('profilePhone').innerText = latestUser.phone || 'غير مسجل';
+            }
+        });
 
         document.getElementById('repName').innerText = user.full_name || user.username || user.phone;
         document.getElementById('profileName').innerText = user.full_name || user.username || 'مندوب';
@@ -155,14 +176,7 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
 
             try {
-                // 1. Verify old password
-                const { data: userData, error: fetchError } = await supabaseClient
-                    .from(CONFIG.TABLES.USERS)
-                    .select('*')
-                    .eq('phone', user.phone)
-                    .single();
-
-                if (fetchError || !userData || !(await verifyPassword(userData.password, oldPass))) {
+                if (!(await verifyCurrentPasswordSecure(oldPass))) {
                     Swal.fire('خطأ', 'كلمة المرور الحالية غير صحيحة', 'error');
                     btn.disabled = false;
                     btn.innerHTML = 'حفظ كلمة المرور';
@@ -171,17 +185,16 @@
 
                 // 2. Update to new password
                 const hashedNewPass = await hashPassword(newPass);
-                const { error: updateError } = await supabaseClient
-                    .from(CONFIG.TABLES.USERS)
-                    .update({ password: hashedNewPass })
-                    .eq('id', userData.id);
-
-                if (updateError) {
-                    Swal.fire('خطأ', 'فشل في تحديث كلمة المرور', 'error');
-                } else {
+                try {
+                    await invokeUsersAuthAction('change_password', {
+                        oldPassword: oldPass,
+                        newPasswordHash: hashedNewPass
+                    });
                     Swal.fire('تم بنجاح', 'تم تغيير كلمة المرور، يرجى تسجيل الدخول مجدداً', 'success').then(() => {
                         logout();
                     });
+                } catch (updateError) {
+                    Swal.fire('خطأ', updateError.message || 'فشل في تحديث كلمة المرور', 'error');
                 }
 
             } catch (err) {
@@ -194,8 +207,7 @@
         }
 
         function logout() {
-            localStorage.removeItem('user');
-            window.location.href = 'index.html';
+            clearStoredUserSession();
         }
 
         function toggleTheme() {

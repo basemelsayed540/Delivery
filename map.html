@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://evrqxgnqwngokukqerps.supabase.co https://*.supabase.co wss://*.supabase.co https://*.tile.openstreetmap.org https://nominatim.openstreetmap.org https://router.project-osrm.org; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(self), camera=(self), microphone=(), payment=(), usb=(), browsing-topics=()">
     <title>خريطة المندوب | نظام الشحن الاحترافي</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -77,21 +80,19 @@
         const SHIPMENT_CODE_FIELD_LEGACY = 'order_id';
 
         function normalizeShipmentRecord(record) {
-            if (!record || typeof record !== 'object') return record;
-            const normalized = { ...record };
-            const resolvedCodeValue = normalized[SHIPMENT_CODE_FIELD] ?? normalized[SHIPMENT_CODE_FIELD_LEGACY] ?? normalized['كود_الشحنة'] ?? normalized['الكود'];
-            if (resolvedCodeValue !== undefined) {
-                normalized[SHIPMENT_CODE_FIELD] = resolvedCodeValue;
-                normalized[SHIPMENT_CODE_FIELD_LEGACY] = resolvedCodeValue;
-                normalized['كود_الشحنة'] = resolvedCodeValue;
-            }
-            return normalized;
+            return normalizeShipmentRecordHeaders(record);
         }
 
         let user = JSON.parse(localStorage.getItem('user'));
-        if (!user || user.role !== 'rep') {
+        if (!user || (user.role !== 'rep' && user.role !== 'مندوب فرعي')) {
             window.location.href = 'index.html';
         }
+        startStoredUserSessionGuard(supabaseClient, {
+            allowedRoles: ['rep', 'مندوب فرعي'],
+            onValidUser: (latestUser) => {
+                user = latestUser;
+            }
+        });
 
         let map, repMarker;
         let repCoords = null;

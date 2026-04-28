@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://evrqxgnqwngokukqerps.supabase.co https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(self), camera=(self), microphone=(), payment=(), usb=(), browsing-topics=()">
     <title>المحفظة | نظام الشحن الاحترافي</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,9 +30,12 @@
                     <p class="text-xs font-bold text-indigo-600" id="repName">مندوب توصيل</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <button onclick="toggleTheme()" class="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+            <div class="flex items-center gap-1">
+                <button onclick="toggleTheme()" class="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors">
                     <i id="themeIcon" class="fas fa-moon text-xl"></i>
+                </button>
+                <button onclick="logout()" class="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-colors">
+                    <i class="fas fa-power-off text-xl"></i>
                 </button>
             </div>
         </div>
@@ -39,10 +45,10 @@
         
         <div class="glass p-6 rounded-3xl space-y-6">
             <div>
-                <label class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">تصفية حسب تاريخ التحديث</label>
+                <label class="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">تصفية حسب اليومية</label>
                 <div class="relative">
                     <button id="filterDateBtn" onclick="document.getElementById('filterDateMenu').classList.toggle('hidden');" class="w-full glass px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-white outline-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center flex items-center justify-between transition-all duration-300">
-                        <span id="filterDateLabel" class="truncate">اختر تاريخ التحديث</span>
+                        <span id="filterDateLabel" class="truncate">اختر اليومية</span>
                         <i class="fas fa-chevron-down text-xs opacity-60"></i>
                     </button>
                     <div id="filterDateMenu" class="hidden absolute top-full right-0 mt-1 w-full glass rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800 dark:border-slate-700 max-h-48 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right text-xs"></div>
@@ -57,11 +63,12 @@
                 <div class="bg-emerald-50 dark:bg-emerald-900/30 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 text-center">
                     <p class="text-xs font-black text-emerald-600 dark:text-emerald-400 mb-2">تم</p>
                     <h4 id="walletDeliveredCount" class="text-3xl font-black text-slate-800 dark:text-white">0</h4>
+                    <p id="walletDeliveredAmount" class="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">0 ج.م</p>
                 </div>
                 <div class="bg-cyan-50 dark:bg-cyan-900/30 p-4 rounded-2xl border border-cyan-100 dark:border-cyan-800/50 text-center">
                     <p class="text-xs font-black text-cyan-600 dark:text-cyan-400 mb-2">تعديل سعر</p>
                     <h4 id="walletPriceEditedCount" class="text-3xl font-black text-slate-800 dark:text-white">0</h4>
-                    <p id="walletPriceEditedMeta" class="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">عدد الشحنات: 0</p>
+                    <p id="walletPriceEditedAmount" class="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">0 ج.م</p>
                 </div>
                 <div class="bg-rose-50 dark:bg-rose-900/30 p-4 rounded-2xl border border-rose-100 dark:border-rose-800/50 text-center">
                     <p class="text-xs font-black text-rose-600 dark:text-rose-400 mb-2">رفض</p>
@@ -94,19 +101,22 @@
     </main>
 
     <!-- Navigation Bottom (Mobile Only) -->
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass rounded-full px-8 py-4 flex items-center justify-between shadow-2xl z-50">
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg glass rounded-full px-4 py-3 flex items-center justify-around shadow-2xl z-50">
         <a href="rep.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors">
             <i class="fas fa-box text-xl"></i>
-            <span class="text-[10px] font-bold">شحناتي</span>
+            <span class="text-[9px] font-black">شحناتي</span>
         </a>
-
-        <button class="flex flex-col items-center gap-1 text-indigo-600">
+        <button class="flex flex-col items-center gap-1 text-indigo-600 transition-colors relative">
             <i class="fas fa-wallet text-xl"></i>
-            <span class="text-[10px] font-bold">المحفظة</span>
+            <span class="text-[9px] font-black">المحفظة</span>
         </button>
+        <a href="rep.html#notifications" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors relative">
+            <i class="fas fa-bell text-xl"></i>
+            <span class="text-[9px] font-black">الإشعارات</span>
+        </a>
         <a href="account.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-indigo-600 transition-colors">
             <i class="fas fa-user text-xl"></i>
-            <span class="text-[10px] font-bold">الحساب</span>
+            <span class="text-[9px] font-black">الحساب</span>
         </a>
     </nav>
 
@@ -120,33 +130,21 @@
         const SHIPMENT_CODE_FIELD_LEGACY = 'order_id';
 
         function normalizeShipmentPriceField(record) {
-            if (!record || typeof record !== 'object') return record;
-            const normalized = { ...record };
-            const serverValue = normalized[SHIPMENT_PRICE_FIELD];
-            const legacyValue = normalized[SHIPMENT_PRICE_FIELD_LEGACY];
-            const resolvedValue = serverValue ?? legacyValue;
-            const serverCodeValue = normalized[SHIPMENT_CODE_FIELD];
-            const legacyCodeValue = normalized[SHIPMENT_CODE_FIELD_LEGACY] ?? normalized['كود_الشحنة'] ?? normalized['الكود'];
-            const resolvedCodeValue = serverCodeValue ?? legacyCodeValue;
-
-            if (resolvedValue !== undefined) {
-                normalized[SHIPMENT_PRICE_FIELD] = resolvedValue;
-                normalized[SHIPMENT_PRICE_FIELD_LEGACY] = resolvedValue;
-            }
-
-            if (resolvedCodeValue !== undefined) {
-                normalized[SHIPMENT_CODE_FIELD] = resolvedCodeValue;
-                normalized[SHIPMENT_CODE_FIELD_LEGACY] = resolvedCodeValue;
-                normalized['كود_الشحنة'] = resolvedCodeValue;
-            }
-
-            return normalized;
+            return normalizeShipmentRecordHeaders(record);
         }
 
         let user = JSON.parse(localStorage.getItem('user'));
-        if (!user || user.role !== 'rep') {
+        if (!user || (user.role !== 'rep' && user.role !== 'مندوب فرعي')) {
             window.location.href = 'index.html';
         }
+        startStoredUserSessionGuard(supabaseClient, {
+            allowedRoles: ['rep', 'مندوب فرعي'],
+            onValidUser: (latestUser) => {
+                user = latestUser;
+                const repName = document.getElementById('repName');
+                if (repName) repName.innerText = latestUser.full_name || latestUser.username || latestUser.phone;
+            }
+        });
 
         document.getElementById('repName').innerText = user.full_name || user.username || user.phone;
 
@@ -202,10 +200,13 @@
         }
 
         async function fetchShipments() {
+            const identifiers = [user.username, user.phone, user.full_name].filter(Boolean);
+            const orQuery = identifiers.map(id => `المندوب.eq."${id}",المندوب الفرعي.eq."${id}"`).join(',');
+
             const { data, error } = await supabaseClient
                 .from(CONFIG.TABLES.SHIPMENTS)
                 .select('*')
-                .eq('المندوب', user.username || user.phone)
+                .or(orQuery)
                 .order('id', { ascending: false });
 
             if (error) {
@@ -220,7 +221,7 @@
         }
 
         function populateDates() {
-            const dates = [...new Set(allShipments.map(s => s.الابيديت).filter(Boolean))].sort().reverse();
+            const dates = [...new Set(allShipments.map(s => getShipmentDailyValue(s)).filter(Boolean))].sort().reverse();
             
             const datesSet = new Set(dates);
             const normalizedSelectedDates = getSelectedDates().filter(date => datesSet.has(date));
@@ -247,7 +248,7 @@
                 filterBtn?.classList.add('!bg-indigo-600', '!text-white', '!border-indigo-600');
                 filterBtn?.classList.remove('bg-white', 'text-slate-600', 'dark:bg-slate-800', 'dark:text-white');
             } else {
-                label.innerText = 'اختر تاريخ التحديث';
+                label.innerText = 'اختر اليومية';
                 filterBtn?.classList.remove('!bg-indigo-600', '!text-white', '!border-indigo-600');
                 filterBtn?.classList.add('bg-white', 'text-slate-600', 'dark:bg-slate-800', 'dark:text-white');
             }
@@ -255,7 +256,7 @@
             if (!items || items.length === 0) {
                 menu.innerHTML = `
                     <div class="px-2 py-3 text-center text-[11px] font-bold text-slate-500 dark:text-slate-300">
-                        لا يوجد ابيديت متاح
+                        لا توجد يوميات متاحة
                     </div>
                 `;
                 return;
@@ -263,7 +264,7 @@
 
             const dateCounts = {};
             allShipments.forEach(s => {
-                const d = s.الابيديت;
+                const d = getShipmentDailyValue(s);
                 if (d) dateCounts[d] = (dateCounts[d] || 0) + 1;
             });
 
@@ -289,7 +290,6 @@
         function isPriceEditShipment(shipment) {
             const normalizedStatus = String(shipment?.الحالة || '').trim();
             const normalizedReason = String(shipment?.['سبب الحالة'] || shipment?.سبب_الحالة || '').trim();
-            // شحن is a separate category, NOT price edit
             return normalizedStatus === 'تعديل سعر' || normalizedReason === 'تعديل سعر';
         }
 
@@ -301,7 +301,9 @@
 
         function isDeliveredShipment(shipment) {
             const normalizedStatus = String(shipment?.الحالة || '').trim();
-            return (normalizedStatus === 'تم' || normalizedStatus === 'تم التسليم') && !isPriceEditShipment(shipment) && !isShippingFeeShipment(shipment);
+            if (isPriceEditShipment(shipment)) return false;
+            if (isShippingFeeShipment(shipment)) return false;
+            return normalizedStatus === 'تم' || normalizedStatus === 'تم التسليم';
         }
 
         function isRejectedShipment(shipment) {
@@ -332,7 +334,11 @@
         }
 
         function getShipmentCommission(shipment) {
-            const value = parseFloat(shipment?.['عمولة المندوب'] || 0);
+            let commissionValue = shipment?.['عمولة المندوب'];
+            if (user && user.role === 'مندوب فرعي') {
+                commissionValue = shipment?.['عمولة المندوب الفرعي'] || shipment?.عمولة_المندوب_الفرعي || 0;
+            }
+            const value = parseFloat(commissionValue || 0);
             return Number.isNaN(value) ? 0 : value;
         }
 
@@ -378,8 +384,9 @@
                 currentWalletBalance = 0;
                 document.getElementById('walletTotalCount').innerText = 0;
                 document.getElementById('walletDeliveredCount').innerText = 0;
+                document.getElementById('walletDeliveredAmount') && (document.getElementById('walletDeliveredAmount').innerText = `0 ج.م`);
                 document.getElementById('walletPriceEditedCount').innerText = 0;
-                document.getElementById('walletPriceEditedMeta').innerText = `عدد الشحنات: 0`;
+                document.getElementById('walletPriceEditedAmount') && (document.getElementById('walletPriceEditedAmount').innerText = `0 ج.م`);
                 document.getElementById('walletRejectedCount').innerText = 0;
                 document.getElementById('walletShippingCount').innerText = 0;
                 document.getElementById('walletShippingAmount').innerText = `0 ج.م`;
@@ -394,10 +401,15 @@
                 return;
             }
 
-            let filteredByDate = allShipments.filter(s => selectedDates.includes(s.الابيديت));
+            let filteredByDate = allShipments.filter(s => selectedDates.includes(getShipmentDailyValue(s)));
 
-            const deliveredCount = filteredByDate.filter(s => isDeliveredShipment(s)).length;
-            const priceEditedCount = filteredByDate.filter(s => isPriceEditShipment(s)).length;
+            const deliveredShipments = filteredByDate.filter(s => isDeliveredShipment(s));
+            const deliveredCount = deliveredShipments.length;
+            const deliveredAmount = deliveredShipments.reduce((acc, shipment) => acc + getShipmentAmount(shipment), 0);
+            
+            const priceEditedShipments = filteredByDate.filter(s => isPriceEditShipment(s));
+            const priceEditedCount = priceEditedShipments.length;
+            const priceEditedAmount = priceEditedShipments.reduce((acc, shipment) => acc + getShipmentAmount(shipment), 0);
             const rejectedCount = filteredByDate.filter(s => isRejectedShipment(s)).length;
             const shippingShipments = filteredByDate.filter(s => isShippingFeeShipment(s));
             const inTransitCount = filteredByDate.filter(s => isPendingShipment(s)).length;
@@ -417,8 +429,9 @@
 
             document.getElementById('walletTotalCount').innerText = filteredByDate.length;
             document.getElementById('walletDeliveredCount').innerText = deliveredCount;
+            document.getElementById('walletDeliveredAmount') && (document.getElementById('walletDeliveredAmount').innerText = `${deliveredAmount} ج.م`);
             document.getElementById('walletPriceEditedCount').innerText = priceEditedCount;
-            document.getElementById('walletPriceEditedMeta').innerText = `عدد الشحنات: ${priceEditedCount}`;
+            document.getElementById('walletPriceEditedAmount') && (document.getElementById('walletPriceEditedAmount').innerText = `${priceEditedAmount} ج.م`);
             document.getElementById('walletRejectedCount').innerText = rejectedCount;
             document.getElementById('walletDelayedCount').innerText = filteredByDate.filter(s => isDelayedShipment(s)).length;
             document.getElementById('walletShippingCount').innerText = shippingShipments.length;
@@ -453,6 +466,10 @@
             localStorage.setItem('rep-theme', isDark ? 'dark' : 'light');
         }
 
+        function logout() {
+            clearStoredUserSession();
+        }
+
         if (localStorage.getItem('rep-theme') === 'dark') {
             document.body.classList.add('dark');
             document.getElementById('themeIcon').className = 'fas fa-sun text-xl';
@@ -460,8 +477,8 @@
 
         // Real-time listener
         supabaseClient
-            .channel('public:shipments1')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments1' }, payload => {
+            .channel('public:elsayed')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'elsayed' }, payload => {
                 fetchShipments();
             })
             .subscribe();

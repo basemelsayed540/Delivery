@@ -1,9 +1,12 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://evrqxgnqwngokukqerps.supabase.co https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(self), camera=(self), microphone=(), payment=(), usb=(), browsing-topics=()">
     <title>لوحة المندوب المتقدم | نظام الشحن الاحترافي</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -486,6 +489,10 @@
 
                 <!-- Left Side (Theme & Logout) -->
                 <div class="flex items-center gap-2">
+                    <button onclick="toggleTracking()" id="trackingToggleBtn"
+                        class="hidden p-2 text-slate-400 dark:text-slate-300 hover:text-emerald-500 transition-colors" title="بدء/إنهاء الشيفت">
+                        <i id="trackingIcon" class="fas fa-location-crosshairs text-xl"></i>
+                    </button>
                     <button onclick="toggleTheme()"
                         class="p-2 text-slate-400 dark:text-slate-300 hover:text-indigo-600 transition-colors">
                         <i id="themeIcon" class="fas fa-moon text-xl"></i>
@@ -525,11 +532,11 @@
             <div id="subRepFiltersPanel" class="glass p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm mb-4">
                 <div class="grid grid-cols-2 md:flex md:flex-row gap-3">
                     <div class="flex-1">
-                        <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">تاريخ التحديث</label>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">اليومية</label>
                         <div class="relative w-full">
                             <select id="filterUpdate" onchange="filterData()"
                                 class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-[11px] font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
-                                <option value="">كل التواريخ</option>
+                                <option value="">كل اليوميات</option>
                             </select>
                             <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
                         </div>
@@ -545,7 +552,7 @@
                         </div>
                     </div>
                     <div class="flex-1">
-                        <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">المندوب الرعي</label>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">المندوب الفرعي</label>
                         <div class="relative w-full">
                             <select id="filterSubRepName" onchange="filterData()"
                                 class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-[11px] font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
@@ -577,7 +584,7 @@
                     <div class="flex-1 col-span-2 md:col-span-1">
                         <label class="block text-[10px] font-bold text-slate-500 mb-1 px-1">الراسل (المكتب)</label>
                         <div class="relative w-full">
-                            <select id="filterSender" onchange="filterData()" data-has-agent="true"><!--MARKER-->
+                            <select id="filterSender" onchange="filterData()" data-has-agent="true"
                                 class="w-full bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-[11px] font-bold outline-none appearance-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 transition-colors">
                                 <option value="">كافة المكاتب</option>
                             </select>
@@ -643,7 +650,7 @@
                                 <th class="p-2 text-[11px] font-black max-w-[80px] truncate">المنتج</th>
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap">الراسل</th>
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap">الوكيل</th>
-                                <th class="p-2 text-[11px] font-black whitespace-nowrap">المندوب الرعي</th>
+                                <th class="p-2 text-[11px] font-black whitespace-nowrap">المندوب الفرعي</th>
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap text-center">الحالة</th>
                                 <th class="p-2 text-[11px] font-black min-w-[100px]">السبب</th>
                                 <th class="p-2 text-[11px] font-black whitespace-nowrap">المبلغ</th>
@@ -751,7 +758,7 @@
                                     <th class="p-3 font-bold text-[11px] uppercase tracking-wider">هاتف بديل</th>
                                     <th class="p-3 font-bold text-[11px] uppercase tracking-wider">المبلغ</th>
                                     <th class="p-3 font-bold text-[11px] uppercase tracking-wider">الحالة</th>
-                                    <th class="p-3 font-bold text-[11px] uppercase tracking-wider">المندوب الرعي</th>
+                                    <th class="p-3 font-bold text-[11px] uppercase tracking-wider">المندوب الفرعي</th>
                                     <th class="p-3 font-bold text-[11px] uppercase tracking-wider">الرع</th>
                                 </tr>
                             </thead>
@@ -775,6 +782,7 @@
         </main>
 
         <script src="js/config.js"></script>
+        <script src="js/tracking.js"></script>
         <script>
             const { createClient } = supabase;
             const supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
@@ -784,91 +792,59 @@
             const SHIPMENT_CODE_FIELD_LEGACY = 'order_id';
             const SHIPMENT_COMMISSION_FIELD = 'عمولة المندوب';
             const SHIPMENT_COMMISSION_FIELD_LEGACY = 'عمولة_المندوب';
-            const SHIPMENT_SUBREP_FIELD = 'المندوب الرعي';
-            const SHIPMENT_SUBREP_FIELD_LEGACY = 'المندوب_الرعي';
+            const SHIPMENT_SUBREP_FIELD = 'نوع المندوب';
+            const SHIPMENT_SUBREP_FIELD_LEGACY = 'المندوب الفرعي';
 
             function normalizeShipmentPriceField(record) {
-                if (!record || typeof record !== 'object') return record;
-                const normalized = { ...record };
-                const serverValue = normalized[SHIPMENT_PRICE_FIELD];
-                const legacyValue = normalized[SHIPMENT_PRICE_FIELD_LEGACY];
-                const resolvedValue = serverValue ?? legacyValue;
-                const serverCodeValue = normalized[SHIPMENT_CODE_FIELD];
-                const legacyCodeValue = (normalized[SHIPMENT_CODE_FIELD_LEGACY] || normalized['كود_الشحنة'] || normalized['الكود']);
-                const resolvedCodeValue = serverCodeValue ?? legacyCodeValue;
-                const serverCommissionValue = normalized[SHIPMENT_COMMISSION_FIELD];
-                const legacyCommissionValue = normalized[SHIPMENT_COMMISSION_FIELD_LEGACY];
-                const resolvedCommissionValue = serverCommissionValue ?? legacyCommissionValue;
-                const serverSubRepValue = normalized[SHIPMENT_SUBREP_FIELD];
-                const legacySubRepValue = normalized[SHIPMENT_SUBREP_FIELD_LEGACY];
-                const resolvedSubRepValue = serverSubRepValue ?? legacySubRepValue;
-                /* 	
-                if (false) { // Skip corrupted lines follow:
-                const resolvedValue = serverValue ????????? legacyValue;
-                const serverCodeValue = normalized[SHIPMENT_CODE_FIELD];
-                const legacyCodeValue = normalized[SHIPMENT_CODE_FIELD_LEGACY] ????????? normalized['كود_الشحنة'] ????????? normalized['الكود'];
-                const resolvedCodeValue = serverCodeValue ????????? legacyCodeValue;
-                const serverCommissionValue = normalized[SHIPMENT_COMMISSION_FIELD];
-                const legacyCommissionValue = normalized[SHIPMENT_COMMISSION_FIELD_LEGACY];
-                const resolvedCommissionValue = serverCommissionValue ????????? legacyCommissionValue;
-
-                } // End corrupted lines
-                */
-                if (resolvedValue !== undefined) {
-                    normalized[SHIPMENT_PRICE_FIELD] = resolvedValue;
-                    normalized[SHIPMENT_PRICE_FIELD_LEGACY] = resolvedValue;
-                }
-
-                if (resolvedCodeValue !== undefined) {
-                    normalized[SHIPMENT_CODE_FIELD] = resolvedCodeValue;
-                    normalized[SHIPMENT_CODE_FIELD_LEGACY] = resolvedCodeValue;
-                    normalized['كود_الشحنة'] = resolvedCodeValue;
-                }
-
-                if (resolvedCommissionValue !== undefined) {
-                    normalized[SHIPMENT_COMMISSION_FIELD] = resolvedCommissionValue;
-                    normalized[SHIPMENT_COMMISSION_FIELD_LEGACY] = resolvedCommissionValue;
-                }
-
-                if (resolvedSubRepValue !== undefined) {
-                    normalized[SHIPMENT_SUBREP_FIELD] = resolvedSubRepValue;
-                    normalized[SHIPMENT_SUBREP_FIELD_LEGACY] = resolvedSubRepValue;
-                }
-
-                return normalized;
+                return normalizeShipmentRecordHeaders(record);
             }
 
             function toServerShipmentPayload(payload) {
-                if (!payload || typeof payload !== 'object') return payload;
-                const normalized = { ...payload };
+                return buildShipmentServerPayload(payload);
+            }
 
-                if (Object.prototype.hasOwnProperty.call(normalized, SHIPMENT_PRICE_FIELD_LEGACY)) {
-                    normalized[SHIPMENT_PRICE_FIELD] = normalized[SHIPMENT_PRICE_FIELD_LEGACY];
-                    delete normalized[SHIPMENT_PRICE_FIELD_LEGACY];
+            let trackingSystem = null;
+
+            function updateTrackingUI() {
+                const btn = document.getElementById('trackingToggleBtn');
+                const icon = document.getElementById('trackingIcon');
+                if(trackingSystem && trackingSystem.isTracking) {
+                    btn.classList.replace('text-slate-400', 'text-emerald-500');
+                    btn.classList.replace('dark:text-slate-300', 'dark:text-emerald-500');
+                    icon.classList.add('animate-pulse');
+                } else {
+                    btn.classList.replace('text-emerald-500', 'text-slate-400');
+                    btn.classList.replace('dark:text-emerald-500', 'dark:text-slate-300');
+                    icon.classList.remove('animate-pulse');
                 }
+            }
 
-                if (Object.prototype.hasOwnProperty.call(normalized, SHIPMENT_CODE_FIELD_LEGACY)) {
-                    normalized[SHIPMENT_CODE_FIELD] = normalized[SHIPMENT_CODE_FIELD_LEGACY];
-                    delete normalized[SHIPMENT_CODE_FIELD_LEGACY];
-                }
-
-                if (Object.prototype.hasOwnProperty.call(normalized, SHIPMENT_COMMISSION_FIELD_LEGACY)) {
-                    normalized[SHIPMENT_COMMISSION_FIELD] = normalized[SHIPMENT_COMMISSION_FIELD_LEGACY];
-                    delete normalized[SHIPMENT_COMMISSION_FIELD_LEGACY];
-                }
-
-                if (Object.prototype.hasOwnProperty.call(normalized, SHIPMENT_SUBREP_FIELD_LEGACY)) {
-                    normalized[SHIPMENT_SUBREP_FIELD] = normalized[SHIPMENT_SUBREP_FIELD_LEGACY];
-                    delete normalized[SHIPMENT_SUBREP_FIELD_LEGACY];
-                }
-
-                return normalized;
+            function toggleTracking() {
+                if(!trackingSystem) return;
+                const isNowActive = trackingSystem.toggleShift();
+                updateTrackingUI();
             }
 
             let user = JSON.parse(localStorage.getItem('user'));
             if (!user || user.role !== 'sub-rep') {
                 window.location.href = 'index.html';
             }
+            startStoredUserSessionGuard(supabaseClient, {
+                allowedRoles: ['sub-rep'],
+                onValidUser: (latestUser) => {
+                    user = latestUser;
+                    const subRepName = document.getElementById('subRepName');
+                    if (subRepName) subRepName.innerText = latestUser.full_name || latestUser.username || latestUser.phone;
+                    
+                    if(!trackingSystem) {
+                        trackingSystem = new RepTrackingSystem(supabaseClient, latestUser);
+                        if (!trackingSystem.isTracking) {
+                            trackingSystem.startTracking();
+                        }
+                        updateTrackingUI();
+                    }
+                }
+            });
 
             document.getElementById('subRepName').innerText = user.full_name || user.username || user.phone;
 
@@ -982,14 +958,12 @@
 
             let subRepAccounts = [];
             async function fetchSubRepAccounts() { // Filtered by Parent ID
-                const { data, error } = await supabaseClient
-                    .from(CONFIG.TABLES.USERS)
-                    .select('*')
-                    .eq('parent_id', user.id);
-
-
-                if (error) console.warn("ملاحظة: تأكد من إضافة عمود parent_id في قاعدة البيانات.");
-                if (!error) subRepAccounts = data || [];
+                try {
+                    const result = await invokeUsersAdminAction('subrep_list_users', {}, user);
+                    subRepAccounts = result?.users || [];
+                } catch (error) {
+                    console.warn("ملاحظة: تعذر جلب حسابات التابعين.", error);
+                }
             }
 
             function populateFilters() {
@@ -1002,38 +976,38 @@
                 const currentRep = document.getElementById('filterRep')?.value || '';
 
                 const commonCondition = s => (!currentStatus || getShipmentDisplayStatus(s) === currentStatus) && 
-                                             (!currentSubRep || (String(s.المندوب_الرعي || '').trim() || 'بدون مندوب') === currentSubRep) &&
+                                             (!currentSubRep || (String(s['المندوب الفرعي'] || '').trim() || 'بدون مندوب') === currentSubRep) &&
                                              (!currentRep || String(s.المندوب || '').trim() === currentRep) &&
                                              (!currentAgent || String(s['اسم الموظ'] || '').trim() === currentAgent);
 
-                const zonesData = allShipments.filter(s => (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate) && commonCondition(s));
+                const zonesData = allShipments.filter(s => (!currentSender || s.الراسل === currentSender) && (!currentUpdate || getShipmentDailyValue(s) === currentUpdate) && commonCondition(s));
                 const zones = [...new Set(zonesData.map(s => s.الزون).filter(Boolean))].sort();
 
-                const sendersData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentUpdate || s.الابيديت === currentUpdate) && commonCondition(s));
+                const sendersData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentUpdate || getShipmentDailyValue(s) === currentUpdate) && commonCondition(s));
                 const senders = [...new Set(sendersData.map(s => s.الراسل).filter(Boolean))].sort();
 
-                const agentsData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentUpdate || s.الابيديت === currentUpdate) &&
+                const agentsData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentUpdate || getShipmentDailyValue(s) === currentUpdate) &&
                                                             (!currentStatus || getShipmentDisplayStatus(s) === currentStatus) &&
-                                                            (!currentSubRep || (String(s.المندوب_الرعي || '').trim() || 'بدون مندوب') === currentSubRep) &&
+                                                            (!currentSubRep || (String(s['المندوب الفرعي'] || '').trim() || 'بدون مندوب') === currentSubRep) &&
                                                             (!currentRep || String(s.المندوب || '').trim() === currentRep));
                 const agents = [...new Set(agentsData.map(s => String(s['اسم الموظ'] || '').trim()).filter(Boolean))].sort();
 
                 const updatesData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentAgent || String(s['اسم الموظ'] || '').trim() === currentAgent) && commonCondition(s));
-                const updates = [...new Set(updatesData.map(s => s.الابيديت).filter(Boolean))].sort().reverse();
+                const updates = [...new Set(updatesData.map(s => getShipmentDailyValue(s)).filter(Boolean))].sort().reverse();
 
-                const statusesData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentAgent || String(s['اسم الموظ'] || '').trim() === currentAgent) && (!currentUpdate || s.الابيديت === currentUpdate) && 
-                                                            (!currentSubRep || (String(s.المندوب_الرعي || '').trim() || 'بدون مندوب') === currentSubRep) &&
+                const statusesData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentAgent || String(s['اسم الموظ'] || '').trim() === currentAgent) && (!currentUpdate || getShipmentDailyValue(s) === currentUpdate) && 
+                                                            (!currentSubRep || (String(s['المندوب الفرعي'] || '').trim() || 'بدون مندوب') === currentSubRep) &&
                                                             (!currentRep || String(s.المندوب || '').trim() === currentRep));
                 const statuses = [...new Set(statusesData.map(s => getShipmentDisplayStatus(s)).filter(Boolean))].sort();
 
-                const subrepsData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentAgent || String(s['اسم الموظ'] || '').trim() === currentAgent) && (!currentUpdate || s.الابيديت === currentUpdate) && 
+                const subrepsData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentAgent || String(s['اسم الموظ'] || '').trim() === currentAgent) && (!currentUpdate || getShipmentDailyValue(s) === currentUpdate) && 
                                                             (!currentStatus || getShipmentDisplayStatus(s) === currentStatus) &&
                                                             (!currentRep || String(s.المندوب || '').trim() === currentRep));
-                const subreps = [...new Set(subrepsData.map(s => String(s.المندوب_الرعي || '').trim() || 'بدون مندوب'))].sort();
+                const subreps = [...new Set(subrepsData.map(s => String(s['المندوب الفرعي'] || '').trim() || 'بدون مندوب'))].sort();
 
-                const repsData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentAgent || String(s['اسم الموظ'] || '').trim() === currentAgent) && (!currentUpdate || s.الابيديت === currentUpdate) && 
+                const repsData = allShipments.filter(s => (!currentZone || s.الزون === currentZone) && (!currentSender || s.الراسل === currentSender) && (!currentAgent || String(s['اسم الموظ'] || '').trim() === currentAgent) && (!currentUpdate || getShipmentDailyValue(s) === currentUpdate) && 
                                                             (!currentStatus || getShipmentDisplayStatus(s) === currentStatus) &&
-                                                            (!currentSubRep || (String(s.المندوب_الرعي || '').trim() || 'بدون مندوب') === currentSubRep));
+                                                            (!currentSubRep || (String(s['المندوب الفرعي'] || '').trim() || 'بدون مندوب') === currentSubRep));
                 const reps = [...new Set(repsData.map(s => String(s.المندوب || '').trim()).filter(Boolean))].sort();
 
                 fillSelect('filterStatus', statuses);
@@ -1055,7 +1029,7 @@
                 fillSelect('filterRep', reps);
 
                 const updateSelect = document.getElementById('filterUpdate');
-                updateSelect.innerHTML = '<option value="" class="text-slate-800 bg-white">كل التواريخ</option>';
+                updateSelect.innerHTML = '<option value="" class="text-slate-800 bg-white">كل اليوميات</option>';
                 updates.forEach(val => {
                     updateSelect.innerHTML += `<option value="${val}" class="text-slate-800 bg-white">${val}</option>`;
                 });
@@ -1302,9 +1276,15 @@
                 }
             }
 
-            function logout() {
-                localStorage.removeItem('user');
-                window.location.href = 'index.html';
+            async function logout() {
+                try {
+                    if(trackingSystem && trackingSystem.isTracking) {
+                        await trackingSystem.stopTracking();
+                    }
+                } catch(e) {
+                    console.error('Logout tracking error', e);
+                }
+                clearStoredUserSession();
             }
 
             function toggleTheme() {
@@ -1344,7 +1324,7 @@
                 if (!file) return;
 
                 const extractMissingSchemaColumn = (message) => {
-                    const match = String(message || '').match(/Could not find the '([^']+)' column of 'shipments1'/);
+                    const match = String(message || '').match(/Could not find the '([^']+)' column of 'elsayed'/);
                     return match ? match[1] : '';
                 };
 
@@ -1396,6 +1376,24 @@
                             return Number.isNaN(cleaned) ? fallback : cleaned;
                         };
 
+                        const normalizeExcelDateValue = (value, fallback = today) => {
+                            if (value === null || value === undefined || String(value).trim() === '') return fallback;
+                            if (typeof value === 'number' && Number.isFinite(value)) {
+                                const utcDays = Math.floor(value - 25569);
+                                const utcValue = utcDays * 86400;
+                                const dateInfo = new Date(utcValue * 1000);
+                                if (!Number.isNaN(dateInfo.getTime())) {
+                                    return dateInfo.toISOString().split('T')[0];
+                                }
+                            }
+                            const normalized = String(value).trim();
+                            const parsed = new Date(normalized);
+                            if (!Number.isNaN(parsed.getTime())) {
+                                return parsed.toISOString().split('T')[0];
+                            }
+                            return normalized || fallback;
+                        };
+
                         // Map Excel headers to DB columns matching standard names (Order independent)
                         const currentUName = user.full_name || user.username || 'مندوب';
                         const shipmentsToUpload = jsonData.map((row, index) => {
@@ -1409,25 +1407,33 @@
                             }
 
                             return {
+                                'm': getVal(row, 'm', 'م'),
                                 'الراسل': getVal(row, 'الراسل', 'الشركه', 'الشركة'),
-                                'اسم_العميل': getVal(row, 'اسم العميل', 'اسم_العميل', 'العميل'),
-                                'الهات': String(getVal(row, 'الهات', 'رقم الهات', 'موبايل')),
-                                'هات_بديل': String(getVal(row, 'هات بديل', 'هات_بديل', 'رقم بديل')),
+                                'اسم العميل': getVal(row, 'اسم العميل', 'اسم_العميل', 'العميل'),
+                                'الزون': getVal(row, 'الزون'),
+                                'المنتج': getVal(row, 'المنتج', 'الصنف'),
+                                'الهاتف': String(getVal(row, 'الهاتف', 'الهات', 'رقم الهات', 'موبايل')),
+                                'هاتف بديل': String(getVal(row, 'هاتف بديل', 'هات بديل', 'هات_بديل', 'هاتف_بديل', 'رقم بديل')),
                                 'العنوان': getVal(row, 'العنوان', 'العنوان بالكامل'),
                                 'المبلغ': cleanNumericValue(amount),
-                                'السعر_بعد_التعديل': cleanNumericValue(getVal(row, 'السعر بعد التعديل', 'السعر_بعد_التعديل'), cleanNumericValue(amount)),
-                                'الصاي': cleanNumericValue(getVal(row, 'الصاي')),
+                                'السعر بعد التعديل': cleanNumericValue(getVal(row, 'السعر بعد التعديل', 'السعر_بعد_التعديل'), cleanNumericValue(amount)),
+                                'الصافي': cleanNumericValue(getVal(row, 'الصافي', 'الصاي')),
                                 'الشحن': cleanNumericValue(getVal(row, 'الشحن')),
-                                'كود اضاي': getVal(row, 'كود اضاي', 'كود_اضاي'),
-                                'تقيل': cleanNumericValue(getVal(row, 'تقيل')),
+                                'عدد': getVal(row, 'عدد', 'كود اضافي', 'كود_اضافي'),
+                                'تقفيل': String(getVal(row, 'تقفيل', 'تقيل') || ''),
                                 'عمولة المندوب': cleanNumericValue(getVal(row, 'عمولة المندوب', 'عمولة_المندوب')),
+                                'عمولة المندوب الفرعي': cleanNumericValue(getVal(row, 'عمولة المندوب الفرعي', 'عمولة_المندوب_الفرعي')),
                                 'الحالة': getVal(row, 'الحالة', 'حالة', 'حالة الشحنة'),
                                 'سبب الحالة': getVal(row, 'سبب الحالة', 'سبب_الحالة', 'السبب'),
-                                'المندوب_الرعي': getVal(row, 'المندوب الرعي', 'المندوب_الرعي'),
-                                'order_id': orderId,
-                                'المندوب': `PRIVATE:${user.username}`, // Private flag
-                                'اسم الموظ': currentUName,
-                                'الابيديت': String(getVal(row, 'الابيديت', 'تاريخ التحديث', 'التاريخ')) || today
+                                'نوع المندوب': 'مندوب متقدم',
+                                'المندوب الفرعي': getVal(row, 'المندوب الرعي', 'المندوب الفرعي', 'نوع المندوب'),
+                                'ملاحظات': getVal(row, 'ملاحظات'),
+                                'كود الشحنة': orderId,
+                                'المندوب': getVal(row, 'المندوب', 'مندوب', 'اسم المندوب') || `PRIVATE:${user.username}`,
+                                'اسم الموظف': getVal(row, 'اسم الموظف', 'اسم الموظ', 'اسم_الموظف') || currentUName,
+                                'تاريخ التحديث': normalizeExcelDateValue(getVal(row, 'تاريخ التحديث', 'تاريخ_التحديث', 'الابيديت', 'التاريخ'), today),
+                                'حدث': getVal(row, 'حدث'),
+                                'اليومية': getVal(row, 'اليومية', 'اليوميه')
                             };
                         });
                         
@@ -1439,6 +1445,70 @@
                             allowOutsideClick: false,
                             didOpen: () => { Swal.showLoading(); }
                         });
+
+                        const saveShipmentRow = async (item) => {
+                            const shipmentCode = String(item?.['كود الشحنة'] || item?.order_id || '').trim();
+                            if (!shipmentCode) {
+                                return { error: { message: 'تعذر العثور على كود الشحنة في أحد الصفوف.' } };
+                            }
+
+                            let sanitizedFields = { ...item };
+                            delete sanitizedFields['كود الشحنة'];
+                            delete sanitizedFields.order_id;
+
+                            let existsRes = await supabaseClient
+                                .from(CONFIG.TABLES.SHIPMENTS)
+                                .select('m')
+                                .eq('كود الشحنة', shipmentCode)
+                                .limit(1);
+
+                            if (existsRes.error) {
+                                return { error: existsRes.error };
+                            }
+
+                            if (Array.isArray(existsRes.data) && existsRes.data.length > 0) {
+                                let payload = toServerShipmentPayload(sanitizedFields);
+                                let res = await supabaseClient
+                                    .from(CONFIG.TABLES.SHIPMENTS)
+                                    .update(payload)
+                                    .eq('كود الشحنة', shipmentCode);
+
+                                if (res.error) {
+                                    const missingField = extractMissingSchemaColumn(res.error.message);
+                                    if (missingField) {
+                                        skippedSchemaField = skippedSchemaField || missingField;
+                                        delete sanitizedFields[missingField];
+                                        payload = toServerShipmentPayload(sanitizedFields);
+                                        res = await supabaseClient
+                                            .from(CONFIG.TABLES.SHIPMENTS)
+                                            .update(payload)
+                                            .eq('كود الشحنة', shipmentCode);
+                                    }
+                                }
+
+                                return { error: res.error || null };
+                            }
+
+                            let insertPayload = toServerShipmentPayload(item);
+                            let insertRes = await supabaseClient
+                                .from(CONFIG.TABLES.SHIPMENTS)
+                                .insert([insertPayload]);
+
+                            if (insertRes.error) {
+                                const missingField = extractMissingSchemaColumn(insertRes.error.message);
+                                if (missingField) {
+                                    skippedSchemaField = skippedSchemaField || missingField;
+                                    const retryItem = { ...item };
+                                    delete retryItem[missingField];
+                                    insertPayload = toServerShipmentPayload(retryItem);
+                                    insertRes = await supabaseClient
+                                        .from(CONFIG.TABLES.SHIPMENTS)
+                                        .insert([insertPayload]);
+                                }
+                            }
+
+                            return { error: insertRes.error || null };
+                        };
 
                         let payloadRows = shipmentsToUpload;
                         let { error } = await supabaseClient
@@ -1457,7 +1527,23 @@
                             }
                         }
 
-                        if (error) throw error;
+                        if (error) {
+                            let successCount = 0;
+                            let lastError = error.message;
+
+                            for (const item of payloadRows) {
+                                const { error: rowError } = await saveShipmentRow(item);
+                                if (rowError) {
+                                    lastError = rowError.message;
+                                } else {
+                                    successCount++;
+                                }
+                            }
+
+                            if (successCount !== payloadRows.length) {
+                                throw new Error(lastError || `فشل رفع ${payloadRows.length - successCount} صف من الملف.`);
+                            }
+                        }
 
                         const successMessage = skippedSchemaField
                             ? `تم رفع ${payloadRows.length} شحنة بنجاح مع تجاهل العمود "${skippedSchemaField}" لأن السيرفر لا يتعرّف عليه حالياً`
@@ -1482,25 +1568,15 @@
                     return;
                 }
 
-                const exportData = data.map(s => ({
-                    'm': s.م || '',
-                    'اسم_العميل': s.اسم_العميل || '',
-                    'العنوان': s.العنوان || '',
-                    'الزون': s.الزون || '',
-                    'المنتج': s.المنتج || '',
-                    'الهات': s.الهات || '',
-                    'هات-بديل': s.هات_بديل || '',
-                    'المبلغ': s.المبلغ || '',
-                    'الراسل': s.الراسل || '',
-                    'الوكيل': s['اسم الموظ'] || '',
-                    'كود الشحنة': s.كود_الشحنة || s.الكود || s.order_id || '',
-                    'المندوب': s.المندوب || '',
-                    'الحالة': getShipmentDisplayStatus(s),
-                    'سبب الحالة': getShipmentDisplayReason(s),
-                    'السعر_بعد_التعديل': s.السعر_بعد_التعديل || s.المبلغ || '',
-                    'تاريخ التحديث': s.الابيديت || '',
-                    'المندوب الرعي': s.المندوب_الرعي || ''
-                }));
+                const exportData = data.map(s => {
+                    const normalized = normalizeShipmentRecordHeaders(s);
+                    return buildShipmentExcelRow(normalized, {
+                        'الحالة': getShipmentDisplayStatus(s),
+                        'سبب الحالة': getShipmentDisplayReason(s),
+                        'السعر بعد التعديل': normalized['السعر بعد التعديل'] || normalized['المبلغ'] || '',
+                        'عمولة المندوب الفرعي': normalized['عمولة المندوب الفرعي'] || s['عمولة_المندوب_الفرعي'] || s['عمولة المندوب الفرعي'] || ''
+                    });
+                });
 
                 const ws = XLSX.utils.json_to_sheet(exportData);
                 const wb = XLSX.utils.book_new();
@@ -1526,8 +1602,6 @@
                 });
                 if (accountNames.includes(prevVal)) assignSelect.value = prevVal;
             }
-
-
 
             function toggleStatFilter(status) {
                 if (globalStatFilter === status) {
@@ -1569,14 +1643,14 @@
                 const subRepNamesFull = subRepAccounts.map(u => u.full_name).filter(Boolean);
 
                 const noDelegate = shipments.filter(s => {
-                    const rep = s.المندوب_الرعي;
+                    const rep = s['المندوب الفرعي'];
                     return !subRepNamesShort.includes(rep) && !subRepNamesFull.includes(rep) && rep !== 'مخزن';
                 }).length;
                 const noAmountCount = 0; if(false){ const _removed = shipments.filter(s => {
                     const amt = String(s.المبلغ || '').trim();
                     return !amt || amt === '0' || amt === '0.0' || amt === '0.00';
                 }).length; }
-                const warehouseCount = shipments.filter(s => s.المندوب_الرعي === 'مخزن').length;
+                const warehouseCount = shipments.filter(s => s['المندوب الفرعي'] === 'مخزن').length;
                 const doneCount = shipments.filter(s => getShipmentDisplayStatus(s) === 'تم التوصيل').length;
                 const amendedCount = shipments.filter(s => getShipmentDisplayStatus(s) === 'تعديل سعر').length;
                 const rejectedCount = shipments.filter(s => getShipmentDisplayStatus(s) === 'رفض').length;
@@ -1656,11 +1730,11 @@
 
                 return allShipments.filter(s => {
                     if (fStatus && getShipmentDisplayStatus(s) !== fStatus) return false;
-                    if (fSubRep && (String(s.المندوب_الرعي || '').trim() || 'بدون مندوب') !== fSubRep) return false;
+                    if (fSubRep && (String(s['المندوب الفرعي'] || '').trim() || 'بدون مندوب') !== fSubRep) return false;
                     if (fZone && s.الزون !== fZone) return false;
                     if (fSender && s.الراسل !== fSender) return false;
                     if (fAgent && String(s['اسم الموظ'] || '').trim() !== fAgent) return false;
-                    if (fUpdate && s.الابيديت !== fUpdate) return false;
+                    if (fUpdate && getShipmentDailyValue(s) !== fUpdate) return false;
                     if (fRep && String(s.المندوب || '').trim() !== fRep) return false;
 
                     // Add global stat filter logic
@@ -1668,13 +1742,13 @@
                         if (globalStatFilter === 'بدون مندوب') {
                             const subRepNamesShort = subRepAccounts.map(u => u.username).filter(Boolean);
                             const subRepNamesFull = subRepAccounts.map(u => u.full_name).filter(Boolean);
-                            const rep = s.المندوب_الرعي;
+                            const rep = s['المندوب الفرعي'];
                             if (subRepNamesShort.includes(rep) || subRepNamesFull.includes(rep) || rep === 'مخزن') return false;
                         } else if (globalStatFilter === 'بدون مبلغ') {
                             const amt = String(s.المبلغ || '').trim();
                             if (amt && amt !== '0' && amt !== '0.0' && amt !== '0.00') return false;
                         } else if (globalStatFilter === 'مخزن') {
-                            if (s.المندوب_الرعي !== 'مخزن') return false;
+                            if (s['المندوب الفرعي'] !== 'مخزن') return false;
                         } else if (globalStatFilter === 'رفض') {
                             const status = getShipmentDisplayStatus(s);
                             if (status !== 'رفض') return false;
@@ -1716,7 +1790,7 @@
                 tbody.innerHTML = paginated.map(s => `
                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
                     <td class="px-2 py-2 text-center">
-                        <input class="subrep-row-checkbox rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 outline-none w-3.5 h-3.5 cursor-pointer" type="checkbox" value="${s.id}" onclick="updateSubRepRowSelection()">
+                        <input class="subrep-row-checkbox rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 outline-none w-3.5 h-3.5 cursor-pointer" type="checkbox" value="${s.id}" data-shipment-code="${s['كود الشحنة'] || s.order_id || ''}" onclick="updateSubRepRowSelection()">
                     </td>
                     <td class="px-1 py-2 text-center">
                         ${newRepName
@@ -1734,7 +1808,7 @@
                         ${(() => {
                         const subRepNamesShort = subRepAccounts.map(u => u.username).filter(Boolean);
                         const subRepNamesFull = subRepAccounts.map(u => u.full_name).filter(Boolean);
-                        const rep = s.المندوب_الرعي;
+                        const rep = s['المندوب الفرعي'];
                         if (subRepNamesShort.includes(rep) || subRepNamesFull.includes(rep)) {
                             return `<span class="text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md border border-indigo-100">${rep}</span>`;
                         } else if (rep === 'مخزن') {
@@ -1794,44 +1868,10 @@
                 const updateData = { [field]: value };
 
                 if (field === 'الحالة') {
-                    allShipments[sIndex]['الابيديت'] = new Date().toISOString().split('T')[0];
-                    updateData['الابيديت'] = allShipments[sIndex]['الابيديت'];
-                    updateData['تاريخ الحالة'] = allShipments[sIndex]['الابيديت'];
-                }
-
-                try {
-                    const { error } = await supabaseClient
-                        .from(CONFIG.TABLES.SHIPMENTS)
-                        .update(toServerShipmentPayload(updateData))
-                        .eq('id', id);
-
-                    if (error) {
-                        allShipments[sIndex][field] = oldVal; // Revert
-                        throw error;
-                    }
-                    
-                    if (field === 'الحالة') {
-                        renderTable(); // Re-evaluate filters safely
-                    }
-                    
-                    // Show small success toast
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'تم التعديل بنجاح', showConfirmButton: false, timer: 1500 });
-                } catch (err) {
-                    Swal.fire('خطأ', 'شل الحظ: ' + err.message, 'error');
-                }
-            }
-
-            function toggleAllSubRepRows(source) {
-                const checkboxes = document.querySelectorAll('.subrep-row-checkbox');
-                checkboxes.forEach(cb => cb.checked = source.checked);
-            }
-
-            function updateSubRepRowSelection() {
-                const selectAll = document.getElementById('subRepSelectAll');
-                const checkboxes = document.querySelectorAll('.subrep-row-checkbox');
-                const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-                
-                if (selectAll && checkboxes.length > 0) {
+                    allShipments[sIndex]['تاريخ التحديث'] = new Date().toISOString().split('T')[0];
+                    allShipments[sIndex]['الابيديت'] = allShipments[sIndex]['تاريخ التحديث'];
+                    updateData['تاريخ التحديث'] = allShipments[sIndex]['تاريخ التحديث'];
+                    updateData['تاريخ الحالة'] = allShipments[sIndex]['تاريخ التحديث'];
                     const allChecked = checkedCount === checkboxes.length;
                     const someChecked = checkedCount > 0;
                     selectAll.checked = allChecked;
@@ -1874,9 +1914,11 @@
 
                 const { error } = await supabaseClient
                     .from(CONFIG.TABLES.SHIPMENTS)
-                    .update(toServerShipmentPayload({ [SHIPMENT_SUBREP_FIELD_LEGACY]: newRepName }))
+                    .update(toServerShipmentPayload({ 
+                        [SHIPMENT_SUBREP_FIELD_LEGACY]: newRepName,
+                        [SHIPMENT_SUBREP_FIELD]: 'مندوب متقدم'
+                    }))
                     .eq('id', id);
-
                 if (!error) {
                     Swal.fire({
                         icon: 'success',
@@ -1888,7 +1930,7 @@
                     });
                     const index = allShipments.findIndex(s => String(s.id) === String(id));
                     if (index !== -1) {
-                        allShipments[index][SHIPMENT_SUBREP_FIELD] = newRepName;
+                        allShipments[index][SHIPMENT_SUBREP_FIELD] = 'مندوب متقدم';
                         allShipments[index][SHIPMENT_SUBREP_FIELD_LEGACY] = newRepName;
                     }
                     renderTable();
@@ -1941,27 +1983,29 @@
                     targetIds = visible.map(s => s.id);
                 }
 
-                const { value: password } = await Swal.fire({
+                const { isConfirmed } = await Swal.fire({
                     title: 'تأكيد التعيين الجماعي',
-                    html: `سيتم نقل <b class="text-indigo-600">${targetIds.length}</b> شحنة من الشحنات ${isSelectedBase ? 'المحددة' : 'الظاهرة'} إلى المندوب: <b class="text-indigo-600">${repName}</b><br><br>يرجى إدخال كلمة المرور لتأكيد العملية.`,
+                    html: `هل أنت متأكد من نقل <b class="text-indigo-600">${targetIds.length}</b> شحنة من الشحنات ${isSelectedBase ? 'المحددة' : 'الظاهرة'} إلى المندوب: <b class="text-indigo-600">${repName}</b>؟`,
                     icon: 'warning',
-                    input: 'password',
-                    inputPlaceholder: 'أدخل كلمة المرور هنا...',
+                    
+
                     showCancelButton: true,
-                    confirmButtonText: 'تأكيد التعيين',
+                    confirmButtonText: 'نعم، تأكيد التعيين',
                     cancelButtonText: 'إلغاء',
-                    confirmButtonColor: '#4f46e5',
-                    inputValidator: async (value) => {
-                        if (!value) return 'يجب إدخال كلمة المرور!';
-                        if (!(await verifyPassword(user.password, value))) return 'كلمة المرور غير صحيحة!';
-                    }
+                    confirmButtonColor: '#4f46e5'
+
+
+
                 });
 
-                if (!password) return;
+                if (!isConfirmed) return;
 
                 const { error } = await supabaseClient
                     .from(CONFIG.TABLES.SHIPMENTS)
-                    .update(toServerShipmentPayload({ [SHIPMENT_SUBREP_FIELD_LEGACY]: repName }))
+                    .update(toServerShipmentPayload({ 
+                        [SHIPMENT_SUBREP_FIELD_LEGACY]: repName,
+                        [SHIPMENT_SUBREP_FIELD]: 'مندوب متقدم'
+                    }))
                     .in('id', targetIds);
 
                 if (error) {
@@ -2023,12 +2067,22 @@
                 }
 
                 const targetIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+                const targetShipmentCodes = Array.from(new Set(
+                    Array.from(selectedCheckboxes)
+                        .map(cb => String(cb.dataset.shipmentCode || '').trim())
+                        .filter(Boolean)
+                ));
+
+                if (targetShipmentCodes.length !== targetIds.length) {
+                    Swal.fire('خطأ', 'تعذر تحديد كود شحنة واحدة أو أكثر، لذلك تم إيقاف المسح لحماية البيانات.', 'error');
+                    return;
+                }
 
                 // Ask for admin password
                 const { value: password } = await Swal.fire({
                     title: 'تأكيد المسح الجماعي',
                     html: `هل أنت متأكد من مسح <b>(${targetIds.length})</b> شحنة نهائياً؟<br><br><span class="text-rose-600 font-bold text-sm">هذا الإجراء لا يمكن التراجع عنه.</span><br><br>يرجى إدخال كلمة مرور الحساب للتأكيد:`,
-                    input: 'password',
+                    
                     inputPlaceholder: 'كلمة المرور',
                     icon: 'warning',
                     showCancelButton: true,
@@ -2046,7 +2100,7 @@
                 if (!password) return;
 
                 // Validate password
-                if (!(await verifyPassword(user.password, password))) {
+                if (!(await verifyCurrentPasswordSecure(password))) {
                     Swal.fire('خطأ', 'كلمة المرور غير صحيحة، تم إلغاء المسح.', 'error');
                     return;
                 }
@@ -2061,7 +2115,7 @@
                     const { error } = await supabaseClient
                         .from(CONFIG.TABLES.SHIPMENTS)
                         .delete()
-                        .in('id', targetIds);
+                        .in('كود الشحنة', targetShipmentCodes);
 
                     if (error) throw error;
 
@@ -2098,7 +2152,10 @@
                 try {
                     const { error } = await supabaseClient
                         .from(CONFIG.TABLES.SHIPMENTS)
-                        .update(toServerShipmentPayload({ [SHIPMENT_SUBREP_FIELD_LEGACY]: 'مخزن' }))
+                        .update(toServerShipmentPayload({ 
+                            [SHIPMENT_SUBREP_FIELD_LEGACY]: 'مخزن',
+                            [SHIPMENT_SUBREP_FIELD]: 'مندوب متقدم'
+                        }))
                         .in('id', targetIds);
 
                     if (error) throw error;
@@ -2152,7 +2209,7 @@
                     
                     const updateData = {
                         'الحالة': targetStatus,
-                        'الابيديت': new Date().toISOString().split('T')[0],
+                        'تاريخ التحديث': new Date().toISOString().split('T')[0],
                         'تاريخ الحالة': new Date().toISOString().split('T')[0]
                     };
 
@@ -2243,7 +2300,7 @@
                 alt_phone: shipment.هات_بديل || shipment['هات بديل'] || '---',
                 amount: shipment.السعر_بعد_التعديل || shipment.المبلغ || '0',
                 status: shipment.الحالة || '---',
-                sub_rep: shipment.المندوب_الرعي || shipment['المندوب الرعي'] || '---',
+                sub_rep: shipment['المندوب الفرعي'] || shipment['المندوب الرعي'] || '---',
                 الرع: shipment.الرع || '---',
                 abydet: shipment.الابيديت || shipment['تاريخ التحديث'] || ''
             };
@@ -2258,7 +2315,7 @@
             const prevValue = filter.value;
             
             const uniqueDates = [...new Set(allShipments.map(s => {
-                const dateVal = s.الابيديت || s['تاريخ التحديث'];
+                const dateVal = s['تاريخ التحديث'] || s.الابيديت;
                 if (!dateVal) return '';
                 return String(dateVal).split('T')[0]; // Extact yyyy-mm-dd
             }).filter(Boolean))].sort((a,b) => new Date(b) - new Date(a));
@@ -2459,12 +2516,10 @@
 
         async function toggleAccountApproval(id, newStatus) {
             try {
-                const { error } = await supabaseClient
-                    .from(CONFIG.TABLES.USERS)
-                    .update({ approved: newStatus })
-                    .eq('id', id);
-                
-                if (error) throw error;
+                await invokeUsersAdminAction('subrep_toggle_approval', {
+                    targetUserId: id,
+                    newStatus
+                }, user);
 
                 Swal.fire({
                     icon: 'success',
@@ -2482,7 +2537,7 @@
         async function deleteSubRepAccount(id, name) {
             const confirmed = await Swal.fire({
                 title: 'هل أنت متأكد؟',
-                text: `هل تريد مسح المندوب الرعي "${name}" نهائياً من حسابك؟`,
+                text: `هل تريد مسح المندوب الفرعي "${name}" نهائياً من حسابك؟`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e11d48',
@@ -2498,17 +2553,18 @@
 
             if (confirmed.isConfirmed) {
                 Swal.fire({ title: 'جاري المسح...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                const { error } = await supabaseClient.from(CONFIG.TABLES.USERS).delete().eq('id', id);
-                
-                if (error) {
-                    Swal.fire('خطأ', 'حدث خطأ أثناء المسح: ' + error.message, 'error');
-                } else {
+                try {
+                    await invokeUsersAdminAction('subrep_delete_user', {
+                        targetUserId: id
+                    }, user);
                     Swal.fire('تم المسح', `تم مسح المندوب ${name} بنجاح.`, 'success');
                     await fetchSubRepAccounts();
                     renderAccountsList();
                     renderSubRepStats();
                     populateSubRepAssignTools();
                     renderFilterOptions(); // update filters removing this sub-rep
+                } catch (error) {
+                    Swal.fire('خطأ', error.message || 'حدث خطأ أثناء المسح', 'error');
                 }
             }
         }
@@ -2540,7 +2596,7 @@
 
             const updateData = {
                 username: full_name,
-                full_name: full_name,
+
                 phone: phone
             };
 
@@ -2549,13 +2605,10 @@
             }
 
             try {
-                const { error } = await supabaseClient
-                    .from(CONFIG.TABLES.USERS)
-                    .update(updateData)
-                    .eq('id', id)
-                    .eq('parent_id', user.id);
-
-                if (error) throw error;
+                await invokeUsersAdminAction('subrep_update_user', {
+                    targetUserId: id,
+                    ...updateData
+                }, user);
 
                 Swal.fire('تم', 'تم تحديث بيانات الحساب بنجاح', 'success');
                 closeEditUserModal();
@@ -2575,19 +2628,13 @@
             const parentId = user.id;
 
             try {
-                const { error } = await supabaseClient
-                    .from(CONFIG.TABLES.USERS)
-                    .insert([{
-                        username,
-                        phone,
-                        password: await hashPassword(password),
-                        email: `${phone}@delegate.local`,
-                        role: 'rep',
-                        parent_id: parentId,
-                        approved: true
-                    }]);
-
-                if (error) throw error;
+                await invokeUsersAdminAction('subrep_create_user', {
+                    username,
+                    phone,
+                    password: await hashPassword(password),
+                    email: `${phone}@delegate.local`,
+                    parent_id: parentId
+                }, user);
 
                 Swal.fire('تم', 'تم إنشاء الحساب بنجاح', 'success');
                 document.getElementById('userForm').reset();

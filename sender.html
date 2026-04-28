@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://evrqxgnqwngokukqerps.supabase.co https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(self), camera=(self), microphone=(), payment=(), usb=(), browsing-topics=()">
     <title>لوحة الراسل | نظام الشحن الاحترافي</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -94,21 +97,21 @@
         const SHIPMENT_CODE_FIELD_LEGACY = 'order_id';
 
         function normalizeShipmentRecord(record) {
-            if (!record || typeof record !== 'object') return record;
-            const normalized = { ...record };
-            const resolvedCodeValue = normalized[SHIPMENT_CODE_FIELD] ?? normalized[SHIPMENT_CODE_FIELD_LEGACY] ?? normalized['كود_الشحنة'] ?? normalized['الكود'];
-            if (resolvedCodeValue !== undefined) {
-                normalized[SHIPMENT_CODE_FIELD] = resolvedCodeValue;
-                normalized[SHIPMENT_CODE_FIELD_LEGACY] = resolvedCodeValue;
-                normalized['كود_الشحنة'] = resolvedCodeValue;
-            }
-            return normalized;
+            return normalizeShipmentRecordHeaders(record);
         }
 
         let user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'sender') {
             window.location.href = 'index.html';
         }
+        startStoredUserSessionGuard(supabaseClient, {
+            allowedRoles: ['sender'],
+            onValidUser: (latestUser) => {
+                user = latestUser;
+                const senderName = document.getElementById('senderName');
+                if (senderName) senderName.innerText = latestUser.full_name || latestUser.username || latestUser.phone;
+            }
+        });
 
         document.getElementById('senderName').innerText = user.full_name || user.username || user.phone;
 
@@ -221,8 +224,7 @@
         });
 
         function logout() {
-            localStorage.removeItem('user');
-            window.location.href = 'index.html';
+            clearStoredUserSession();
         }
 
         function toggleTheme() {
@@ -241,7 +243,7 @@
         // Real-time listener
         supabaseClient
             .channel('sender_changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments1' }, fetchMyShipments)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'elsayed' }, fetchMyShipments)
             .subscribe();
 
         fetchMyShipments();
