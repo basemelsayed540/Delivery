@@ -182,35 +182,35 @@
                     class="w-full bg-white dark:bg-slate-800 pl-4 pr-12 py-3.5 rounded-xl text-sm font-black text-black dark:text-white outline-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm">
             </div>
 
-            <div class="flex gap-2 w-full flex-nowrap overflow-x-auto overflow-y-visible pb-1">
-                <div class="relative min-w-[108px] flex-[0_0_108px] sm:flex-1 z-[70]">
+            <div class="flex gap-1.5 w-full flex-nowrap overflow-x-auto overflow-y-visible pb-1">
+                <div class="relative min-w-[86px] flex-[0_0_86px] sm:min-w-[108px] sm:flex-[1_1_0%] z-[70]">
                     <select id="filterDateSelect"
-                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
+                        class="w-full bg-white px-2.5 py-2.5 sm:px-3 sm:py-3 rounded-xl text-[11px] sm:text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
                         <option value="">اليومية</option>
                     </select>
-                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                    <i class="fas fa-chevron-down absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[9px] sm:text-[10px]"></i>
                 </div>
-                <div class="relative min-w-[108px] flex-[0_0_108px] sm:flex-1">
+                <div class="relative min-w-[86px] flex-[0_0_86px] sm:min-w-[108px] sm:flex-[1_1_0%]">
                     <select id="filterStatus"
-                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
+                        class="w-full bg-white px-2.5 py-2.5 sm:px-3 sm:py-3 rounded-xl text-[11px] sm:text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
                         <option value="قيد التوصيل">قيد التوصيل</option>
                         <!-- Options will be populated dynamically or we can just let fillStatusDropdown do it -->
                     </select>
-                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                    <i class="fas fa-chevron-down absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[9px] sm:text-[10px]"></i>
                 </div>
-                <div class="relative min-w-[108px] flex-[0_0_108px] sm:flex-1">
+                <div class="relative min-w-[86px] flex-[0_0_86px] sm:min-w-[108px] sm:flex-[1_1_0%]">
                     <select id="filterZone"
-                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
+                        class="w-full bg-white px-2.5 py-2.5 sm:px-3 sm:py-3 rounded-xl text-[11px] sm:text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
                         <option value="الكل">الزون: الكل</option>
                     </select>
-                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                    <i class="fas fa-chevron-down absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[9px] sm:text-[10px]"></i>
                 </div>
-                <div class="relative min-w-[108px] flex-[0_0_108px] sm:flex-1">
+                <div class="relative min-w-[86px] flex-[0_0_86px] sm:min-w-[108px] sm:flex-[1_1_0%]">
                     <select id="filterSender"
-                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
+                        class="w-full bg-white px-2.5 py-2.5 sm:px-3 sm:py-3 rounded-xl text-[11px] sm:text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
                         <option value="الكل">الراسل: الكل</option>
                     </select>
-                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
+                    <i class="fas fa-chevron-down absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[9px] sm:text-[10px]"></i>
                 </div>
             </div>
         </div>
@@ -633,6 +633,7 @@
         let zoneFilterSelections = new Set();
         let senderFilterSelections = new Set();
         let dateFilterGlowTimeout = null;
+        let hasPromptedDateFilterOnOpen = false;
         const STATUS_OPTIONS = ['قيد التوصيل', 'تم', 'مؤجل', 'رفض', 'تعديل سعر', 'شحن'];
 
         function el(id) {
@@ -740,17 +741,70 @@
         }
 
         function stopDateFilterGlow() {
+            const dateSelect = el('filterDateSelect');
             if (dateFilterGlowTimeout) {
                 clearTimeout(dateFilterGlowTimeout);
                 dateFilterGlowTimeout = null;
             }
+            dateSelect?.classList.remove('rep-date-filter-glow');
         }
 
         function triggerDateFilterGlow() {
+            const dateSelect = el('filterDateSelect');
+            if (!dateSelect) return;
+
             if (dateFilterGlowTimeout) {
                 clearTimeout(dateFilterGlowTimeout);
                 dateFilterGlowTimeout = null;
             }
+
+            dateSelect.classList.add('rep-date-filter-glow');
+            dateFilterGlowTimeout = setTimeout(() => {
+                dateSelect.classList.remove('rep-date-filter-glow');
+                dateFilterGlowTimeout = null;
+            }, 12000);
+        }
+
+        function focusDateFilterPicker() {
+            const dateSelect = el('filterDateSelect');
+            if (!dateSelect) return;
+
+            triggerDateFilterGlow();
+            dateSelect.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+
+            setTimeout(() => {
+                dateSelect.focus({ preventScroll: true });
+                if (typeof dateSelect.showPicker === 'function') {
+                    try {
+                        dateSelect.showPicker();
+                        return;
+                    } catch (error) { }
+                }
+                dateSelect.click();
+            }, 180);
+        }
+
+        function promptOpenDateFilterIfNeeded() {
+            if (hasPromptedDateFilterOnOpen) return;
+            if (getSelectedDates().length > 0) return;
+
+            hasPromptedDateFilterOnOpen = true;
+            triggerDateFilterGlow();
+
+            Swal.fire({
+                title: 'اختر اليومية',
+                text: 'افتح فلتر اليومية أولاً لعرض الشحنات الخاصة بك.',
+                icon: 'info',
+                confirmButtonText: 'فتح فلتر اليومية',
+                allowOutsideClick: true,
+                customClass: {
+                    popup: 'rounded-2xl shadow-2xl'
+                }
+            }).then(() => {
+                if (getSelectedDates().length === 0) {
+                    focusDateFilterPicker();
+                }
+            });
         }
 
         function saveRepUiState() {
@@ -1151,6 +1205,40 @@
             }
         }
 
+        function showShipmentUpdateNotification(type, shipment) {
+            if (!shipment) return;
+
+            const code = getShipmentDisplayLabel(shipment) || '---';
+            const client = String(shipment.اسم_العميل || shipment['اسم العميل'] || '---').trim();
+            const status = String(shipment.الحالة || '').trim();
+            const isStatusChange = type === 'status_changed';
+            const title = isStatusChange ? 'تحديث حالة شحنة' : 'تحديث شحنة';
+            const body = isStatusChange
+                ? `تم تغيير حالة الشحنة ${code}${status ? ` إلى ${status}` : ''}`
+                : `تم تحديث بيانات الشحنة ${code}${client && client !== '---' ? ` للعميل ${client}` : ''}`;
+
+            playNotificationSound();
+            Swal.fire({
+                toast: true,
+                position: 'top-start',
+                icon: isStatusChange ? 'info' : 'success',
+                title,
+                text: body,
+                showConfirmButton: false,
+                timer: 4500,
+                timerProgressBar: true
+            });
+
+            if ('Notification' in window && Notification.permission === 'granted') {
+                try {
+                    new Notification(title, {
+                        body,
+                        dir: 'rtl'
+                    });
+                } catch (error) { }
+            }
+        }
+
         function getShipmentUpdateValue(shipment) {
             const directValue = shipment?.['اليومية'] ?? shipment?.اليومية ?? shipment?.['اليوميه'];
             if (directValue !== null && directValue !== undefined) {
@@ -1222,6 +1310,7 @@
             await fetchLockedShipmentIds();
             restoreRepUiState();
             renderShipments();
+            promptOpenDateFilterIfNeeded();
         }
 
         async function fetchLockedShipmentIds() {
@@ -1760,7 +1849,7 @@
                 lastMetaSignature = metaSignature;
             }
 
-            if (selectedDates.length === 0 && selectedStatuses.length === 0) {
+            if (selectedDates.length === 0) {
                 list.innerHTML = `
                     <div class="text-center py-10 opacity-60">
                         <i class="fas fa-calendar-alt text-5xl mb-3"></i>
@@ -2551,8 +2640,10 @@
                         if (hasChanges) {
                             if (newRow.hasOwnProperty('الحالة') && localOld.الحالة !== newRow.الحالة) {
                                 addRepNotification('status_changed', merged);
+                                showShipmentUpdateNotification('status_changed', merged);
                             } else {
                                 addRepNotification('updated', merged);
+                                showShipmentUpdateNotification('updated', merged);
                             }
                         }
                     }
