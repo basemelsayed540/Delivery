@@ -182,16 +182,13 @@
                     class="w-full bg-white dark:bg-slate-800 pl-4 pr-12 py-3.5 rounded-xl text-sm font-black text-black dark:text-white outline-none border border-slate-200 dark:border-slate-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm">
             </div>
 
-            <div class="flex gap-2 w-full flex-nowrap overflow-x-auto pb-1">
-                <div class="relative min-w-[108px] flex-[0_0_108px] sm:flex-1">
-                    <button id="filterDateBtn"
-                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-black dark:text-white dark:bg-slate-800 outline-none border border-slate-200 dark:border-slate-700 text-center flex items-center justify-between transition-all">
-                        <span id="filterDateLabel" class="truncate">اليومية</span>
-                        <i class="fas fa-chevron-down text-[10px]"></i>
-                    </button>
-                    <div id="filterDateMenu"
-                        class="hidden absolute top-full right-0 mt-1 min-w-[200px] w-full bg-white rounded-xl shadow-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-700 max-h-60 overflow-y-auto z-[60] p-2 flex flex-col gap-1 text-right">
-                    </div>
+            <div class="flex gap-2 w-full flex-nowrap overflow-x-auto overflow-y-visible pb-1">
+                <div class="relative min-w-[108px] flex-[0_0_108px] sm:flex-1 z-[70]">
+                    <select id="filterDateSelect"
+                        class="w-full bg-white px-3 py-3 rounded-xl text-[12px] font-black text-slate-700 dark:text-slate-200 dark:bg-slate-800 outline-none appearance-none border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
+                        <option value="">اليومية</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[10px]"></i>
                 </div>
                 <div class="relative min-w-[108px] flex-[0_0_108px] sm:flex-1">
                     <select id="filterStatus"
@@ -687,17 +684,21 @@
             return Array.from(senderFilterSelections);
         }
 
-        function toggleDateSelection(value) {
+        function setDateSelection(value) {
             const normalizedValue = String(value || '').trim();
-            if (!normalizedValue) return;
+            dateFilterSelections.clear();
+            if (normalizedValue) {
+                dateFilterSelections.add(normalizedValue);
+            }
 
-            if (dateFilterSelections.has(normalizedValue)) dateFilterSelections.delete(normalizedValue);
-            else dateFilterSelections.add(normalizedValue);
-
-            saveDateFilter(getSelectedDates()[0] || '');
+            saveDateFilter(normalizedValue);
             saveRepUiState();
             stopDateFilterGlow();
             renderShipments();
+        }
+
+        function toggleDateSelection(value) {
+            setDateSelection(value);
         }
 
         function toggleZoneSelection(value) {
@@ -746,11 +747,6 @@
         }
 
         function triggerDateFilterGlow() {
-            const btn = el('filterDateBtn');
-            const menu = el('filterDateMenu');
-            if (!btn || !menu || !menu.classList.contains('hidden')) return;
-
-            // btn.classList.add('rep-date-filter-glow');
             if (dateFilterGlowTimeout) {
                 clearTimeout(dateFilterGlowTimeout);
                 dateFilterGlowTimeout = null;
@@ -1174,6 +1170,13 @@
             return String(fallbackValue).trim();
         }
 
+        function getShipmentDailyFilterValue(shipment) {
+            if (typeof getShipmentDailyValue === 'function') {
+                return String(getShipmentDailyValue(shipment) || '').trim();
+            }
+            return getShipmentUpdateValue(shipment);
+        }
+
         async function fetchShipments() {
             const previouslySeenIds = loadSeenShipmentIds();
             const isFirstLoad = previouslySeenIds.size === 0;
@@ -1306,7 +1309,7 @@
                     (!currentSender || currentSender === 'الكل' || s.الراسل === currentSender) &&
                     checkStatus(s)
                 )
-                .map(s => getShipmentUpdateValue(s))
+                .map(s => getShipmentDailyFilterValue(s))
                 .filter(Boolean))].sort().reverse();
             const datesSet = new Set(dates);
             const normalizedSelectedDates = getSelectedDates().filter(date => datesSet.has(date));
@@ -1319,7 +1322,7 @@
 
             const zones = [...new Set(allShipments
                 .filter(s => 
-                    (selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s))) && 
+                    (selectedDates.length === 0 || selectedDates.includes(getShipmentDailyFilterValue(s))) && 
                     (!currentSender || currentSender === 'الكل' || s.الراسل === currentSender) &&
                     checkStatus(s)
                 )
@@ -1328,7 +1331,7 @@
 
             const senders = [...new Set(allShipments
                 .filter(s => 
-                    (selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s))) && 
+                    (selectedDates.length === 0 || selectedDates.includes(getShipmentDailyFilterValue(s))) && 
                     (!currentZone || currentZone === 'الكل' || s.الزون === currentZone) &&
                     checkStatus(s)
                 )
@@ -1350,7 +1353,7 @@
             const currentSender = getElementValue('filterSender');
 
             const scopedShipments = allShipments.filter(s => {
-                const matchDate = selectedDates.length === 0 || selectedDates.includes(getShipmentUpdateValue(s));
+                const matchDate = selectedDates.length === 0 || selectedDates.includes(getShipmentDailyFilterValue(s));
                 const matchZone = !currentZone || currentZone === 'الكل' || s.الزون === currentZone;
                 const matchSender = !currentSender || currentSender === 'الكل' || s.الراسل === currentSender;
                 return matchDate && matchZone && matchSender;
@@ -1371,40 +1374,10 @@
         }
 
         function fillDateDropdown(items) {
-            const menu = el('filterDateMenu');
-            const label = el('filterDateLabel');
-            if (!menu || !label) return;
+            const select = el('filterDateSelect');
+            if (!select) return;
 
-            const selectedArr = getSelectedDates();
-            const btn = el('filterDateBtn');
-            
-            if (selectedArr.length > 0) {
-                label.innerText = selectedArr.length === 1 ? selectedArr[0] : `اليومية (${selectedArr.length})`;
-                label.classList.add('text-white', 'font-black');
-                label.classList.remove('text-slate-700', 'dark:text-slate-200');
-                if (btn) {
-                    btn.classList.add('bg-indigo-600', 'dark:bg-indigo-500', 'border-indigo-600', 'shadow-indigo-500/30');
-                    btn.classList.remove('bg-white', 'dark:bg-slate-800', 'border-slate-200', 'text-black', 'dark:text-white');
-                }
-            } else {
-                label.innerText = 'اليومية';
-                label.classList.remove('text-white', 'font-black');
-                label.classList.add('text-slate-700', 'dark:text-slate-200');
-                if (btn) {
-                    btn.classList.remove('bg-indigo-600', 'dark:bg-indigo-500', 'border-indigo-600', 'shadow-indigo-500/30');
-                    btn.classList.add('bg-white', 'dark:bg-slate-800', 'border-slate-200', 'text-black', 'dark:text-white');
-                }
-            }
-
-            if (!items || items.length === 0) {
-                menu.innerHTML = `
-                    <div class="px-2 py-3 text-center text-[11px] font-bold text-slate-500 dark:text-slate-200">
-                        لا يوجد يومية متاحة
-                    </div>
-                `;
-                return;
-            }
-
+            const selectedValue = getSelectedDates()[0] || '';
             const narrowedData = filterShipmentsCollection(allShipments, {
                 zones: getSingleSelectFilter('filterZone'),
                 senders: getSingleSelectFilter('filterSender'),
@@ -1413,23 +1386,22 @@
 
             const dateCounts = {};
             narrowedData.forEach(s => {
-                const d = getShipmentUpdateValue(s);
+                const d = getShipmentDailyFilterValue(s);
                 if (d) dateCounts[d] = (dateCounts[d] || 0) + 1;
             });
 
-            menu.innerHTML = items.map(item => {
-                const isSelected = dateFilterSelections.has(item);
-                const count = dateCounts[item] || 0;
-                return `
-                    <label class="rep-date-option flex items-center justify-between gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" ${isSelected ? 'checked' : ''} data-action="toggle-date-selection" data-date="${item.replace(/"/g, '&quot;')}" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
-                            <span class="text-slate-700 dark:text-slate-200 font-bold">${item}</span>
-                        </div>
-                        <span class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full font-black">${count}</span>
-                    </label>
-                `;
-            }).join('');
+            let optionsHtml = '<option value="">اليومية</option>';
+            if (!items || items.length === 0) {
+                optionsHtml += '<option value="" disabled>لا يوجد يومية متاحة</option>';
+            } else {
+                items.forEach(item => {
+                    const count = dateCounts[item] || 0;
+                    optionsHtml += `<option value="${item.replace(/"/g, '&quot;')}" class="text-slate-800 bg-white">${item} (${count})</option>`;
+                });
+            }
+
+            select.innerHTML = optionsHtml;
+            applyActiveSelectState(select, selectedValue ? [selectedValue] : [], '');
         }
 
         function fillZoneDropdown(items) {
@@ -1555,7 +1527,7 @@
                 }
             }
 
-            if (dates.length > 0 && !dates.includes(getShipmentUpdateValue(shipment))) return false;
+            if (dates.length > 0 && !dates.includes(getShipmentDailyFilterValue(shipment))) return false;
             if (zones.length > 0 && !zones.includes(shipment.الزون)) return false;
             if (senders.length > 0 && !senders.includes(shipment.الراسل)) return false;
             return matchesSelectedStatuses(shipment, statuses);
@@ -2373,11 +2345,6 @@
             saveRepUiState();
         });
 
-        el('filterDateBtn')?.addEventListener('click', () => {
-            el('filterDateMenu')?.classList.toggle('hidden');
-            stopDateFilterGlow();
-        });
-
         el('trackingToggleBtn')?.addEventListener('click', toggleTracking);
         el('themeToggleBtn')?.addEventListener('click', toggleTheme);
         el('logoutBtn')?.addEventListener('click', logout);
@@ -2394,20 +2361,11 @@
             event.stopPropagation();
             toggleRepNotificationsPanel();
         });
+        el('filterDateSelect')?.addEventListener('change', (event) => toggleDateSelection(event.target.value));
         el('filterStatus')?.addEventListener('change', (event) => toggleStatusSelection(event.target.value));
         el('filterZone')?.addEventListener('change', (event) => toggleZoneSelection(event.target.value));
         el('filterSender')?.addEventListener('change', (event) => toggleSenderSelection(event.target.value));
         el('bulkStatusSelect')?.addEventListener('change', updateBulkActionBar);
-        el('filterDateMenu')?.addEventListener('click', (event) => {
-            if (event.target.closest('.rep-date-option')) {
-                event.stopPropagation();
-            }
-        });
-        el('filterDateMenu')?.addEventListener('change', (event) => {
-            const dateCheckbox = event.target.closest('[data-action="toggle-date-selection"]');
-            if (!dateCheckbox) return;
-            toggleDateSelection(dateCheckbox.dataset.date || '');
-        });
         el('shipmentsList')?.addEventListener('change', (event) => {
             const shipmentCheckbox = event.target.closest('[data-action="toggle-shipment-selection"]');
             if (!shipmentCheckbox) return;
@@ -2529,16 +2487,11 @@
             if (isNotificationsPanelOpen && notifPanel && notifBtn && !notifPanel.contains(event.target) && !notifBtn.contains(event.target)) {
                 closeRepNotificationsPanel();
             }
-            const dateBtn = el('filterDateBtn');
-            const dateMenu = el('filterDateMenu');
             const zoneBtn = el('filterZoneBtn');
             const zoneMenu = el('filterZoneMenu');
             const senderBtn = el('filterSenderBtn');
             const senderMenu = el('filterSenderMenu');
 
-            if (dateBtn && dateMenu && !dateBtn.contains(event.target) && !dateMenu.contains(event.target)) {
-                dateMenu.classList.add('hidden');
-            }
             if (zoneBtn && zoneMenu && !zoneBtn.contains(event.target) && !zoneMenu.contains(event.target)) {
                 zoneMenu.classList.add('hidden');
             }
